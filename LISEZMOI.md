@@ -89,5 +89,5 @@ Ce projet est sous licence **MIT**.
 ---
 
 <p align="center">
-  Fait avec ❤️ par AadaTech <a href="https://github.com/aadatech">Njm</a>
+  Fait avec ❤️ par Fenneko <a href="https://github.com/fnnktkygl-code">Fnnk</a>
 </p>
