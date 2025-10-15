@@ -89,5 +89,5 @@ This project is licensed under the **MIT License** — see the [LICENSE](./LICEN
 ---
 
 <p align="center">
-  Made with ❤️ by  AadaTech <a href="https://github.com/aadatech">Your Name</a>
+  Made with ❤️ by  AadaTech <a href="https://github.com/aadatech">Njm</a>
 </p>
