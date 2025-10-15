@@ -1,93 +1,78 @@
-<h1 align="center">✨ PHP - Paste History Past - Chrome Extension</h1>
-
+✨ PHP - Paste History Past
 <p align="center">
-  <img src="https://img.shields.io/badge/Manifest-V3-brightgreen.svg" alt="Manifest V3">
-  <img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT">
-  <img src="https://img.shields.io/badge/Made%20with-JavaScript-yellow.svg" alt="Made with JavaScript">
+<img src="https://www.google.com/search?q=https://img.shields.io/badge/Manifest-V3-brightgreen.svg" alt="Manifest V3">
+<img src="https://www.google.com/search?q=https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT">
+<img src="https://www.google.com/search?q=https://img.shields.io/badge/Made%2520with-JavaScript-yellow.svg" alt="Made with JavaScript">
 </p>
 
-<p align="center">
-  A minimal, modern, and privacy-first Chrome extension to track and quickly access your paste history.<br>
-  <strong>Never lose copied text again!</strong>
-</p>
+A minimal, modern, and privacy-first Chrome extension to track and quickly access your paste history. Never lose copied text again!
 
 <p align="center">
-  <img src="./icons/extension-demo.gif" alt="PHP Paste History Past Demo" width="400">
+<img src="./icons/extension-demo.gif" alt="PHP Paste History Past Demo" width="400">
 </p>
 
----
+🚀 Features
+Paste History: Automatically saves your last 50 copied texts.
 
-## 🚀 Features
+Instant Access: Open the popup with a click or use the keyboard shortcut Alt+V (Windows/Linux) or Cmd+Shift+V (Mac).
 
-- **Paste History** — Automatically saves your last 50 copied texts.  
-- **Instant Access** — Open the popup with a click or use the keyboard shortcut `Alt+V` (Windows/Linux) or `Cmd+Shift+V` (Mac).  
-- **Powerful Filtering** — Instantly search or filter by *All*, *Links*, or *Pinned* items.  
-- **Pin Important Clips** — Keep your favorite clips forever.  
-- **Light & Dark Mode** — Auto-syncs with your system theme, or toggle manually.  
-- **Privacy First** — 100% local storage, nothing ever leaves your browser.  
-- **Modern UI** — Clean, intuitive interface with smooth animations.  
-- **Smart Cleanup** — Automatically removes old, unpinned clips after 24 hours.
+Powerful Filtering: Instantly search through your clips or filter by All, Links, or Pinned items.
 
----
+Pin Important Clips: Pin any clip to prevent it from being automatically deleted.
 
-## 📦 Installation
+Light & Dark Mode: Automatically syncs with your system theme, or toggle it manually.
 
+Privacy First: All data is stored 100% locally on your machine. Nothing ever leaves your browser.
+
+Modern UI: A clean, beautiful, and intuitive interface with smooth animations.
+
+Smart Cleanup: Old, unpinned clips are automatically removed after 24 hours to save space.
+
+📦 Installation
 To install and test this extension locally:
 
-1. **Download or Clone**  
-   - Download this repository as a ZIP file and unzip it, or  
-   - Clone it using Git:
-     ```bash
-     git clone https://github.com/yourusername/paste-history-past.git
-     ```
-2. **Open Chrome Extensions**  
-   Navigate to: `chrome://extensions/`
-3. **Enable Developer Mode**  
-   Toggle the switch in the top-right corner.
-4. **Load the Extension**  
-   Click **Load unpacked** and select the `paste_history` project folder.
-5. **Done!**  
-   The “PHP - Paste History Past” icon will now appear in your Chrome toolbar.
+Download or Clone: Download this repository as a ZIP file and unzip it, or clone it using Git.
 
----
+Open Chrome Extensions: Open Chrome and navigate to chrome://extensions/.
 
-## 🎯 Usage
+Enable Developer Mode: Turn on the "Developer mode" toggle in the top-right corner.
 
-- **Copy Text:** Copy any text from any webpage.  
-- **Open Popup:** Click the extension icon or press `Alt+V` / `Cmd+Shift+V`.  
-- **Copy a Clip:** Click any clip to copy it back to your clipboard.  
-- **Pin/Unpin:** Click the pin icon on a clip to keep it indefinitely.  
-- **Delete a Clip:** Hover and click the trash can icon.  
-- **Preview:** Hover and click the eye icon to see long clip previews.
+Load the Extension: Click the "Load unpacked" button.
 
----
+Select the Folder: Select the paste_history project folder.
 
-## 🔒 Privacy
+Done! The "PHP - Paste History Past" icon will appear in your Chrome toolbar.
 
-Your privacy is the **top priority**.  
-This extension is designed to be secure and private by default.
+🎯 Usage
+Copy Text: Copy any text from any webpage as you normally would.
 
-- **100% Local Storage** — Uses `chrome.storage.local` only.  
-- **No Tracking** — No analytics, telemetry, or hidden data collection.  
-- **No Network Requests** — The extension never connects externally.  
-- **Open Source** — Fully transparent for your review and audit.
+Open Popup: Click the extension icon in your toolbar or press Alt+V / Cmd+Shift+V.
 
----
+Copy a Clip: Simply click on any clip in the list to copy it back to your clipboard.
 
-## 🛠️ Built With
+Pin/Unpin: Click the pin icon in the top-right corner of a clip to keep it indefinitely.
 
-- **Manifest V3** — Latest Chrome extension standard.  
-- **Vanilla JavaScript** — Lightweight and fast, no heavy frameworks.  
-- **CSS** — Clean, responsive, modern styling.
+Delete a Clip: Hover over a clip and click the trash can icon to delete it.
 
----
+Preview: Hover and click the eye icon to see a full preview of a long clip.
 
-## 📄 License
+🔒 Privacy
+Your privacy is the top priority. This extension is built to be secure and private by design.
 
-This project is licensed under the **MIT License** — see the [LICENSE](./LICENSE) file for details.
+100% Local Storage: All your clipboard data is stored locally on your computer using chrome.storage.local.
 
----
+No Tracking: There are no analytics, no telemetry, and no data collection of any kind.
 
-<p align="center">
-  Made with ❤️ by <a href="https://github.com/yourusername">Your Name</a>
-</p>
+No Network Requests: The extension never makes any external network requests.
+
+Open Source: The code is completely open for you to review and audit.
+
+🛠️ Built With
+Manifest V3: The latest and most secure Chrome extension standard.
+
+Vanilla JavaScript: No heavy frameworks, ensuring the extension is lightweight and fast.
+
+CSS: Modern styling for a clean and responsive user interface.
+
+📄 License
+This project is licensed under the MIT License. See the LICENSE file for details.
