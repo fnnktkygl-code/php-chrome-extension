@@ -1,14 +1,14 @@
-<h1 align="center">✨ PHP - Paste History Past - Extension Chrome</h1>
+<h1 align="center">✨ PHP - Paste History Past - Chrome Extension</h1>
 
 <p align="center">
   <img src="https://img.shields.io/badge/Version-1.0.0-blue.svg" alt="Version 1.0.0">
   <img src="https://img.shields.io/badge/Manifest-V3-brightgreen.svg" alt="Manifest V3">
-  <img src="https://img.shields.io/badge/Licence-MIT-blue.svg" alt="Licence: MIT">
+  <img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT">
 </p>
 
 <p align="center">
-  Une extension Chrome minimale, moderne et respectueuse de la vie privée pour suivre et accéder rapidement à votre historique de copier-coller.<br>
-  <strong>Ne perdez plus jamais un texte copié !</strong>
+  A minimal, modern, and privacy-first Chrome extension to track and quickly access your paste history.<br>
+  <strong>Never lose copied text again!</strong>
 </p>
 
 <p align="center">
@@ -17,77 +17,77 @@
 
 ---
 
-## 🚀 Fonctionnalités
+## 🚀 Features
 
--   **Historique du presse-papiers** — Sauvegarde automatiquement vos 50 derniers textes copiés.
--   **Support Multilingue** — Interface disponible en Français et en Anglais, avec détection automatique de la langue.
--   **Accès Instantané** — Ouvrez la pop-up d'un clic ou utilisez le raccourci clavier `Alt+V` (Windows/Linux) ou `Cmd+Shift+V` (Mac).
--   **Filtre Puissant** — Recherchez ou filtrez instantanément par *Tous*, *Liens*, ou éléments *Épinglés*.
--   **Épingler les Clips Importants** — Conservez vos clips favoris pour toujours.
--   **Mode Clair & Sombre** — Se synchronise automatiquement avec le thème de votre système, ou basculez manuellement.
--   **Vie Privée d'Abord** — Stockage 100% local, rien ne quitte jamais votre navigateur.
--   **Interface Moderne** — Une interface propre et intuitive avec des animations fluides.
--   **Nettoyage Intelligent** — Supprime automatiquement les anciens clips non épinglés après 24 heures.
+-   **Clipboard History** — Automatically saves your last 50 copied texts.
+-   **Multi-language Support** — Interface available in English and French, with automatic language detection.
+-   **Instant Access** — Open the popup with a click or use the keyboard shortcut `Alt+V` (Windows/Linux) or `Cmd+Shift+V` (Mac).
+-   **Powerful Filtering** — Instantly search or filter by *All*, *Links*, or *Pinned* items.
+-   **Pin Important Clips** — Keep your favorite clips forever.
+-   **Light & Dark Mode** — Auto-syncs with your system theme, or toggle manually.
+-   **Privacy First** — 100% local storage, nothing ever leaves your browser.
+-   **Modern UI** — A clean, intuitive interface with smooth animations.
+-   **Smart Cleanup** — Automatically removes old, unpinned clips after 24 hours.
 
 ---
 
 ## 📦 Installation
 
-Pour installer et tester cette extension localement :
+To install and test this extension locally:
 
-1.  **Télécharger ou Cloner**
-    -   Téléchargez ce dépôt en tant que fichier ZIP et décompressez-le, ou
-    -   Clonez-le en utilisant Git :
+1.  **Download or Clone**
+    -   Download this repository as a ZIP file and unzip it, or
+    -   Clone it using Git:
         ```bash
         git clone [https://github.com/yourusername/paste-history-past.git](https://github.com/yourusername/paste-history-past.git)
         ```
-2.  **Ouvrir les Extensions Chrome**
-    Naviguez vers : `chrome://extensions/`
-3.  **Activer le Mode Développeur**
-    Activez l'interrupteur dans le coin supérieur droit.
-4.  **Charger l'Extension**
-    Cliquez sur **Charger l'extension non empaquetée** et sélectionnez le dossier du projet `paste_history`.
-5.  **Terminé !**
-    L'icône "PHP - Paste History Past" apparaîtra maintenant dans votre barre d'outils Chrome.
+2.  **Open Chrome Extensions**
+    Navigate to: `chrome://extensions/`
+3.  **Enable Developer Mode**
+    Toggle the switch in the top-right corner.
+4.  **Load the Extension**
+    Click **Load unpacked** and select the `paste_history` project folder.
+5.  **Done!**
+    The “PHP - Paste History Past” icon will now appear in your Chrome toolbar.
 
 ---
 
-## 🎯 Utilisation
+## 🎯 Usage
 
--   **Copier du Texte :** Copiez n'importe quel texte depuis n'importe quelle page web.
--   **Ouvrir la Pop-up :** Cliquez sur l'icône de l'extension ou appuyez sur `Alt+V` / `Cmd+Shift+V`.
--   **Copier un Clip :** Cliquez sur n'importe quel clip pour le copier à nouveau dans votre presse-papiers.
--   **Épingler/Désépingler :** Cliquez sur l'icône d'épingle sur un clip pour le conserver indéfiniment.
--   **Supprimer un Clip :** Survolez et cliquez sur l'icône de la corbeille.
--   **Aperçu :** Survolez et cliquez sur l'icône de l'œil pour voir des aperçus de clips longs.
-
----
-
-## 🔒 Confidentialité
-
-Votre vie privée est la **priorité absolue**. Cette extension est conçue pour être sécurisée et privée par défaut.
-
--   **100% Stockage Local** — Utilise uniquement `chrome.storage.local`.
--   **Aucun Suivi** — Pas d'analytique, de télémétrie ou de collecte de données cachée.
--   **Aucune Requête Réseau** — L'extension ne se connecte jamais à l'extérieur.
--   **Open Source** — Entièrement transparent pour votre examen et audit.
+-   **Copy Text:** Copy any text from any webpage.
+-   **Open Popup:** Click the extension icon or press `Alt+V` / `Cmd+Shift+V`.
+-   **Copy a Clip:** Click any clip to copy it back to your clipboard.
+-   **Pin/Unpin:** Click the pin icon on a clip to keep it indefinitely.
+-   **Delete a Clip:** Hover and click the trash can icon.
+-   **Preview:** Hover and click the eye icon to see long clip previews.
 
 ---
 
-## 🛠️ Construit Avec
+## 🔒 Privacy
 
--   **Manifest V3** — Le dernier standard pour les extensions Chrome.
--   **JavaScript Vanilla** — Léger et rapide, sans frameworks lourds.
--   **CSS** — Un style propre, responsive et moderne.
+Your privacy is the **top priority**. This extension is designed to be secure and private by default.
+
+-   **100% Local Storage** — Uses `chrome.storage.local` only.
+-   **No Tracking** — No analytics, telemetry, or hidden data collection.
+-   **No Network Requests** — The extension never connects externally.
+-   **Open Source** — Fully transparent for your review and audit.
 
 ---
 
-## 📄 Licence
+## 🛠️ Built With
 
-Ce projet est sous licence **MIT**.
+-   **Manifest V3** — The latest Chrome extension standard.
+-   **Vanilla JavaScript** — Lightweight and fast, no heavy frameworks.
+-   **CSS** — Clean, responsive, and modern styling.
+
+---
+
+## 📄 License
+
+This project is licensed under the **MIT License**.
 
 ---
 
 <p align="center">
-  Fait avec ❤️ par AadaTech <a href="https://github.com/aadatech">Njm</a>
+  Made with ❤️ by AadaTech <a href="https://github.com/aadatech">Njm</a>
 </p>

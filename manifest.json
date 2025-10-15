@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "PHP - Paste History Past",
-    "version": "2.0.0",
+    "version": "1.0.0",
     "description": "Quick access to your clipboard history with multi-language support - never lose copied text again",
     "homepage_url": "https://github.com/aadatech/paste_history_chrome_extension",
     "permissions": [
