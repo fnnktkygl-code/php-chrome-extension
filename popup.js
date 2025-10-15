@@ -1,4 +1,9 @@
-document.addEventListener('DOMContentLoaded', () => {
+// popup.js - UPDATED VERSION WITH i18n
+
+document.addEventListener('DOMContentLoaded', async () => {
+    // Initialize i18n first
+    await i18n.init();
+    
     const state = {
         clips: [],
         filter: 'all',
@@ -12,6 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const clipCountEl = document.getElementById('clipCount');
     const themeToggle = document.getElementById('themeToggle');
     const clearAllBtn = document.getElementById('clearAll');
+    const languageToggle = document.getElementById('languageToggle');
     const tabs = document.querySelector('.tabs');
     const modalOverlay = document.getElementById('modalOverlay');
     const modalText = document.getElementById('modalText');
@@ -24,13 +30,35 @@ document.addEventListener('DOMContentLoaded', () => {
         const { theme } = await chrome.storage.local.get('theme');
         if (theme === 'light') {
             document.body.classList.add('light-mode');
-            themeToggle.textContent = '☀️';
         }
+        updateThemeIcon();
+        updateLanguageIcon();
 
         const { clips } = await chrome.storage.local.get('clips');
         state.clips = clips || [];
         
+        updateUIText();
         render();
+    }
+
+    function updateUIText() {
+        // Update header
+        document.querySelector('h1').textContent = i18n.t('appTitle');
+        themeToggle.title = i18n.t('themeToggle');
+        clearAllBtn.title = i18n.t('clearAll');
+        languageToggle.title = i18n.t('language');
+        
+        // Update tabs
+        document.querySelectorAll('.tab').forEach(tab => {
+            const tabKey = tab.dataset.tab;
+            tab.textContent = i18n.t(`tab${tabKey.charAt(0).toUpperCase() + tabKey.slice(1)}`);
+        });
+        
+        // Update search placeholder
+        searchInput.placeholder = i18n.t('searchPlaceholder');
+        
+        // Update modal title
+        document.querySelector('.modal-title').textContent = i18n.t('modalTitle');
     }
 
     function render() {
@@ -54,8 +82,19 @@ document.addEventListener('DOMContentLoaded', () => {
         tabs.addEventListener('click', handleTabChange);
         clearAllBtn.addEventListener('click', clearAllUnpinned);
         themeToggle.addEventListener('click', toggleTheme);
+        languageToggle.addEventListener('click', toggleLanguage);
         modalOverlay.addEventListener('click', closeModal);
         modalClose.addEventListener('click', closeModal);
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', handleKeyboard);
+    }
+
+    function handleKeyboard(e) {
+        // ESC to close modal
+        if (e.key === 'Escape' && modalOverlay.classList.contains('show')) {
+            closeModal(e);
+        }
     }
 
     function handleClipAction(e) {
@@ -109,8 +148,17 @@ document.addEventListener('DOMContentLoaded', () => {
     async function copyToClipboard(clipId) {
         const clip = state.clips.find(c => c.id === clipId);
         if (clip) {
-            await navigator.clipboard.writeText(clip.text);
-            showToast();
+            try {
+                await navigator.clipboard.writeText(clip.text);
+                showToast();
+                
+                // Update copy count
+                clip.copyCount = (clip.copyCount || 0) + 1;
+                clip.lastCopied = Date.now();
+                await saveClips();
+            } catch (err) {
+                console.error('Failed to copy:', err);
+            }
         }
     }
 
@@ -125,7 +173,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     async function deleteClip(clipId) {
-        if (confirm('Are you sure you want to delete this clip?')) {
+        if (confirm(i18n.t('confirmDelete'))) {
             state.clips = state.clips.filter(c => c.id !== clipId);
             await saveClips();
             render();
@@ -133,7 +181,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function clearAllUnpinned() {
-        if (confirm('Clear all non-pinned clips? This cannot be undone.')) {
+        if (confirm(i18n.t('confirmClearAll'))) {
             state.clips = state.clips.filter(c => c.pinned);
             await saveClips();
             render();
@@ -143,8 +191,28 @@ document.addEventListener('DOMContentLoaded', () => {
     async function toggleTheme() {
         document.body.classList.toggle('light-mode');
         const isLight = document.body.classList.contains('light-mode');
-        themeToggle.textContent = isLight ? '☀️' : '🌙';
+        updateThemeIcon();
         await chrome.storage.local.set({ theme: isLight ? 'light' : 'dark' });
+    }
+
+    function updateThemeIcon() {
+        const isLight = document.body.classList.contains('light-mode');
+        themeToggle.textContent = isLight ? '☀️' : '🌙';
+    }
+
+    async function toggleLanguage() {
+        const currentLocale = i18n.getCurrentLocale();
+        const newLocale = currentLocale === 'en' ? 'fr' : 'en';
+        await i18n.setLocale(newLocale);
+        updateLanguageIcon();
+        updateUIText();
+        render();
+    }
+
+    function updateLanguageIcon() {
+        const locale = i18n.getCurrentLocale();
+        languageToggle.textContent = locale === 'en' ? '🇬🇧' : '🇫🇷';
+        languageToggle.title = i18n.t('language') + ': ' + i18n.t(locale === 'en' ? 'languageEnglish' : 'languageFrench');
     }
 
     function showPreview(clipId) {
@@ -152,11 +220,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (clip) {
             modalText.textContent = clip.text;
             modalOverlay.classList.add('show');
+            document.querySelector('.modal-title').textContent = i18n.t('modalTitle');
         }
     }
 
     function closeModal(e) {
-        if (e.target === modalOverlay || e.target === modalClose) {
+        if (e.target === modalOverlay || e.target === modalClose || e.key === 'Escape') {
             modalOverlay.classList.remove('show');
         }
     }
@@ -192,7 +261,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function sortClips() {
         state.clips.sort((a, b) => {
             if (a.pinned && !b.pinned) return -1;
-            if (!b.pinned && a.pinned) return 1;
+            if (!a.pinned && b.pinned) return 1;
             return b.timestamp - a.timestamp;
         });
     }
@@ -203,24 +272,25 @@ document.addEventListener('DOMContentLoaded', () => {
     
     function showToast() {
         const toast = document.getElementById('copiedToast');
+        toast.innerHTML = `<span>${i18n.t('copiedToast')}</span>`;
         toast.classList.add('show');
         setTimeout(() => toast.classList.remove('show'), 2000);
     }
 
     function timeAgo(timestamp) {
         const seconds = Math.floor((Date.now() - timestamp) / 1000);
-        if (seconds < 60) return 'just now';
+        if (seconds < 60) return i18n.t('justNow');
         const minutes = Math.floor(seconds / 60);
-        if (minutes < 60) return `${minutes}m ago`;
+        if (minutes < 60) return i18n.t('minutesAgo', minutes);
         const hours = Math.floor(minutes / 60);
-        if (hours < 24) return `${hours}h ago`;
-        return `${Math.floor(hours / 24)}d ago`;
+        if (hours < 24) return i18n.t('hoursAgo', hours);
+        return i18n.t('daysAgo', Math.floor(hours / 24));
     }
 
     function escapeHtml(text) {
-        const p = document.createElement('p');
-        p.textContent = text;
-        return p.innerHTML;
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     }
 
     // --- HTML Generators ---
@@ -229,32 +299,34 @@ document.addEventListener('DOMContentLoaded', () => {
         const isLinkClip = isLink(clip.text);
         const colorClass = `color-${clip.id % 10}`;
         const pinnedClass = clip.pinned ? 'pinned' : '';
+        const pinTitle = clip.pinned ? i18n.t('unpin') : i18n.t('pin');
 
         return `
-        <div class="clip-item ${pinnedClass} ${colorClass}" data-id="${clip.id}" data-action="copy" title="Click to copy">
+        <div class="clip-item ${pinnedClass} ${colorClass}" data-id="${clip.id}" data-action="copy" title="${i18n.t('clickToCopy')}">
             <div class="clip-header">
-                <div class="clip-category">${isLinkClip ? '🔗 Link' : '📝 Text'}</div>
+                <div class="clip-category">${isLinkClip ? i18n.t('categoryLink') : i18n.t('categoryText')}</div>
                 <div class="clip-actions">
-                    <button class="clip-action-btn preview" data-id="${clip.id}" data-action="preview" title="Preview">👁️</button>
-                    <button class="clip-action-btn delete" data-id="${clip.id}" data-action="delete" title="Delete clip">🗑️</button>
-                    <button class="clip-action-btn ${pinnedClass}" data-id="${clip.id}" data-action="pin" title="Pin clip">📌</button>
+                    <button class="clip-action-btn preview" data-id="${clip.id}" data-action="preview" title="${i18n.t('preview')}">👁️</button>
+                    <button class="clip-action-btn delete" data-id="${clip.id}" data-action="delete" title="${i18n.t('delete')}">🗑️</button>
+                    <button class="clip-action-btn ${pinnedClass}" data-id="${clip.id}" data-action="pin" title="${pinTitle}">📌</button>
                 </div>
             </div>
             <div class="clip-text">${escapeHtml(clip.text)}</div>
             <div class="clip-meta">
                 <span>${timeAgo(clip.timestamp)}</span>
                 <span>•</span>
-                <span>${clip.text.length} chars</span>
+                <span>${i18n.t('chars', clip.text.length)}</span>
+                ${clip.copyCount ? `<span>•</span><span class="copy-count">📋 ${clip.copyCount}</span>` : ''}
             </div>
         </div>`;
     }
 
     function createEmptyStateHTML() {
         const messages = {
-            all: { icon: '📝', title: 'No clips yet', text: 'Copy some text and watch the magic happen.<br>Your clips are saved locally & securely.'},
-            links: { icon: '🔗', title: 'No links found', text: 'Links you copy will appear in this tab.' },
-            pinned: { icon: '📌', title: 'No pinned clips', text: 'Pin important clips to keep them forever.'},
-            search: { icon: '🧐', title: 'No matches found', text: 'Try a different search term.'}
+            all: { icon: '📋', titleKey: 'emptyAllTitle', textKey: 'emptyAllText'},
+            links: { icon: '🔗', titleKey: 'emptyLinksTitle', textKey: 'emptyLinksText' },
+            pinned: { icon: '📌', titleKey: 'emptyPinnedTitle', textKey: 'emptyPinnedText'},
+            search: { icon: '🔍', titleKey: 'emptySearchTitle', textKey: 'emptySearchText'}
         };
 
         const key = state.searchTerm ? 'search' : state.filter;
@@ -263,12 +335,11 @@ document.addEventListener('DOMContentLoaded', () => {
         return `
         <div class="empty-state">
           <div class="empty-state-icon">${msg.icon}</div>
-          <h2>${msg.title}</h2>
-          <p>${msg.text}</p>
+          <h2>${i18n.t(msg.titleKey)}</h2>
+          <p>${i18n.t(msg.textKey)}</p>
         </div>`;
     }
 
     // --- Initialize ---
     initialize();
 });
-

@@ -17,8 +17,9 @@
         <span class="clip-count" id="clipCount">0</span>
       </div>
       <div class="header-actions">
-        <button class="icon-btn" id="themeToggle" title="Toggle theme"></button>
-        <button class="icon-btn" id="clearAll" title="Clear all"></button>
+        <button class="icon-btn" id="languageToggle" title="Language">🇬🇧</button>
+        <button class="icon-btn" id="themeToggle" title="Toggle theme">🌙</button>
+        <button class="icon-btn" id="clearAll" title="Clear all">🗑️</button>
       </div>
     </div>
     
@@ -29,9 +30,9 @@
     </div>
 
     <div class="search-box">
-      <span class="search-icon"></span>
+      <span class="search-icon">🔍</span>
       <input type="text" id="searchInput" placeholder="Search your clips...">
-      <button class="clear-search" id="clearSearch"></button>
+      <button class="clear-search" id="clearSearch">✕</button>
     </div>
   </div>
 
@@ -43,17 +44,18 @@
     <div class="modal">
       <div class="modal-header">
         <div class="modal-title">Full Preview</div>
-        <button class="modal-close" id="modalClose"></button>
+        <button class="modal-close" id="modalClose">✕</button>
       </div>
       <div class="modal-text" id="modalText"></div>
     </div>
   </div>
 
   <div class="copied-toast" id="copiedToast">
-    <span>Copied to clipboard</span>
+    <span>✓ Copied to clipboard</span>
   </div>
 
+  <!-- IMPORTANT: i18n.js MUST be loaded BEFORE popup.js -->
+  <script src="i18n.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>
-
