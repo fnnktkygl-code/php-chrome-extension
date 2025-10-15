@@ -1,14 +1,16 @@
 {
     "manifest_version": 3,
-    "name": "Paste History",
+    "name": "PHP - Paste History Past",
     "version": "1.0.0",
     "description": "Quick access to your clipboard history - never lose copied text again",
+    "homepage_url": "https://github.com/aadatech/paste_history_chrome_extension",
     "permissions": [
       "storage",
       "clipboardWrite"
     ],
     "action": {
       "default_popup": "popup.html",
+      "default_title": "PHP - Paste History Past",
       "default_icon": {
         "16": "icons/icon16.png",
         "48": "icons/icon48.png",
@@ -48,5 +50,3 @@
       "128": "icons/icon128.png"
     }
   }
-  
-  
