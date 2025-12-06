@@ -35,19 +35,19 @@
 
 ### 1️⃣ The Main Interface
 *Clean, Modern, and Dark-Mode ready. Access your history instantly.*
-<img src="store_assets/store_slide_1_main_1280x800.png" alt="Main View Mockup" width="100%" style="border-radius: 8px;">
+<img src="store_assets/clean_main.png" alt="Main View Mockup" width="100%" style="border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
 
 <br>
 
 ### 2️⃣ Specialized for Links
 *Automatically detects URLs. Filter by "Links" to find that website you copied earlier.*
-<img src="store_assets/store_slide_2_links_1280x800.png" alt="Links View Mockup" width="100%" style="border-radius: 8px;">
+<img src="store_assets/clean_links.png" alt="Links View Mockup" width="100%" style="border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
 
 <br>
 
 ### 3️⃣ Powerful Search
 *Type anything to filter your history instantly.*
-<img src="store_assets/store_slide_3_search_1280x800.png" alt="Search View Mockup" width="100%" style="border-radius: 8px;">
+<img src="store_assets/clean_search.png" alt="Search View Mockup" width="100%" style="border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
 
 ---
 

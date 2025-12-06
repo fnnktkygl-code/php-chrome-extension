@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PHP Extension Mock</title>
+    <!-- Load Extension Styles -->
+    <link rel="stylesheet" href="../popup.css">
+    <style>
+        body {
+            width: 400px; /* Fixed width for screenshot consistency */
+            height: 600px;
+            margin: 0;
+            overflow: hidden; /* Prevent scrollbars in screenshot if possible */
+        }
+    </style>
+</head>
+<body class="light-mode"> <!-- styling will be overridden by JS mock to dark -->
+    <!-- Content from popup.html -->
+    <div class="header">
+        <div class="logo-area">
+            <img src="../icons/icon48.png" alt="Logo" class="logo">
+            <h1>PHP - Paste History Past</h1>
+        </div>
+        <div class="header-controls">
+            <span class="clip-count-badge" id="clipCount" title="Total Clips">0</span>
+            <button id="languageToggle" class="icon-btn" title="Language">🇬🇧</button>
+            <button id="themeToggle" class="icon-btn" title="Toggle Theme">🌙</button>
+            <button id="refreshBtn" class="icon-btn" title="Refresh">🔄</button>
+            <button id="clearAll" class="icon-btn" title="Clear All">🗑️</button>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <!-- Tabs -->
+        <div class="tabs">
+            <div class="tab active" data-tab="all">
+                <span class="tab-text">All</span>
+                <span class="tab-count" id="allCount">0</span>
+            </div>
+            <div class="tab" data-tab="links">
+                <span class="tab-text">Links</span>
+                <span class="tab-count" id="linksCount">0</span>
+            </div>
+            <div class="tab" data-tab="pinned">
+                <span class="tab-text">Pinned</span>
+                <span class="tab-count" id="pinnedCount">0</span>
+            </div>
+        </div>
+
+        <!-- Search -->
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="Search your clips...">
+            <button id="clearSearch" class="clear-search-btn">✕</button>
+        </div>
+        <div id="searchResults" class="search-results-info"></div>
+
+        <!-- List -->
+        <div class="clips-container" id="clipsContainer">
+            <!-- Clips injected here -->
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Full Preview</h3>
+                <button class="modal-close" id="modalClose">✕</button>
+            </div>
+            <div class="modal-body" id="modalText"></div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="copiedToast" class="copied-toast">Copied!</div>
+
+    <!-- Scripts -->
+    <script src="screenshot_env.js"></script>
+    <script src="../i18n.js"></script>
+    <script src="../popup.js"></script>
+</body>
+</html>
