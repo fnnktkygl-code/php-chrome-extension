@@ -22,9 +22,9 @@
 | :--- | :--- |
 | **📋 Infinite History** | Automatically saves your last **50** copied items locally. |
 | **🎨 Dark & Light Mode** | Fully adaptive UI that matches your system preference. |
-| **🌍 Multi-Language** | Available in English and French (Français). |
 | **🔍 Smart Search** | Instantly filter clips to find snippets from hours ago. |
 | **🔗 Link Detector** | Separates URLs from text so you can find web resources fast. |
+| **📌 Pin & Save** | Keep important items forever; prevent auto-deletion. |
 | **🛡️ Privacy First** | **Zero** analytics. **Zero** network requests. 100% Local. |
 
 ---
@@ -34,34 +34,34 @@
 <div align="center">
   <h3>The Command Center</h3>
   <p><em>Access your history, filter by type, and manage clips in one clean interface.</em></p>
-  <img src="store_assets/tout_dark.png" alt="Main Interface Dark Mode" width="100%" style="border-radius: 10px; margin-bottom: 20px;">
+  <img src="store_assets/all_light.png" alt="Main Interface English" width="100%" style="border-radius: 10px; margin-bottom: 20px;">
 </div>
 
 <table border="0" width="100%">
   <tr>
     <td width="50%" valign="top">
-      <h3 align="center">🔍 Instant Search</h3>
-      <p align="center">Type keywords to filter your history instantly.</p>
-      <img src="store_assets/rechercher_dark.png" alt="Search Function Dark" width="100%" style="border-radius: 8px;">
-    </td>
-    <td width="50%" valign="top">
       <h3 align="center">🔗 Smart Link Detection</h3>
       <p align="center">Auto-detects URLs. Filter by "Links" to find websites.</p>
-      <img src="store_assets/links_light.png" alt="Links View Light" width="100%" style="border-radius: 8px;">
+      <img src="store_assets/links_light.png" alt="Links View" width="100%" style="border-radius: 8px;">
+    </td>
+    <td width="50%" valign="top">
+      <h3 align="center">⚡ One-Click Copy</h3>
+      <p align="center">Click any item to copy. Instant visual feedback.</p>
+      <img src="store_assets/copy_light.png" alt="Copy Success" width="100%" style="border-radius: 8px;">
     </td>
   </tr>
   <tr>
     <td width="50%" valign="top">
       <br>
-      <h3 align="center">👁️ Reader Mode</h3>
-      <p align="center">Preview long content like code or articles without pasting.</p>
-      <img src="store_assets/preview_dark.png" alt="Preview Matrix Dark" width="100%" style="border-radius: 8px;">
+      <h3 align="center">🌑 Dark Mode Preview</h3>
+      <p align="center">Seamless dark theme support for night-time productivity.</p>
+      <img src="store_assets/preview_dark.png" alt="Preview Dark Mode" width="100%" style="border-radius: 8px;">
     </td>
     <td width="50%" valign="top">
       <br>
-      <h3 align="center">⚡ One-Click Copy</h3>
-      <p align="center">Click any item to copy. Get instant visual feedback.</p>
-      <img src="store_assets/copy_light.png" alt="Copy Success Light" width="100%" style="border-radius: 8px;">
+      <h3 align="center">👁️ Reader Mode</h3>
+      <p align="center">Preview long content like code or articles without pasting.</p>
+      <img src="store_assets/preview_light.png" alt="Preview Light Mode" width="100%" style="border-radius: 8px;">
     </td>
   </tr>
 </table>

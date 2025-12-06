@@ -1,93 +1,106 @@
-<h1 align="center">✨ PHP - Paste History Past - Extension Chrome</h1>
+<div align="center">
+  <img src="store_assets/marquee_promo_tile_1400x560.png" alt="PHP Hero Banner" width="100%" style="border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);" />
 
-<p align="center">
-  <img src="https://img.shields.io/badge/Version-1.0.0-blue.svg" alt="Version 1.0.0">
-  <img src="https://img.shields.io/badge/Manifest-V3-brightgreen.svg" alt="Manifest V3">
-  <img src="https://img.shields.io/badge/Licence-MIT-blue.svg" alt="Licence: MIT">
-</p>
+  <br><br>
 
-<p align="center">
-  Une extension Chrome minimale, moderne et respectueuse de la vie privée pour suivre et accéder rapidement à votre historique de copier-coller.<br>
-  <strong>Ne perdez plus jamais un texte copié !</strong>
-</p>
+  <p>
+    <img src="https://img.shields.io/badge/Version-1.0.1-blue.svg?style=flat-square" alt="Version 1.0.1">
+    <img src="https://img.shields.io/badge/Manifest-V3-brightgreen.svg?style=flat-square" alt="Manifest V3">
+    <img src="https://img.shields.io/badge/Privacy-100%25%20Local-success.svg?style=flat-square" alt="Confidentialité : Locale">
+    <img src="https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square" alt="Licence : MIT">
+  </p>
 
-<p align="center">
-  <img src="./icons/extension-demo.gif" alt="PHP Paste History Past Demo" width="400">
-</p>
-
----
-
-## 🚀 Fonctionnalités
-
--   **Historique du presse-papiers** — Sauvegarde automatiquement vos 50 derniers textes copiés.
--   **Support Multilingue** — Interface disponible en Français et en Anglais, avec détection automatique de la langue.
--   **Accès Instantané** — Ouvrez la pop-up d'un clic ou utilisez le raccourci clavier `Alt+V` (Windows/Linux) ou `Cmd+Shift+V` (Mac).
--   **Filtre Puissant** — Recherchez ou filtrez instantanément par *Tous*, *Liens*, ou éléments *Épinglés*.
--   **Épingler les Clips Importants** — Conservez vos clips favoris pour toujours.
--   **Mode Clair & Sombre** — Se synchronise automatiquement avec le thème de votre système, ou basculez manuellement.
--   **Vie Privée d'Abord** — Stockage 100% local, rien ne quitte jamais votre navigateur.
--   **Interface Moderne** — Une interface propre et intuitive avec des animations fluides.
--   **Nettoyage Intelligent** — Supprime automatiquement les anciens clips non épinglés après 24 heures.
+  <h1>⚡ PHP - Historique de Collage ⚡</h1>
+  <p><strong>Sécurisé. Local. Efficace.</strong><br>Le gestionnaire de presse-papiers qui respecte votre vie privée.</p>
+</div>
 
 ---
 
-## 📦 Installation
+# 🚀 Fonctionnalités
 
-Pour installer et tester cette extension localement :
-
-1.  **Télécharger ou Cloner**
-    -   Téléchargez ce dépôt en tant que fichier ZIP et décompressez-le, ou
-    -   Clonez-le en utilisant Git :
-        ```bash
-        git clone [https://github.com/yourusername/paste-history-past.git](https://github.com/yourusername/paste-history-past.git)
-        ```
-2.  **Ouvrir les Extensions Chrome**
-    Naviguez vers : `chrome://extensions/`
-3.  **Activer le Mode Développeur**
-    Activez l'interrupteur dans le coin supérieur droit.
-4.  **Charger l'Extension**
-    Cliquez sur **Charger l'extension non empaquetée** et sélectionnez le dossier du projet `paste_history`.
-5.  **Terminé !**
-    L'icône "PHP - Paste History Past" apparaîtra maintenant dans votre barre d'outils Chrome.
+| Fonctionnalité | Description |
+| :--- | :--- |
+| **📋 Historique Infini** | Sauvegarde automatiquement vos **50** derniers éléments copiés. |
+| **🎨 Mode Sombre & Clair** | Interface adaptative qui suit le thème de votre système. |
+| **🔍 Recherche Intelligente** | Retrouvez instantanément un extrait copié il y a plusieurs heures. |
+| **🔗 Détecteur de Liens** | Isole les URL du texte pour retrouver vos pages web rapidement. |
+| **📌 Épinglage** | Gardez vos éléments favoris pour toujours ; ils ne seront pas supprimés. |
+| **🛡️ 100% Privé** | **Zéro** analytique. **Zéro** requête réseau. Tout reste sur votre appareil. |
 
 ---
 
-## 🎯 Utilisation
+# 📸 Visite Guidée
 
--   **Copier du Texte :** Copiez n'importe quel texte depuis n'importe quelle page web.
--   **Ouvrir la Pop-up :** Cliquez sur l'icône de l'extension ou appuyez sur `Alt+V` / `Cmd+Shift+V`.
--   **Copier un Clip :** Cliquez sur n'importe quel clip pour le copier à nouveau dans votre presse-papiers.
--   **Épingler/Désépingler :** Cliquez sur l'icône d'épingle sur un clip pour le conserver indéfiniment.
--   **Supprimer un Clip :** Survolez et cliquez sur l'icône de la corbeille.
--   **Aperçu :** Survolez et cliquez sur l'icône de l'œil pour voir des aperçus de clips longs.
+<div align="center">
+  <h3>Le Centre de Commandement</h3>
+  <p><em>Accédez à votre historique, filtrez par type et gérez vos clips dans une interface épurée.</em></p>
+  <img src="store_assets/tout_dark.png" alt="Interface Principale Sombre" width="100%" style="border-radius: 10px; margin-bottom: 20px;">
+</div>
+
+<table border="0" width="100%">
+  <tr>
+    <td width="50%" valign="top">
+      <h3 align="center">🔍 Recherche Instantanée</h3>
+      <p align="center">Tapez des mots-clés pour filtrer votre historique instantanément.</p>
+      <img src="store_assets/rechercher_dark.png" alt="Fonction Recherche" width="100%" style="border-radius: 8px;">
+    </td>
+    <td width="50%" valign="top">
+      <h3 align="center">🔗 Détection de Liens</h3>
+      <p align="center">Détecte auto les URL. Filtrez par « Liens » pour voir vos sites web.</p>
+      <img src="store_assets/liens_dark.png" alt="Vue Liens" width="100%" style="border-radius: 8px;">
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <br>
+      <h3 align="center">👁️ Mode Lecture</h3>
+      <p align="center">Lisez le contenu complet (articles, code) sans avoir à coller.</p>
+      <img src="store_assets/apercu_light.png" alt="Aperçu Mode Clair" width="100%" style="border-radius: 8px;">
+    </td>
+    <td width="50%" valign="top">
+      <br>
+      <h3 align="center">📌 Favoris Épinglés</h3>
+      <p align="center">Verrouillez les clips importants pour éviter leur suppression auto.</p>
+      <img src="store_assets/epinglres_dark.png" alt="Vue Épinglés" width="100%" style="border-radius: 8px;">
+    </td>
+  </tr>
+</table>
 
 ---
 
-## 🔒 Confidentialité
+# 🔒 Confidentialité & Sécurité
 
-Votre vie privée est la **priorité absolue**. Cette extension est conçue pour être sécurisée et privée par défaut.
+Nous prenons la confidentialité au sérieux. **PHP - Historique de Collage** est conçu pour être complètement isolé.
 
--   **100% Stockage Local** — Utilise uniquement `chrome.storage.local`.
--   **Aucun Suivi** — Pas d'analytique, de télémétrie ou de collecte de données cachée.
--   **Aucune Requête Réseau** — L'extension ne se connecte jamais à l'extérieur.
--   **Open Source** — Entièrement transparent pour votre examen et audit.
-
----
-
-## 🛠️ Construit Avec
-
--   **Manifest V3** — Le dernier standard pour les extensions Chrome.
--   **JavaScript Vanilla** — Léger et rapide, sans frameworks lourds.
--   **CSS** — Un style propre, responsive et moderne.
+* ✅ **Stockage 100% Local** : Le texte copié est stocké uniquement dans `chrome.storage.local`.
+* ❌ **Pas d'Analytique** : Nous ne savons pas qui vous êtes ni ce que vous copiez.
+* ❌ **Pas de Serveurs Externes** : Cette extension n'a pas de backend.
+* ❌ **Pas d'Activité Réseau** : Elle ne se connecte tout simplement pas à Internet.
 
 ---
 
-## 📄 Licence
+# 📦 Installation
 
-Ce projet est sous licence **MIT**.
+### Via le Chrome Web Store
+*(Lien à venir)*
+
+### Installation Manuelle (Mode Développeur)
+1.  **Téléchargez** la dernière version ou clonez ce dépôt.
+2.  Ouvrez Chrome et allez sur `chrome://extensions/`.
+3.  Activez le **Mode développeur** (interrupteur en haut à droite).
+4.  Cliquez sur **Charger l'extension non empaquetée** et sélectionnez le dossier de l'extension.
 
 ---
 
-<p align="center">
-  Fait avec ❤️ par Fenneko <a href="https://github.com/fnnktkygl-code">Fnnk</a>
-</p>
+# 🎯 Utilisation
+
+* **Copier** : `Cmd+C` ou `Ctrl+C` (Standard)
+* **Ouvrir PHP** : `Cmd+Shift+V` (Mac) ou `Alt+V` (Win/Linux)
+* **Coller** : Cliquez sur n'importe quel élément de la liste pour le recopier dans votre presse-papiers.
+
+---
+
+<div align="center">
+  <p>Fait avec ❤️ par <strong>Fnnk</strong></p>
+  <p>Open Source sous Licence MIT</p>
+</div>
