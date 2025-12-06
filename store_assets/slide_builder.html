@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Slide Builder</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+
+    body {
+      margin: 0;
+      padding: 0;
+      width: 1280px;
+      height: 800px;
+      background-color: #1e293b; /* Dark navy background */
+      font-family: 'Inter', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      color: white;
+    }
+
+    .container {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    h1 {
+      font-size: 48px;
+      margin-top: 60px;
+      margin-bottom: 40px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      text-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      z-index: 10;
+    }
+
+    .image-wrapper {
+      position: relative;
+      /* Adjust width/height as needed for the 742x1079 image to fit nicely within remaining space */
+      /* 800px total height - 60px top margin - 60px text height - 40px margin = ~640px remaining */
+      /* Aspect ratio of 742/1079 is ~0.68 */
+      height: 600px; 
+      aspect-ratio: 742 / 1079;
+      box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.5);
+      border-radius: 12px;
+      overflow: hidden;
+      background: #0f172a;
+    }
+
+    .image-wrapper img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    /* Subtle background accents */
+    .bg-circle {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.15;
+      z-index: 0;
+    }
+    .circle-1 {
+      width: 600px;
+      height: 600px;
+      background: #3b82f6;
+      top: -200px;
+      left: -100px;
+    }
+    .circle-2 {
+      width: 500px;
+      height: 500px;
+      background: #8b5cf6;
+      bottom: -100px;
+      right: -50px;
+    }
+
+  </style>
+</head>
+<body>
+
+  <div class="bg-circle circle-1"></div>
+  <div class="bg-circle circle-2"></div>
+
+  <div class="container">
+    <h1 id="title">Secure & Local Clipboard History</h1>
+    
+    <div class="image-wrapper">
+      <img id="screenshot" src="" alt="Screenshot">
+    </div>
+  </div>
+
+  <script>
+    const CONFIG = {
+      'main': {
+        img: 'all.png',
+        title: 'Secure & Local Clipboard History'
+      },
+      'links': {
+        img: 'links.png',
+        title: 'Detect & Organize Links'
+      },
+      'search': {
+        img: 'search.png',
+        title: 'Instant Search & Filters'
+      }
+    };
+
+    function loadSlide() {
+      const hash = window.location.hash.replace('#', '') || 'main';
+      const config = CONFIG[hash];
+      
+      if (config) {
+        document.getElementById('screenshot').src = config.img;
+        document.getElementById('title').textContent = config.title;
+      }
+    }
+
+    window.addEventListener('load', loadSlide);
+    window.addEventListener('hashchange', loadSlide);
+  </script>
+</body>
+</html>
