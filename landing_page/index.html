@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PHP - Paste History Past | Never Lose Copied Text Again</title>
+    <meta name="description"
+        content="A privacy-first Chrome extension to track and manage your clipboard history locally. Secure, fast, and beautiful.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/png" href="../icons/icon48.png">
+</head>
+
+<body>
+
+    <header>
+        <div class="container">
+            <nav>
+                <div class="logo">
+                    <img src="../icons/icon48.png" alt="Logo">
+                    <span>PHP</span>
+                </div>
+                <a href="https://github.com/aadatech/paste_history_chrome_extension" class="btn btn-secondary"
+                    target="_blank">GitHub</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="container">
+                <h1>
+                    Your Clipboard,<br>
+                    <span class="gradient-text">Supercharged & Private.</span>
+                </h1>
+                <p>
+                    Never lose copied text again. Access your history instantly, search clips,<br>
+                    and pin important items. 100% local storage.
+                </p>
+                <div class="hero-buttons">
+                    <a href="#" class="btn btn-primary">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path
+                                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-1.07 3.97-2.9 5.4z" />
+                        </svg>
+                        Add to Chrome
+                    </a>
+                    <a href="#features" class="btn btn-secondary">Learn More</a>
+                </div>
+
+                <div class="demo-container">
+                    <img src="../icons/extension-demo.gif" alt="Extension Demo">
+                </div>
+            </div>
+        </section>
+
+        <!-- Gallery Section -->
+        <section id="gallery" class="gallery-section">
+            <div class="container">
+                <div class="section-header">
+                    <h2>See it in Action</h2>
+                    <p>Clean, fast, and designed for productivity.</p>
+                </div>
+                <div class="gallery-grid">
+                    <!-- Placeholders for real screenshots -->
+                    <div class="gallery-item">
+                        <div class="gallery-placeholder">
+                            <span>Dark Mode UI</span>
+                            <img src="../icons/extension-demo.gif"
+                                style="opacity: 0.5; width: 100%; height: 100%; object-fit: cover;">
+                        </div>
+                    </div>
+                    <div class="gallery-item">
+                        <div class="gallery-placeholder">
+                            <span>Light Mode UI</span>
+                            <div
+                                style="background: #f8fafc; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: #64748b;">
+                                (Screenshot: Light Mode)
+                            </div>
+                        </div>
+                    </div>
+                    <div class="gallery-item">
+                        <div class="gallery-placeholder">
+                            <span>Search & Filter</span>
+                            <div
+                                style="background: #1e293b; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: #94a3b8;">
+                                (Screenshot: Search)
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section id="features">
+            <div class="container">
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">📋</div>
+                        <h3>Unlimited History</h3>
+                        <p>Automatically saves your last 50 copied items. Supports long snippets up to 20,000
+                            characters.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🔍</div>
+                        <h3>Instant Search</h3>
+                        <p>Find that one link you copied hours ago in milliseconds. Filter by links or pinned items
+                            instantly.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">📌</div>
+                        <h3>Pin & Organize</h3>
+                        <p>Keep important clips forever by pinning them. They won't be auto-deleted during cleanup.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🌙</div>
+                        <h3>Dark Mode</h3>
+                        <p>A beautiful, premium interface that adapts to your system theme. Easy on the eyes, day or
+                            night.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">⚡️</div>
+                        <h3>Lightning Fast</h3>
+                        <p>Built with vanilla JavaScript and optimized for performance. Opens instantly, zero lag.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🛡️</div>
+                        <h3>Privacy First</h3>
+                        <p>We don't want your data. Everything is stored locally on your device. No servers, no
+                            tracking.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Privacy Section -->
+        <section class="privacy-section">
+            <div class="container">
+                <div class="privacy-content">
+                    <span class="privacy-badge">Local Storage Only</span>
+                    <h2>Your Data Stays With You</h2>
+                    <p>
+                        Unlike other clipboard managers, PHP never sends your data to the cloud.
+                        It uses Chrome's local storage API to keep your history secure on your machine.
+                    </p>
+                    <a href="../PRIVACY_POLICY.md" class="btn btn-secondary" target="_blank">Read Privacy Policy</a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="footer-links">
+                <a href="https://github.com/aadatech/paste_history_chrome_extension" target="_blank">GitHub</a>
+                <a href="../PRIVACY_POLICY.md" target="_blank">Privacy Policy</a>
+                <a href="mailto:contact@aadatech.com">Support</a>
+            </div>
+            <p>&copy; 2025 PHP Extension. Made with ❤️ by AadaTech.</p>
+        </div>
+    </footer>
+
+</body>
+
+</html>

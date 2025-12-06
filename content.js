@@ -1,44 +1,43 @@
-// content.js
+// content.js - Robust Production Version
+// Uses synchronous selection capture for maximum stability
 
-function handleCopyEvent() {
-    // This is the most reliable check. It stops the script if it's running in a context
-    // where it cannot communicate with the extension (e.g., a sandboxed iframe or after an update).
-    if (!chrome.runtime || !chrome.runtime.id) {
+document.addEventListener('copy', () => {
+  try {
+    // 1. Try to get the selection from the window immediately (Synchronous)
+    // This is the most reliable method during a 'copy' event.
+    const selection = window.getSelection().toString();
+
+    if (selection && selection.trim().length > 0) {
+      chrome.runtime.sendMessage({
+        type: 'CLIPBOARD_COPY',
+        text: selection,
+        url: window.location.href,
+        timestamp: Date.now()
+      }).catch(err => console.debug('PHP Extension: Send failed', err));
       return;
     }
-  
-    try {
-      const copiedText = window.getSelection().toString().trim();
-  
-      // Ignore empty or overly long selections.
-      if (!copiedText || copiedText.length > 5000) {
-        return;
-      }
-  
-      // Wrap the API call in its own try-catch to handle the "context invalidated" error specifically.
+
+    // 2. Fallback: If window selection is empty (e.g. copying from a specific input element or "Copy Link Address"),
+    // we can try the async clipboard API.
+    // We wait slightly longer to ensure the system clipboard has been updated.
+    setTimeout(async () => {
       try {
-        chrome.runtime.sendMessage({
-          type: 'CLIPBOARD_COPY',
-          text: copiedText,
-          url: window.location.href,
-          timestamp: Date.now()
-        }, () => {
-          // This callback gracefully handles the "message port closed" error.
-          if (chrome.runtime.lastError) {
-            // It's safe to ignore this error as it doesn't crash the script.
-          }
-        });
-      } catch (error) {
-        if (error.message.includes("Extension context invalidated")) {
-          console.log("Clipboard History: Context was invalidated. Ignoring copy event.");
-        } else {
-          console.error("Clipboard History: An unexpected error occurred.", error);
+        const text = await navigator.clipboard.readText();
+        if (text && text.trim().length > 0) {
+          chrome.runtime.sendMessage({
+            type: 'CLIPBOARD_COPY',
+            text: text,
+            url: window.location.href,
+            timestamp: Date.now()
+          }).catch(err => console.debug('PHP Extension: Send failed', err));
         }
+      } catch (err) {
+        // Silently fail on permission errors
       }
-    } catch (e) {
-      console.error("Clipboard History: A critical error occurred during the copy event.", e);
-    }
+    }, 200);
+
+  } catch (e) {
+    // Catch-all for any unexpected runtime errors
+    console.debug('PHP Extension: Copy event capture failed', e);
   }
-  
-  // Attach the hardened function to the copy event.
-  document.addEventListener('copy', handleCopyEvent);
+});

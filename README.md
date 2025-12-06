@@ -1,8 +1,9 @@
 <h1 align="center">✨ PHP - Paste History Past - Chrome Extension</h1>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Version-1.0.0-blue.svg" alt="Version 1.0.0">
+  <img src="https://img.shields.io/badge/Version-1.0.1-blue.svg" alt="Version 1.0.1">
   <img src="https://img.shields.io/badge/Manifest-V3-brightgreen.svg" alt="Manifest V3">
+  <img src="https://img.shields.io/badge/Privacy-Local%20Only-green.svg" alt="Privacy: Local Only">
   <img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT">
 </p>
 
@@ -12,73 +13,69 @@
 </p>
 
 <p align="center">
-  <img src="./icons/extension-demo.gif" alt="PHP Paste History Past Demo" width="400">
+  <img src="assets/main_view.png" alt="PHP Main View" width="100%">
+</p>
+
+<p align="center">
+  <img src="assets/links_view.png" alt="Links Feature" width="48%">
+  &nbsp;
+  <img src="assets/search_view.png" alt="Search Feature" width="48%">
 </p>
 
 ---
 
 ## 🚀 Features
 
--   **Clipboard History** — Automatically saves your last 50 copied texts.
--   **Multi-language Support** — Interface available in English and French, with automatic language detection.
+-   **Clipboard History** — Automatically saves your last **50** copied texts (up to 20,000 characters each).
+-   **Smart Capture** — Robustly captures text from webpages and input fields.
 -   **Instant Access** — Open the popup with a click or use the keyboard shortcut `Alt+V` (Windows/Linux) or `Cmd+Shift+V` (Mac).
 -   **Powerful Filtering** — Instantly search or filter by *All*, *Links*, or *Pinned* items.
--   **Pin Important Clips** — Keep your favorite clips forever.
--   **Light & Dark Mode** — Auto-syncs with your system theme, or toggle manually.
--   **Privacy First** — 100% local storage, nothing ever leaves your browser.
--   **Modern UI** — A clean, intuitive interface with smooth animations.
--   **Smart Cleanup** — Automatically removes old, unpinned clips after 24 hours.
+-   **Pin Important Clips** — Keep your favorite clips forever (they won't be auto-deleted).
+-   **Light & Dark Mode** — Beautiful, premium UI that adapts to your preference.
+-   **Auto-Cleanup** — Unpinned clips are automatically removed after **24 hours** to keep things clean.
+-   **Multi-language** — Supports English and French.
+
+---
+
+## � Privacy & Security (What it DOES NOT do)
+
+Your privacy is the **top priority**. We believe your clipboard data belongs to you.
+
+-   ❌ **NO External Servers**: We do not have any servers. We cannot see your data.
+-   ❌ **NO Tracking**: No analytics, no telemetry, no user tracking.
+-   ❌ **NO Network Requests**: The extension never makes a network request to the internet.
+-   ✅ **100% Local Storage**: All data is stored securely on your device using `chrome.storage.local`.
 
 ---
 
 ## 📦 Installation
 
-To install and test this extension locally:
+### From Chrome Web Store
+*(Link coming soon)*
 
-1.  **Download or Clone**
-    -   Download this repository as a ZIP file and unzip it, or
-    -   Clone it using Git:
-        ```bash
-        git clone [https://github.com/yourusername/paste-history-past.git](https://github.com/yourusername/paste-history-past.git)
-        ```
-2.  **Open Chrome Extensions**
-    Navigate to: `chrome://extensions/`
-3.  **Enable Developer Mode**
-    Toggle the switch in the top-right corner.
-4.  **Load the Extension**
-    Click **Load unpacked** and select the `paste_history` project folder.
-5.  **Done!**
-    The “PHP - Paste History Past” icon will now appear in your Chrome toolbar.
+### Manual Installation (Developer Mode)
+1.  **Download** the latest release or clone this repository.
+2.  Open Chrome and navigate to `chrome://extensions/`.
+3.  Enable **Developer Mode** (top right).
+4.  Click **Load unpacked** and select the extension folder.
 
 ---
 
 ## 🎯 Usage
 
--   **Copy Text:** Copy any text from any webpage.
--   **Open Popup:** Click the extension icon or press `Alt+V` / `Cmd+Shift+V`.
--   **Copy a Clip:** Click any clip to copy it back to your clipboard.
--   **Pin/Unpin:** Click the pin icon on a clip to keep it indefinitely.
--   **Delete a Clip:** Hover and click the trash can icon.
--   **Preview:** Hover and click the eye icon to see long clip previews.
-
----
-
-## 🔒 Privacy
-
-Your privacy is the **top priority**. This extension is designed to be secure and private by default.
-
--   **100% Local Storage** — Uses `chrome.storage.local` only.
--   **No Tracking** — No analytics, telemetry, or hidden data collection.
--   **No Network Requests** — The extension never connects externally.
--   **Open Source** — Fully transparent for your review and audit.
+-   **Copy Text:** Simply copy text (`Cmd+C` / `Ctrl+C`) as usual.
+-   **Open Popup:** Click the extension icon or press `Cmd+Shift+V` (Mac) / `Alt+V` (Win).
+-   **Copy Back:** Click any item in the list to copy it back to your clipboard.
+-   **Pin:** Click the 📌 icon to save a clip indefinitely.
+-   **Delete:** Click the �️ icon to remove a clip.
 
 ---
 
 ## 🛠️ Built With
 
--   **Manifest V3** — The latest Chrome extension standard.
+-   **Manifest V3** — Compliant with the latest Chrome extension security standards.
 -   **Vanilla JavaScript** — Lightweight and fast, no heavy frameworks.
--   **CSS** — Clean, responsive, and modern styling.
+-   **Modern CSS** — Uses CSS Variables and Flexbox for a premium, responsive UI.
 
 ---
 
@@ -89,5 +86,5 @@ This project is licensed under the **MIT License**.
 ---
 
 <p align="center">
-  Made with ❤️ by AadaTech <a href="https://github.com/fnnktkygl-code">Fnnk</a>
+  Made with ❤️ by Njm <a href="https://github.com/fnnktkygl-code">Fnnk</a>
 </p>

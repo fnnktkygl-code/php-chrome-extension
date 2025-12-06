@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,24 +10,37 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="popup.css">
 </head>
+
 <body>
   <div class="header">
     <div class="header-top">
       <div class="header-left">
+        <img src="icons/logo.svg" alt="App Logo" class="header-logo">
+
         <h1>PHP - Paste History Past</h1>
         <span class="clip-count" id="clipCount">0</span>
       </div>
       <div class="header-actions">
         <button class="icon-btn" id="languageToggle" title="Language">🇬🇧</button>
         <button class="icon-btn" id="themeToggle" title="Toggle theme">🌙</button>
+        <button class="icon-btn" id="refreshBtn" title="Refresh">🔄</button>
         <button class="icon-btn" id="clearAll" title="Clear all">🗑️</button>
       </div>
     </div>
-    
+
     <div class="tabs">
-      <button class="tab active" data-tab="all">All</button>
-      <button class="tab" data-tab="links">Links</button>
-      <button class="tab" data-tab="pinned">Pinned</button>
+      <button class="tab active" data-tab="all">
+        <span class="tab-text">All</span>
+        <span id="allCount" class="tab-count">0</span>
+      </button>
+      <button class="tab" data-tab="links">
+        <span class="tab-text">Links</span>
+        <span id="linksCount" class="tab-count">0</span>
+      </button>
+      <button class="tab" data-tab="pinned">
+        <span class="tab-text">Pinned</span>
+        <span id="pinnedCount" class="tab-count">0</span>
+      </button>
     </div>
 
     <div class="search-box">
@@ -34,10 +48,10 @@
       <input type="text" id="searchInput" placeholder="Search your clips...">
       <button class="clear-search" id="clearSearch">✕</button>
     </div>
+    <div id="searchResults" class="search-results-count"></div>
   </div>
 
   <div class="clips-container" id="clipsContainer">
-    <!-- Clips will be rendered by popup.js -->
   </div>
 
   <div class="modal-overlay" id="modalOverlay">
@@ -54,8 +68,8 @@
     <span>✓ Copied to clipboard</span>
   </div>
 
-  <!-- IMPORTANT: i18n.js MUST be loaded BEFORE popup.js -->
   <script src="i18n.js"></script>
   <script src="popup.js"></script>
 </body>
+
 </html>
