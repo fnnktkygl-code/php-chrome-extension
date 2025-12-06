@@ -19,3 +19,6 @@ node_modules/
 # IDE Settings
 .vscode/
 .idea/
+
+# Security
+.env
