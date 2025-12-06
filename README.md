@@ -1,11 +1,7 @@
 <div align="center">
-  <img src="icons/icon128.png" alt="PHP Logo" width="100" />
-  <h1>✨ PHP - Paste History Past ✨</h1>
+  <img src="store_assets/marquee_promo_tile_1400x560.png" alt="PHP Hero Banner" width="100%" style="border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);" />
   
-  <p>
-    <strong>A minimal, modern, and privacy-first clipboard manager.</strong><br>
-    Never lose copied text again.
-  </p>
+  <br><br>
 
   <p>
     <img src="https://img.shields.io/badge/Version-1.0.1-blue.svg?style=flat-square" alt="Version 1.0.1">
@@ -18,9 +14,8 @@
 ---
 
 <div align="center">
+  <h2>⚡ Never lose copied text again. ⚡</h2>
   <img src="icons/extension-demo.gif" alt="PHP Extension Demo" width="100%" style="border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
-  <br>
-  <em>Effortlessly track, search, and manage your clipboard history.</em>
 </div>
 
 <br>
@@ -38,14 +33,21 @@
 
 # 📸 Visual Tour
 
-### Clean & Modern Interface
-<img src="assets/main_view.png" alt="Main View" width="100%" style="border-radius: 8px;">
+### 1️⃣ The Main Interface
+*Clean, Modern, and Dark-Mode ready. Access your history instantly.*
+<img src="store_assets/store_slide_1_main_1280x800.png" alt="Main View Mockup" width="100%" style="border-radius: 8px;">
 
-### Filter by Links
-<img src="assets/links_view.png" alt="Links View" width="100%" style="border-radius: 8px;">
+<br>
 
-### Powerful Search
-<img src="assets/search_view.png" alt="Search View" width="100%" style="border-radius: 8px;">
+### 2️⃣ Specialized for Links
+*Automatically detects URLs. Filter by "Links" to find that website you copied earlier.*
+<img src="store_assets/store_slide_2_links_1280x800.png" alt="Links View Mockup" width="100%" style="border-radius: 8px;">
+
+<br>
+
+### 3️⃣ Powerful Search
+*Type anything to filter your history instantly.*
+<img src="store_assets/store_slide_3_search_1280x800.png" alt="Search View Mockup" width="100%" style="border-radius: 8px;">
 
 ---
 
@@ -63,7 +65,7 @@ We take privacy seriously. **PHP - Paste History Past** is designed to be comple
 # 📦 Installation
 
 ### From Chrome Web Store
-*(Link coming soon)*
+*(Coming Soon)*
 
 ### Manual Installation (Developer Mode)
 1.  **Download** the latest release or clone this repo.
