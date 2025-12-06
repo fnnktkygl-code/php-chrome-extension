@@ -1,90 +1,87 @@
-<h1 align="center">✨ PHP - Paste History Past - Chrome Extension</h1>
+<div align="center">
+  <img src="icons/icon128.png" alt="PHP Logo" width="100" />
+  <h1>✨ PHP - Paste History Past ✨</h1>
+  
+  <p>
+    <strong>A minimal, modern, and privacy-first clipboard manager.</strong><br>
+    Never lose copied text again.
+  </p>
 
-<p align="center">
-  <img src="https://img.shields.io/badge/Version-1.0.1-blue.svg" alt="Version 1.0.1">
-  <img src="https://img.shields.io/badge/Manifest-V3-brightgreen.svg" alt="Manifest V3">
-  <img src="https://img.shields.io/badge/Privacy-Local%20Only-green.svg" alt="Privacy: Local Only">
-  <img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT">
-</p>
-
-<p align="center">
-  A minimal, modern, and privacy-first Chrome extension to track and quickly access your paste history.<br>
-  <strong>Never lose copied text again!</strong>
-</p>
-
-<p align="center">
-  <img src="assets/main_view.png" alt="PHP Main View" width="100%">
-</p>
-
-<p align="center">
-  <img src="assets/links_view.png" alt="Links Feature" width="48%">
-  &nbsp;
-  <img src="assets/search_view.png" alt="Search Feature" width="48%">
-</p>
+  <p>
+    <img src="https://img.shields.io/badge/Version-1.0.1-blue.svg?style=flat-square" alt="Version 1.0.1">
+    <img src="https://img.shields.io/badge/Manifest-V3-brightgreen.svg?style=flat-square" alt="Manifest V3">
+    <img src="https://img.shields.io/badge/Privacy-100%25%20Local-success.svg?style=flat-square" alt="Privacy: Local Only">
+    <img src="https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square" alt="License: MIT">
+  </p>
+</div>
 
 ---
 
-## 🚀 Features
+<div align="center">
+  <img src="icons/extension-demo.gif" alt="PHP Extension Demo" width="100%" style="border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
+  <br>
+  <em>Effortlessly track, search, and manage your clipboard history.</em>
+</div>
 
--   **Clipboard History** — Automatically saves your last **50** copied texts (up to 20,000 characters each).
--   **Smart Capture** — Robustly captures text from webpages and input fields.
--   **Instant Access** — Open the popup with a click or use the keyboard shortcut `Alt+V` (Windows/Linux) or `Cmd+Shift+V` (Mac).
--   **Powerful Filtering** — Instantly search or filter by *All*, *Links*, or *Pinned* items.
--   **Pin Important Clips** — Keep your favorite clips forever (they won't be auto-deleted).
--   **Light & Dark Mode** — Beautiful, premium UI that adapts to your preference.
--   **Auto-Cleanup** — Unpinned clips are automatically removed after **24 hours** to keep things clean.
--   **Multi-language** — Supports English and French.
+<br>
 
----
+# 🚀 Features
 
-## � Privacy & Security (What it DOES NOT do)
-
-Your privacy is the **top priority**. We believe your clipboard data belongs to you.
-
--   ❌ **NO External Servers**: We do not have any servers. We cannot see your data.
--   ❌ **NO Tracking**: No analytics, no telemetry, no user tracking.
--   ❌ **NO Network Requests**: The extension never makes a network request to the internet.
--   ✅ **100% Local Storage**: All data is stored securely on your device using `chrome.storage.local`.
+*   **📋 Infinite History (Locally)**: Automatically saves your last **50** copied items.
+*   **🔍 Smart Search**: Instantly find that link or snippet you copied hours ago.
+*   **📌 Pin Favorites**: Keep important clips forever; they won't be auto-deleted.
+*   **🔗 Smart Capture**: Robustly captures text from web pages, inputs, and code blocks.
+*   **🌑 Dark Mode**: A beautiful, premium dark UI that's easy on the eyes.
+*   **🛡️ Privacy First**: **Zero** network requests. **Zero** analytics. Your data stays on your device.
 
 ---
 
-## 📦 Installation
+# 📸 Visual Tour
+
+### Clean & Modern Interface
+<img src="assets/main_view.png" alt="Main View" width="100%" style="border-radius: 8px;">
+
+### Filter by Links
+<img src="assets/links_view.png" alt="Links View" width="100%" style="border-radius: 8px;">
+
+### Powerful Search
+<img src="assets/search_view.png" alt="Search View" width="100%" style="border-radius: 8px;">
+
+---
+
+# 🔒 Privacy & Security
+
+We take privacy seriously. **PHP - Paste History Past** is designed to be completely isolated.
+
+*   ✅ **100% Local Storage**: Copied text is stored only in `chrome.storage.local`.
+*   ❌ **No Analytics**: We don't know who you are or what you copy.
+*   ❌ **No External Servers**: This extension has no backend.
+*   ❌ **No Network Activity**: It simply does not connect to the internet.
+
+---
+
+# 📦 Installation
 
 ### From Chrome Web Store
 *(Link coming soon)*
 
 ### Manual Installation (Developer Mode)
-1.  **Download** the latest release or clone this repository.
+1.  **Download** the latest release or clone this repo.
 2.  Open Chrome and navigate to `chrome://extensions/`.
-3.  Enable **Developer Mode** (top right).
-4.  Click **Load unpacked** and select the extension folder.
+3.  Toggle **Developer Mode** (top right).
+4.  Click **Load unpacked** and select this directory.
 
 ---
 
-## 🎯 Usage
+# 🎯 Usage
 
--   **Copy Text:** Simply copy text (`Cmd+C` / `Ctrl+C`) as usual.
--   **Open Popup:** Click the extension icon or press `Cmd+Shift+V` (Mac) / `Alt+V` (Win).
--   **Copy Back:** Click any item in the list to copy it back to your clipboard.
--   **Pin:** Click the 📌 icon to save a clip indefinitely.
--   **Delete:** Click the �️ icon to remove a clip.
+1.  **Copy**: Just use `Cmd+C` or `Ctrl+C` as normal.
+2.  **Open**: Default shortcut is `Cmd+Shift+V` (Mac) or `Alt+V` (Windows/Linux).
+3.  **Paste**: Click any item to copy it back to your clipboard.
 
 ---
 
-## 🛠️ Built With
-
--   **Manifest V3** — Compliant with the latest Chrome extension security standards.
--   **Vanilla JavaScript** — Lightweight and fast, no heavy frameworks.
--   **Modern CSS** — Uses CSS Variables and Flexbox for a premium, responsive UI.
-
----
-
-## 📄 License
-
-This project is licensed under the **MIT License**.
-
----
-
-<p align="center">
-  Made with ❤️ by Njm <a href="https://github.com/fnnktkygl-code">Fnnk</a>
-</p>
+<div align="center">
+  <p>Made with ❤️ by <strong>Fnnk</strong></p>
+  <p>Open Source under MIT License</p>
+</div>
