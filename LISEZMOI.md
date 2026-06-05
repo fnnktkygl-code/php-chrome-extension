@@ -10,6 +10,10 @@
     <img src="https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square" alt="Licence : MIT">
   </p>
 
+  <a href="https://chromewebstore.google.com/detail/php-paste-history-past/dfdkpkiehdpbgkoacggbglphnlghmapl?hl=fr&pli=1">
+    <img src="https://developer.chrome.com/static/images/chrome-web-store-badge.png" alt="Disponible dans le Chrome Web Store" height="40" />
+  </a>
+
   <h1>⚡ PHP - Historique de Collage ⚡</h1>
   <p><strong>Sécurisé. Local. Efficace.</strong><br>Le gestionnaire de presse-papiers qui respecte votre vie privée.</p>
 </div>
@@ -89,7 +93,7 @@ Nous prenons la confidentialité au sérieux. **PHP - Historique de Collage** es
 # 📦 Installation
 
 ### Via le Chrome Web Store
-*(Lien à venir)*
+Installez l'extension directement depuis le [Chrome Web Store](https://chromewebstore.google.com/detail/php-paste-history-past/dfdkpkiehdpbgkoacggbglphnlghmapl?hl=fr&pli=1).
 
 ### Installation Manuelle (Mode Développeur)
 1.  **Téléchargez** la dernière version ou clonez ce dépôt.

@@ -9,6 +9,10 @@
     <img src="https://img.shields.io/badge/Privacy-100%25%20Local-success.svg?style=flat-square" alt="Privacy: Local Only">
     <img src="https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square" alt="License: MIT">
   </p>
+
+  <a href="https://chromewebstore.google.com/detail/php-paste-history-past/dfdkpkiehdpbgkoacggbglphnlghmapl?hl=fr&pli=1">
+    <img src="https://developer.chrome.com/static/images/chrome-web-store-badge.png" alt="Get it on Chrome Web Store" height="40" />
+  </a>
 </div>
 
 ---
@@ -65,7 +69,7 @@ We take privacy seriously. **PHP - Paste History Past** is designed to be comple
 # 📦 Installation
 
 ### From Chrome Web Store
-*(Coming Soon)*
+You can install the extension directly from the [Chrome Web Store](https://chromewebstore.google.com/detail/php-paste-history-past/dfdkpkiehdpbgkoacggbglphnlghmapl?hl=fr&pli=1).
 
 ### Manual Installation (Developer Mode)
 1.  **Download** the latest release or clone this repo.
