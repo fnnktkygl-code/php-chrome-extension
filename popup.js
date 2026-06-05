@@ -502,7 +502,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             data-id="${clip.id}" 
             tabindex="0" 
             role="listitem"
-            aria-label="${i18n.t('clickToCopy')}: ${clip.text.substring(0, 50)}..."
+            aria-label="${escapeHtml(i18n.t('clickToCopy') + ': ' + clip.text.substring(0, 50))}..."
         >
             <div class="clip-header">
                 <div class="clip-category">${isLinkClip ? i18n.t('categoryLink') : i18n.t('categoryText')}</div>
