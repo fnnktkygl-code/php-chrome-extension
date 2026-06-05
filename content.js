@@ -3,6 +3,12 @@
 
 document.addEventListener('copy', () => {
   try {
+    // Skip if copy was triggered inside a password field for security
+    const activeEl = document.activeElement;
+    if (activeEl && (activeEl.type === 'password' || activeEl.getAttribute('type') === 'password')) {
+      return;
+    }
+
     // 1. Try to get the selection from the window immediately (Synchronous)
     // This is the most reliable method during a 'copy' event.
     const selection = window.getSelection().toString();

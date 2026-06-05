@@ -58,7 +58,17 @@ const translations = {
     // Language
     language: "Language",
     languageEnglish: "English",
-    languageFrench: "Français"
+    languageFrench: "Français",
+    
+    // Settings
+    settingsTitle: "Settings",
+    saveUrlLabel: "Save source URL",
+    maxClipsLabel: "Max clips limit",
+    maxAgeLabel: "Clip retention period",
+    expiry1Day: "1 Day",
+    expiry7Days: "7 Days",
+    expiry30Days: "30 Days",
+    expiryNever: "Never"
   },
   
   fr: {
@@ -118,7 +128,17 @@ const translations = {
     // Language
     language: "Langue",
     languageEnglish: "English",
-    languageFrench: "Français"
+    languageFrench: "Français",
+    
+    // Settings
+    settingsTitle: "Paramètres",
+    saveUrlLabel: "Enregistrer l'URL source",
+    maxClipsLabel: "Limite max de clips",
+    maxAgeLabel: "Durée de conservation",
+    expiry1Day: "1 jour",
+    expiry7Days: "7 jours",
+    expiry30Days: "30 jours",
+    expiryNever: "Jamais"
   }
 };
 

@@ -9,7 +9,8 @@
     "clipboardWrite",
     "clipboardRead",
     "alarms",
-    "notifications"
+    "notifications",
+    "favicon"
   ],
   "action": {
     "default_popup": "popup.html",
@@ -35,7 +36,7 @@
     }
   ],
   "content_security_policy": {
-    "extension_pages": "script-src 'self'; object-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com;"
+    "extension_pages": "script-src 'self'; object-src 'self';"
   },
   "commands": {
     "_execute_action": {

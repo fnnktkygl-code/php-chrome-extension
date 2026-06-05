@@ -29,6 +29,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     const modalOverlay = document.getElementById('modalOverlay');
     const modalText = document.getElementById('modalText');
     const modalClose = document.getElementById('modalClose');
+    
+    // Settings Elements
+    const settingsBtn = document.getElementById('settingsBtn');
+    const settingsOverlay = document.getElementById('settingsOverlay');
+    const settingsClose = document.getElementById('settingsClose');
+    const settingSaveUrl = document.getElementById('settingSaveUrl');
+    const settingMaxClips = document.getElementById('settingMaxClips');
+    const settingMaxAge = document.getElementById('settingMaxAge');
 
     // --- Utility Functions ---
 
@@ -50,6 +58,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Improved regex for better link detection
         const urlPattern = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?(\?.*)?$/i;
         return urlPattern.test(text.trim());
+    }
+
+    function getDomain(url) {
+        try {
+            if (!url) return '';
+            const parsed = new URL(url);
+            return parsed.hostname.replace('www.', '');
+        } catch (e) {
+            return '';
+        }
     }
 
     function timeAgo(timestamp) {
@@ -170,6 +188,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // Update modal title
         document.querySelector('.modal-title').textContent = i18n.t('modalTitle');
+
+        // Update settings modal text
+        document.getElementById('settingsTitle').textContent = i18n.t('settingsTitle');
+        document.getElementById('saveUrlLabel').textContent = i18n.t('saveUrlLabel');
+        document.getElementById('maxClipsLabel').textContent = i18n.t('maxClipsLabel');
+        document.getElementById('maxAgeLabel').textContent = i18n.t('maxAgeLabel');
+        document.getElementById('expiry1DayOpt').textContent = i18n.t('expiry1Day');
+        document.getElementById('expiry7DaysOpt').textContent = i18n.t('expiry7Days');
+        document.getElementById('expiry30DaysOpt').textContent = i18n.t('expiry30Days');
+        document.getElementById('expiryNeverOpt').textContent = i18n.t('expiryNever');
     }
 
     function render() {
@@ -209,6 +237,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         languageToggle.addEventListener('click', toggleLanguage);
         modalOverlay.addEventListener('click', closeModal);
         modalClose.addEventListener('click', closeModal);
+
+        // Settings events
+        settingsBtn.addEventListener('click', openSettings);
+        settingsClose.addEventListener('click', closeSettings);
+        settingsOverlay.addEventListener('click', (e) => {
+            if (e.target === settingsOverlay) closeSettings();
+        });
+        settingSaveUrl.addEventListener('change', saveSettings);
+        settingMaxClips.addEventListener('change', saveSettings);
+        settingMaxAge.addEventListener('change', saveSettings);
 
         // Keyboard shortcuts
         document.addEventListener('keydown', handleGlobalKeyboard);
@@ -465,6 +503,45 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
+    async function openSettings() {
+        const { settings } = await chrome.storage.local.get('settings');
+        const defaultSettings = {
+            saveUrl: true,
+            maxClips: 50,
+            maxAgeMs: 86400000
+        };
+        const currentSettings = settings || defaultSettings;
+
+        settingSaveUrl.checked = currentSettings.saveUrl;
+        settingMaxClips.value = currentSettings.maxClips.toString();
+        settingMaxAge.value = currentSettings.maxAgeMs.toString();
+
+        settingsOverlay.classList.add('show');
+    }
+
+    function closeSettings() {
+        settingsOverlay.classList.remove('show');
+    }
+
+    async function saveSettings() {
+        const settings = {
+            saveUrl: settingSaveUrl.checked,
+            maxClips: parseInt(settingMaxClips.value),
+            maxAgeMs: parseInt(settingMaxAge.value)
+        };
+        await chrome.storage.local.set({ settings });
+
+        // Notify background worker to clean up storage dynamically based on new settings
+        try {
+            await chrome.runtime.sendMessage({ type: 'SETTINGS_CHANGED' });
+        } catch (e) {
+            console.debug('Failed to notify background worker:', e);
+        }
+
+        // Reload clips and refresh UI
+        await loadClips();
+    }
+
     function showToast(type = 'success', message) {
         const toast = document.getElementById('copiedToast');
         toast.textContent = message;
@@ -538,6 +615,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             ` : ''}
             <div class="clip-meta">
                 ${createClipMetaHTML(clip)}
+                ${clip.url ? `
+                    <span class="meta-separator">•</span>
+                    <span class="clip-source" title="${escapeHtml(clip.url)}">
+                        <img class="clip-favicon" src="${chrome.runtime.getURL(`/_favicon/?pageUrl=${encodeURIComponent(clip.url)}&size=32`)}" onerror="this.style.display='none'">
+                        <span class="clip-domain">${escapeHtml(getDomain(clip.url))}</span>
+                    </span>
+                ` : ''}
             </div>
         </div>`;
     }

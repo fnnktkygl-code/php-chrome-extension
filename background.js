@@ -1,7 +1,7 @@
 // background.js - UPDATED VERSION
 
-const MAX_CLIPS = 50;
-const MAX_AGE_MS = 24 * 60 * 60 * 1000; // 24 hours
+const DEFAULT_MAX_CLIPS = 50;
+const DEFAULT_MAX_AGE_MS = 24 * 60 * 60 * 1000; // 24 hours
 const MAX_CLIP_LENGTH = 20000; // Increased to 20k (approx 10 pages) for better utility
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -14,13 +14,35 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         sendResponse({ success: false, error: err.message });
       });
     return true;
+  } else if (message.type === 'SETTINGS_CHANGED') {
+    handleSettingsChanged()
+      .then(() => sendResponse({ success: true }))
+      .catch((err) => {
+        console.error('Settings change cleanup failed:', err);
+        sendResponse({ success: false, error: err.message });
+      });
+    return true;
   }
 });
 
+async function handleSettingsChanged() {
+  try {
+    const { clips } = await chrome.storage.local.get(['clips']);
+    const cleanedClips = await cleanupClips(clips || []);
+    await chrome.storage.local.set({ clips: cleanedClips });
+    await updateBadge(cleanedClips.length);
+  } catch (err) {
+    console.error('Error in handleSettingsChanged:', err);
+    throw err;
+  }
+}
+
 async function handleClipboardCopy(data) {
   try {
-    const result = await chrome.storage.local.get(['clips']);
+    const result = await chrome.storage.local.get(['clips', 'settings']);
     let clips = result.clips || [];
+    const settings = result.settings || {};
+    const saveUrl = settings.saveUrl !== undefined ? settings.saveUrl : true;
 
     // Validate clip data
     if (!data.text || typeof data.text !== 'string') {
@@ -53,8 +75,9 @@ async function handleClipboardCopy(data) {
       // If it's pinned, just update its timestamp so it stays fresh
       if (existingClip.pinned) {
         existingClip.timestamp = data.timestamp;
+        existingClip.url = saveUrl ? data.url : '';
         // We don't add a new clip, just save the update
-        const cleanedClips = cleanupClips(clips);
+        const cleanedClips = await cleanupClips(clips);
         await chrome.storage.local.set({ clips: cleanedClips });
         await updateBadge(cleanedClips.length);
         return;
@@ -67,7 +90,7 @@ async function handleClipboardCopy(data) {
     const newClip = {
       id: data.timestamp,
       text: trimmedText,
-      url: data.url,
+      url: saveUrl ? data.url : '',
       timestamp: data.timestamp,
       pinned: false,
       copyCount: 0,
@@ -78,7 +101,7 @@ async function handleClipboardCopy(data) {
     clips.unshift(newClip);
 
     // Clean up and limit
-    const cleanedClips = cleanupClips(clips);
+    const cleanedClips = await cleanupClips(clips);
 
     await chrome.storage.local.set({ clips: cleanedClips });
     await updateBadge(cleanedClips.length);
@@ -89,13 +112,19 @@ async function handleClipboardCopy(data) {
   }
 }
 
-function cleanupClips(clips) {
+async function cleanupClips(clips) {
+  const result = await chrome.storage.local.get(['settings']);
+  const settings = result.settings || {};
+  const maxClips = settings.maxClips !== undefined ? settings.maxClips : DEFAULT_MAX_CLIPS;
+  const maxAgeMs = settings.maxAgeMs !== undefined ? settings.maxAgeMs : DEFAULT_MAX_AGE_MS;
+
   const now = Date.now();
 
   // Filter out old, unpinned clips
   const recentAndPinned = clips.filter(clip => {
     if (clip.pinned) return true;
-    return (now - clip.timestamp) < MAX_AGE_MS;
+    if (maxAgeMs === 0) return true; // Never expire
+    return (now - clip.timestamp) < maxAgeMs;
   });
 
   // Separate pinned and unpinned
@@ -103,8 +132,8 @@ function cleanupClips(clips) {
   const unpinnedClips = recentAndPinned.filter(c => !c.pinned);
 
   // Limit unpinned clips
-  if (unpinnedClips.length > MAX_CLIPS) {
-    unpinnedClips.length = MAX_CLIPS;
+  if (unpinnedClips.length > maxClips) {
+    unpinnedClips.length = maxClips;
   }
 
   // Recombine: pinned first, then unpinned by timestamp
@@ -130,7 +159,7 @@ chrome.runtime.onInstalled.addListener(async () => {
     await updateBadge(clips ? clips.length : 0);
 
     // Set default settings
-    const { theme, locale } = await chrome.storage.local.get(['theme', 'locale']);
+    const { theme, locale, settings } = await chrome.storage.local.get(['theme', 'locale', 'settings']);
     if (!theme) {
       await chrome.storage.local.set({ theme: 'dark' });
     }
@@ -140,6 +169,15 @@ chrome.runtime.onInstalled.addListener(async () => {
       const detectedLocale = browserLang.startsWith('fr') ? 'fr' : 'en';
       await chrome.storage.local.set({ locale: detectedLocale });
     }
+    if (!settings) {
+      await chrome.storage.local.set({
+        settings: {
+          saveUrl: true,
+          maxClips: DEFAULT_MAX_CLIPS,
+          maxAgeMs: DEFAULT_MAX_AGE_MS
+        }
+      });
+    }
   } catch (err) {
     console.error('Error in onInstalled:', err);
   }
@@ -148,7 +186,7 @@ chrome.runtime.onInstalled.addListener(async () => {
 chrome.runtime.onStartup.addListener(async () => {
   try {
     const { clips } = await chrome.storage.local.get(['clips']);
-    const cleanedClips = cleanupClips(clips || []);
+    const cleanedClips = await cleanupClips(clips || []);
     await chrome.storage.local.set({ clips: cleanedClips });
     await updateBadge(cleanedClips.length);
   } catch (err) {
@@ -163,7 +201,7 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
   if (alarm.name === 'cleanupClips') {
     try {
       const { clips } = await chrome.storage.local.get(['clips']);
-      const cleanedClips = cleanupClips(clips || []);
+      const cleanedClips = await cleanupClips(clips || []);
       await chrome.storage.local.set({ clips: cleanedClips });
       await updateBadge(cleanedClips.length);
     } catch (err) {

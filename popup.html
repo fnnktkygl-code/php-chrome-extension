@@ -5,9 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PHP - Paste History Past</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
   <link rel="stylesheet" href="popup.css">
 </head>
 
@@ -23,6 +21,7 @@
       <div class="header-actions">
         <button class="icon-btn" id="languageToggle" title="Language">🇬🇧</button>
         <button class="icon-btn" id="themeToggle" title="Toggle theme">🌙</button>
+        <button class="icon-btn" id="settingsBtn" title="Settings">⚙️</button>
         <button class="icon-btn" id="refreshBtn" title="Refresh">🔄</button>
         <button class="icon-btn" id="clearAll" title="Clear all">🗑️</button>
       </div>
@@ -61,6 +60,42 @@
         <button class="modal-close" id="modalClose">✕</button>
       </div>
       <div class="modal-text" id="modalText"></div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="settingsOverlay">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title" id="settingsTitle">Settings</div>
+        <button class="modal-close" id="settingsClose">✕</button>
+      </div>
+      <div class="modal-content">
+        <div class="setting-item">
+          <span id="saveUrlLabel">Save source URL</span>
+          <label class="switch">
+            <input type="checkbox" id="settingSaveUrl" checked>
+            <span class="slider round"></span>
+          </label>
+        </div>
+        <div class="setting-item">
+          <span id="maxClipsLabel">Max clips limit</span>
+          <select id="settingMaxClips" class="settings-select">
+            <option value="25">25</option>
+            <option value="50" selected>50</option>
+            <option value="100">100</option>
+            <option value="200">200</option>
+          </select>
+        </div>
+        <div class="setting-item">
+          <span id="maxAgeLabel">Clip retention period</span>
+          <select id="settingMaxAge" class="settings-select">
+            <option value="86400000" id="expiry1DayOpt">1 Day</option>
+            <option value="604800000" id="expiry7DaysOpt">7 Days</option>
+            <option value="2592000000" id="expiry30DaysOpt">30 Days</option>
+            <option value="0" id="expiryNeverOpt">Never</option>
+          </select>
+        </div>
+      </div>
     </div>
   </div>
 
