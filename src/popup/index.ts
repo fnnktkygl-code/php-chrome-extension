@@ -21,10 +21,16 @@ export class PopupController {
   }
 
   public async init(): Promise<void> {
-    const locale = await this.storage.getLocale();
+    // 1. Parallel batch fetch for instant zero-latency popup hydration
+    const [clips, theme, locale] = await Promise.all([
+      this.storage.getClips(),
+      this.storage.getTheme(),
+      this.storage.getLocale()
+    ]);
+
+    this.clips = clips;
     this.i18n.setLocale(locale);
 
-    const theme = await this.storage.getTheme();
     if (theme === 'light') {
       document.body.classList.add('light-mode');
       document.documentElement.setAttribute('data-theme', 'light');
@@ -36,8 +42,15 @@ export class PopupController {
     this.bindEvents();
     this.updateLanguageUI();
     this.updateThemeUI();
-    await this.checkSystemClipboard();
-    await this.loadClips();
+    this.updateCounters();
+    this.render();
+
+    // 2. Asynchronous non-blocking background OS pasteboard synchronization
+    setTimeout(() => {
+      this.checkSystemClipboard()
+        .then(() => this.loadClips())
+        .catch(() => {});
+    }, 15);
   }
 
   private bindEvents(): void {

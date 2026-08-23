@@ -420,9 +420,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         settingsBtn.title = i18n.t('settings');
     }
 
-    // --- Init ---
-    const { theme } = await chrome.storage.local.get('theme');
-    if (theme === 'light') document.body.classList.add('light-mode');
+    // --- Instant 1-Shot Parallel Batch Hydration ---
+    const [_, storageData] = await Promise.all([
+        i18n.init(),
+        chrome.storage.local.get(['clips', 'theme', 'settings'])
+    ]);
+
+    if (storageData?.theme === 'light') document.body.classList.add('light-mode');
+    state.clips = storageData?.clips || [];
+    updateLanguageUI();
+    updateCounts();
+    render(); // Immediate paint!
 
     document.getElementById('snipOcrBtn')?.addEventListener('click', async () => {
         if (typeof chrome !== 'undefined' && chrome.tabs) {
@@ -553,36 +561,35 @@ document.addEventListener('DOMContentLoaded', async () => {
         reader.readAsText(file);
     });
 
-    // Check system clipboard upon open
-    try {
-        if (navigator.clipboard && navigator.clipboard.readText) {
-            const text = await navigator.clipboard.readText();
-            if (text && text.trim().length > 0) {
-                const category = detectCategory(text);
-                const { clips } = await chrome.storage.local.get('clips');
-                let current = clips || [];
-                const trimmed = text.trim();
-                const existing = current.findIndex(c => c.text === trimmed);
-                if (existing === -1) {
-                    current.unshift({
-                        id: Date.now(),
-                        text: trimmed,
-                        url: '',
-                        timestamp: Date.now(),
-                        pinned: false,
-                        copyCount: 0,
-                        lastCopied: null,
-                        category
-                    });
-                    await chrome.storage.local.set({ clips: current });
+    // Asynchronous non-blocking background OS pasteboard synchronization
+    setTimeout(async () => {
+        try {
+            if (navigator.clipboard && navigator.clipboard.readText) {
+                const text = await navigator.clipboard.readText();
+                if (text && text.trim().length > 0) {
+                    const category = detectCategory(text);
+                    const { clips } = await chrome.storage.local.get('clips');
+                    let current = clips || [];
+                    const trimmed = text.trim();
+                    const existing = current.findIndex(c => c.text === trimmed);
+                    if (existing === -1) {
+                        current.unshift({
+                            id: Date.now(),
+                            text: trimmed,
+                            url: '',
+                            timestamp: Date.now(),
+                            pinned: false,
+                            copyCount: 0,
+                            lastCopied: null,
+                            category
+                        });
+                        await chrome.storage.local.set({ clips: current });
+                        state.clips = current;
+                        updateCounts();
+                        render();
+                    }
                 }
             }
-        }
-    } catch {}
-
-    const { clips } = await chrome.storage.local.get('clips');
-    state.clips = clips || [];
-    updateLanguageUI();
-    updateCounts();
-    render();
+        } catch {}
+    }, 15);
 });
