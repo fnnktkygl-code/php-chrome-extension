@@ -96,6 +96,12 @@ export type RuntimeMessage =
     }
   | {
       type: 'ACTIVATE_SNIPPER';
+    }
+  | {
+      type: 'TOGGLE_QUICK_PASTE';
+    }
+  | {
+      type: 'OPEN_FULL_EXTENSION';
     };
 
 export interface MessageResponse<T = unknown> {

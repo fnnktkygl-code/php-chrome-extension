@@ -700,11 +700,15 @@ class QuickPasteMenu {
       }
     });
 
-    // View all button click
+    // View all button click -> opens full extension directly!
     const viewAllBtn = footer.querySelector('#php-qp-view-all');
-    viewAllBtn?.addEventListener('click', () => {
+    viewAllBtn?.addEventListener('click', async () => {
       this.close();
-      this.showToast(this.isFr ? '💡 Cliquez sur l\'icône PHP dans la barre Chrome pour voir tout l\'historique !' : '💡 Click the PHP extension icon in the toolbar for full history!');
+      try {
+        if (typeof chrome !== 'undefined' && chrome.runtime?.sendMessage) {
+          await chrome.runtime.sendMessage({ type: 'OPEN_FULL_EXTENSION' });
+        }
+      } catch {}
     });
 
     // Keyboard navigation

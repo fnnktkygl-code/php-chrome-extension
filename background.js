@@ -55,9 +55,32 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           console.error('Failed to capture viewport:', err);
           sendResponse({ success: false, error: err ? err.message : 'Capture failed' });
         });
-      return true;
-    }
-    sendResponse({ success: false, error: 'captureVisibleTab not available' });
+  } else if (message.type === 'OPEN_FULL_EXTENSION') {
+    (async () => {
+      try {
+        if (typeof chrome !== 'undefined' && chrome.action && chrome.action.openPopup) {
+          try {
+            await chrome.action.openPopup();
+            sendResponse({ success: true });
+            return;
+          } catch {}
+        }
+        if (typeof chrome !== 'undefined' && chrome.windows) {
+          await chrome.windows.create({
+            url: chrome.runtime.getURL('popup.html'),
+            type: 'popup',
+            width: 395,
+            height: 600,
+            focused: true
+          });
+          sendResponse({ success: true });
+          return;
+        }
+        sendResponse({ success: false });
+      } catch (err) {
+        sendResponse({ success: false, error: err ? err.message : String(err) });
+      }
+    })();
     return true;
   }
 });

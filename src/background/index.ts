@@ -120,6 +120,35 @@ chrome.runtime.onMessage.addListener((message: RuntimeMessage, sender, sendRespo
       return true;
     }
 
+    case 'OPEN_FULL_EXTENSION': {
+      (async () => {
+        try {
+          if (typeof chrome !== 'undefined' && chrome.action && chrome.action.openPopup) {
+            try {
+              await chrome.action.openPopup();
+              sendResponse({ success: true });
+              return;
+            } catch {}
+          }
+          if (typeof chrome !== 'undefined' && chrome.windows) {
+            await chrome.windows.create({
+              url: chrome.runtime.getURL('popup.html'),
+              type: 'popup',
+              width: 395,
+              height: 600,
+              focused: true
+            });
+            sendResponse({ success: true });
+            return;
+          }
+          sendResponse({ success: false });
+        } catch (err: unknown) {
+          sendResponse({ success: false, error: err instanceof Error ? err.message : String(err) });
+        }
+      })();
+      return true;
+    }
+
     default:
       return false;
   }
