@@ -113,10 +113,24 @@ export const TRANSLATIONS: Record<Locale, Translations> = {
     configureShortcutsBtnText: 'Customize in Chrome Extensions',
     pressKeys: 'Press keys...',
     shortcutSaved: '✓ Shortcut saved!',
-    shortcutReset: '✓ Shortcut reset to default!',
-    quickPasteTitle: 'Recent Clips',
-    quickPasteTip: '1-9 or ↑↓ Enter to copy • Type to filter',
-    quickPasteViewAll: 'View all in PHP ↗',
+    // Quick Menu & Density
+    quickMenuLimitLabel: 'Quick Menu Capacity',
+    quickMenuLimitDesc: 'Clips displayed under the mouse cursor',
+    opt5Clips: '5 items (Compact)',
+    opt10Clips: '10 items (Standard)',
+    opt20Clips: '20 items (Smooth scroll & 1-9 hotkeys)',
+    quickMenuSearchPlaceholder: 'Filter or press 1-9 to paste...',
+
+    // Appearance & Language Settings
+    themeSettingLabel: 'Appearance Theme',
+    themeSettingDesc: 'User interface visual style',
+    optThemeDark: '🌙 Dark (Obsidian)',
+    optThemeLight: '☀️ Light (Alabaster)',
+    languageSettingLabel: 'Display Language',
+    languageSettingDesc: 'Interface language',
+    optLangFr: '🇫🇷 French',
+    optLangEn: '🇬🇧 English',
+    snipHeaderLabel: 'Snip',
 
     // Language
     language: 'Language',
@@ -126,7 +140,8 @@ export const TRANSLATIONS: Record<Locale, Translations> = {
 
   fr: {
     // Header
-    appTitle: 'PHP - Historique de Collage',
+    appTitle: 'PHP',
+    snipHeaderLabel: 'Cadrer',
     themeToggle: 'Changer le thème',
     clearAll: 'Effacer les non-épinglés',
     refresh: 'Actualiser',
@@ -247,6 +262,16 @@ export const TRANSLATIONS: Record<Locale, Translations> = {
     quickPasteTitle: 'Clips Récents',
     quickPasteTip: '1-9 ou ↑↓ Entrée pour copier • Tapez pour filtrer',
     quickPasteViewAll: 'Voir tout dans PHP ↗',
+
+    // Appearance & Language Settings
+    themeSettingLabel: 'Thème d\'affichage',
+    themeSettingDesc: 'Style visuel de l\'interface',
+    optThemeDark: '🌙 Sombre (Obsidian)',
+    optThemeLight: '☀️ Clair (Alabaster)',
+    languageSettingLabel: 'Langue d\'affichage',
+    languageSettingDesc: 'Interface utilisateur',
+    optLangFr: '🇫🇷 Français',
+    optLangEn: '🇬🇧 English',
 
     // Language
     language: 'Langue',

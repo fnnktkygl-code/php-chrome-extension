@@ -85,6 +85,17 @@ const translations = {
         opt20Clips: "20 items (Smooth scroll & 1-9 hotkeys)",
         quickMenuSearchPlaceholder: "Filter or type 1-9 to paste...",
 
+        // Appearance & Language Settings
+        themeSettingLabel: "Appearance Theme",
+        themeSettingDesc: "User interface visual style",
+        optThemeDark: "🌙 Dark (Obsidian)",
+        optThemeLight: "☀️ Light (Alabaster)",
+        languageSettingLabel: "Display Language",
+        languageSettingDesc: "Interface language",
+        optLangFr: "🇫🇷 French",
+        optLangEn: "🇬🇧 English",
+        snipHeaderLabel: "Snip",
+
         // Shortcuts & Quick Menu
         shortcutsSectionTitle: "Keyboard Shortcuts",
         snipShortcutLabel: "Snip Area & OCR (Shottr)",
@@ -105,7 +116,8 @@ const translations = {
         languageFrench: "Français"
     },
     fr: {
-        appTitle: "PHP - Historique de Collage",
+        appTitle: "PHP",
+        snipHeaderLabel: "Cadrer",
         themeToggle: "Changer le thème",
         clearAll: "Effacer les non-épinglés",
         refresh: "Actualiser",
@@ -223,9 +235,15 @@ const translations = {
         pressKeys: "Appuyez sur des touches...",
         shortcutSaved: "✓ Raccourci enregistré !",
         shortcutReset: "✓ Raccourci réinitialisé !",
-        quickPasteTitle: "Clips Récents",
-        quickPasteTip: "1-9 ou ↑↓ Entrée pour copier • Tapez pour filtrer",
-        quickPasteViewAll: "Voir tout dans PHP ↗",
+        // Appearance & Language Settings
+        themeSettingLabel: "Thème d'affichage",
+        themeSettingDesc: "Style visuel de l'interface",
+        optThemeDark: "🌙 Sombre (Obsidian)",
+        optThemeLight: "☀️ Clair (Alabaster)",
+        languageSettingLabel: "Langue d'affichage",
+        languageSettingDesc: "Interface utilisateur",
+        optLangFr: "🇫🇷 Français",
+        optLangEn: "🇬🇧 English",
 
         // Language
         language: "Langue",

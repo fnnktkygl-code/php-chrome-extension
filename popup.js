@@ -415,10 +415,29 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         searchInput.placeholder = i18n.t('searchPlaceholder');
         refreshBtn.title = i18n.t('refresh');
-        clearAllBtn.title = i18n.t('clearAll');
         const snipBtn = document.getElementById('snipOcrBtn');
         if (snipBtn) snipBtn.title = i18n.t('snipOcrBtn');
+        const snipHeaderLabel = document.getElementById('snipHeaderLabel');
+        if (snipHeaderLabel) snipHeaderLabel.textContent = i18n.t('snipHeaderLabel');
         settingsBtn.title = i18n.t('settings');
+
+        const themeSettingLabel = document.getElementById('themeSettingLabel');
+        const themeSettingDesc = document.getElementById('themeSettingDesc');
+        const optThemeDark = document.getElementById('optThemeDark');
+        const optThemeLight = document.getElementById('optThemeLight');
+        const languageSettingLabel = document.getElementById('languageSettingLabel');
+        const languageSettingDesc = document.getElementById('languageSettingDesc');
+        const optLangFr = document.getElementById('optLangFr');
+        const optLangEn = document.getElementById('optLangEn');
+
+        if (themeSettingLabel) themeSettingLabel.textContent = i18n.t('themeSettingLabel');
+        if (themeSettingDesc) themeSettingDesc.textContent = i18n.t('themeSettingDesc');
+        if (optThemeDark) optThemeDark.textContent = i18n.t('optThemeDark');
+        if (optThemeLight) optThemeLight.textContent = i18n.t('optThemeLight');
+        if (languageSettingLabel) languageSettingLabel.textContent = i18n.t('languageSettingLabel');
+        if (languageSettingDesc) languageSettingDesc.textContent = i18n.t('languageSettingDesc');
+        if (optLangFr) optLangFr.textContent = i18n.t('optLangFr');
+        if (optLangEn) optLangEn.textContent = i18n.t('optLangEn');
 
         const quickMenuLimitLabel = document.getElementById('quickMenuLimitLabel');
         const quickMenuLimitDesc = document.getElementById('quickMenuLimitDesc');
@@ -670,15 +689,33 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
+    const settingTheme = document.getElementById('settingTheme');
+    const settingLocale = document.getElementById('settingLocale');
+
     settingsBtn?.addEventListener('click', async () => {
         await refreshShortcutsUI();
-        const { settings } = await chrome.storage.local.get('settings');
+        const { settings, theme, locale } = await chrome.storage.local.get(['settings', 'theme', 'locale']);
+        if (settingTheme) settingTheme.value = theme === 'light' || document.body.classList.contains('light-mode') ? 'light' : 'dark';
+        if (settingLocale) settingLocale.value = locale || i18n.locale || 'fr';
         if (settingSaveUrl) settingSaveUrl.checked = settings?.saveUrl !== undefined ? settings.saveUrl : true;
         if (settingIgnorePasswords) settingIgnorePasswords.checked = settings?.ignorePasswords !== undefined ? settings.ignorePasswords : true;
         if (settingMaxClips) settingMaxClips.value = String(settings?.maxClips || 50);
         if (settingMaxAge) settingMaxAge.value = String(settings?.maxAgeMs || 86400000);
         if (settingQuickMenuLimit) settingQuickMenuLimit.value = String(settings?.quickMenuLimit || 20);
         settingsModal.classList.add('open', 'show');
+    });
+
+    settingTheme?.addEventListener('change', async () => {
+        const isLight = settingTheme.value === 'light';
+        document.body.classList.toggle('light-mode', isLight);
+        await chrome.storage.local.set({ theme: isLight ? 'light' : 'dark' });
+    });
+
+    settingLocale?.addEventListener('change', async () => {
+        i18n.locale = settingLocale.value;
+        await chrome.storage.local.set({ locale: settingLocale.value });
+        updateLanguageUI();
+        render();
     });
 
     async function saveCurrentSettings() {

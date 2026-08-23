@@ -185,6 +185,29 @@ export class PopupController {
     settingMaxAge?.addEventListener('change', () => this.saveSettings());
     document.getElementById('settingQuickMenuLimit')?.addEventListener('change', () => this.saveSettings());
 
+    const settingTheme = document.getElementById('settingTheme') as HTMLSelectElement;
+    settingTheme?.addEventListener('change', async () => {
+      const newTheme = settingTheme.value as 'dark' | 'light';
+      if (newTheme === 'light') {
+        document.body.classList.add('light-mode');
+        document.documentElement.setAttribute('data-theme', 'light');
+      } else {
+        document.body.classList.remove('light-mode');
+        document.documentElement.setAttribute('data-theme', 'dark');
+      }
+      await this.storage.setTheme(newTheme);
+      this.updateThemeUI();
+    });
+
+    const settingLocale = document.getElementById('settingLocale') as HTMLSelectElement;
+    settingLocale?.addEventListener('change', async () => {
+      const newLocale = settingLocale.value as 'en' | 'fr';
+      this.i18n.setLocale(newLocale);
+      await this.storage.setLocale(newLocale);
+      this.updateLanguageUI();
+      this.render();
+    });
+
     // Backup
     exportBackupBtn?.addEventListener('click', () => this.exportBackup());
     importBackupBtn?.addEventListener('click', () => importFileInput?.click());
@@ -685,9 +708,31 @@ export class PopupController {
     if (snipOcrBtn) snipOcrBtn.title = this.i18n.t('snipOcrBtn');
     if (settingsBtn) settingsBtn.title = this.i18n.t('settings');
 
+    const snipHeaderLabel = document.getElementById('snipHeaderLabel');
+    if (snipHeaderLabel) snipHeaderLabel.textContent = this.i18n.t('snipHeaderLabel');
+
     // Modals
     if (previewModalTitle) previewModalTitle.textContent = this.i18n.t('modalTitle');
     if (settingsModalTitle) settingsModalTitle.textContent = this.i18n.t('settingsTitle');
+
+    const themeSettingLabel = document.getElementById('themeSettingLabel');
+    const themeSettingDesc = document.getElementById('themeSettingDesc');
+    const optThemeDark = document.getElementById('optThemeDark');
+    const optThemeLight = document.getElementById('optThemeLight');
+    const languageSettingLabel = document.getElementById('languageSettingLabel');
+    const languageSettingDesc = document.getElementById('languageSettingDesc');
+    const optLangFr = document.getElementById('optLangFr');
+    const optLangEn = document.getElementById('optLangEn');
+
+    if (themeSettingLabel) themeSettingLabel.textContent = this.i18n.t('themeSettingLabel');
+    if (themeSettingDesc) themeSettingDesc.textContent = this.i18n.t('themeSettingDesc');
+    if (optThemeDark) optThemeDark.textContent = this.i18n.t('optThemeDark');
+    if (optThemeLight) optThemeLight.textContent = this.i18n.t('optThemeLight');
+    if (languageSettingLabel) languageSettingLabel.textContent = this.i18n.t('languageSettingLabel');
+    if (languageSettingDesc) languageSettingDesc.textContent = this.i18n.t('languageSettingDesc');
+    if (optLangFr) optLangFr.textContent = this.i18n.t('optLangFr');
+    if (optLangEn) optLangEn.textContent = this.i18n.t('optLangEn');
+
     if (saveUrlLabel) saveUrlLabel.textContent = this.i18n.t('saveUrlLabel');
     if (ignorePasswordsLabel) ignorePasswordsLabel.textContent = this.i18n.t('ignorePasswordsLabel');
     if (maxClipsLabel) maxClipsLabel.textContent = this.i18n.t('maxClipsLabel');
@@ -785,6 +830,11 @@ export class PopupController {
     const settingQuickMenuLimit = document.getElementById('settingQuickMenuLimit') as HTMLSelectElement;
     const settingsModal = document.getElementById('settingsModal');
 
+    const settingTheme = document.getElementById('settingTheme') as HTMLSelectElement;
+    const settingLocale = document.getElementById('settingLocale') as HTMLSelectElement;
+
+    if (settingTheme) settingTheme.value = document.body.classList.contains('light-mode') ? 'light' : 'dark';
+    if (settingLocale) settingLocale.value = this.i18n.getLocale();
     if (settingSaveUrl) settingSaveUrl.checked = settings.saveUrl;
     if (settingIgnorePasswords) settingIgnorePasswords.checked = settings.ignorePasswords;
     if (settingMaxClips) settingMaxClips.value = String(settings.maxClips);

@@ -560,7 +560,6 @@ class QuickPasteMenu {
     // Modal Card positioned right at the mouse cursor
     const card = document.createElement('div');
     card.id = 'php-quick-paste-card';
-    const bgCard = isDark ? '#0f172a' : '#ffffff';
     const borderCard = isDark ? '#334155' : '#cbd5e1';
     const textMain = isDark ? '#f8fafc' : '#0f172a';
     const bgHeader = isDark ? '#1e293b' : '#f8fafc';
@@ -588,11 +587,13 @@ class QuickPasteMenu {
       width: ${cardWidth}px;
       max-width: 92vw;
       max-height: ${cardMaxHeight}px;
-      background: ${bgCard};
+      background: ${isDark ? 'rgba(15, 23, 42, 0.94)' : 'rgba(255, 255, 255, 0.96)'};
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
       color: ${textMain};
-      border: 1px solid ${borderCard};
-      border-radius: 12px;
-      box-shadow: 0 20px 45px -8px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.08);
+      border: 1px solid ${isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.08)'};
+      border-radius: 14px;
+      box-shadow: 0 24px 50px -10px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.08);
       overflow: hidden;
       display: flex;
       flex-direction: column;
