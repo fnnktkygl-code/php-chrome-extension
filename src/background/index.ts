@@ -1,6 +1,6 @@
 import { ClipboardService } from '../application/clipboard.service';
 import { StorageService } from '../application/storage.service';
-import { DEFAULT_SETTINGS, RuntimeMessage } from '../domain/types';
+import { Clip, DEFAULT_SETTINGS, RuntimeMessage } from '../domain/types';
 
 const storageService = new StorageService();
 const clipboardService = new ClipboardService(storageService);
@@ -24,7 +24,12 @@ chrome.runtime.onMessage.addListener((message: RuntimeMessage, sender, sendRespo
         .handleCopy({
           text: message.text,
           url: message.url,
-          timestamp: message.timestamp
+          timestamp: message.timestamp,
+          category: message.category,
+          dataUrl: message.dataUrl,
+          dimensions: message.dimensions,
+          ocrText: message.ocrText,
+          qrData: message.qrData
         })
         .then((clip) => {
           sendResponse({ success: true, clip });
@@ -98,7 +103,17 @@ chrome.runtime.onMessage.addListener((message: RuntimeMessage, sender, sendRespo
   }
 });
 
-// 2. Lifecycle Handlers
+// 2. Real-time Storage Observer for Instant Badge Synchronization
+if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.onChanged) {
+  chrome.storage.onChanged.addListener((changes, areaName) => {
+    if (areaName === 'local' && changes.clips) {
+      const newClips = (changes.clips.newValue as Clip[]) || [];
+      clipboardService.updateActionBadge(newClips.length);
+    }
+  });
+}
+
+// 3. Lifecycle Handlers
 chrome.runtime.onInstalled.addListener(async () => {
   try {
     const clips = await storageService.getClips();
@@ -153,7 +168,7 @@ chrome.runtime.onStartup.addListener(async () => {
   }
 });
 
-// 3. Periodic Cleanup Alarm (every 60 minutes)
+// 4. Periodic Cleanup Alarm (every 60 minutes)
 chrome.alarms.create('periodicCleanup', { periodInMinutes: 60 });
 
 chrome.alarms.onAlarm.addListener(async (alarm) => {

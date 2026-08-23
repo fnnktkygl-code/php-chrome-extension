@@ -5,9 +5,14 @@ const DEFAULT_MAX_AGE_MS = 24 * 60 * 60 * 1000; // 24 hours
 const MAX_CLIP_LENGTH = 20000;
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (sender.id && typeof chrome !== 'undefined' && chrome.runtime?.id && sender.id !== chrome.runtime.id) {
+    sendResponse({ success: false, error: 'Unauthorized sender' });
+    return false;
+  }
+
   if (message.type === 'CLIPBOARD_COPY') {
     handleClipboardCopy(message)
-      .then(() => sendResponse({ success: true }))
+      .then((clip) => sendResponse({ success: true, clip }))
       .catch((err) => {
         console.error('Clipboard copy failed:', err);
         sendResponse({ success: false, error: err.message });
@@ -21,13 +26,38 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         sendResponse({ success: false, error: err.message });
       });
     return true;
+  } else if (message.type === 'TOGGLE_PIN') {
+    togglePin(message.id)
+      .then((pinned) => sendResponse({ success: true, pinned }))
+      .catch((err) => sendResponse({ success: false, error: err.message }));
+    return true;
+  } else if (message.type === 'DELETE_CLIP') {
+    deleteClip(message.id)
+      .then((deleted) => sendResponse({ success: deleted }))
+      .catch((err) => sendResponse({ success: false, error: err.message }));
+    return true;
+  } else if (message.type === 'CLEAR_CLIPS') {
+    clearUnpinned()
+      .then((clearedCount) => sendResponse({ success: true, clearedCount }))
+      .catch((err) => sendResponse({ success: false, error: err.message }));
+    return true;
   }
 });
 
+// Real-time Storage Observer for Instant Badge Synchronization
+if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.onChanged) {
+  chrome.storage.onChanged.addListener((changes, areaName) => {
+    if (areaName === 'local' && changes.clips) {
+      const newClips = changes.clips.newValue || [];
+      updateBadge(newClips.length);
+    }
+  });
+}
+
 async function handleSettingsChanged() {
   try {
-    const { clips } = await chrome.storage.local.get(['clips']);
-    const cleanedClips = await cleanupClips(clips || []);
+    const { clips, settings } = await chrome.storage.local.get(['clips', 'settings']);
+    const cleanedClips = await cleanupClips(clips || [], settings || {});
     await chrome.storage.local.set({ clips: cleanedClips });
     await updateBadge(cleanedClips.length);
   } catch (err) {
@@ -44,115 +74,133 @@ async function handleClipboardCopy(data) {
     const saveUrl = settings.saveUrl !== undefined ? settings.saveUrl : true;
 
     if (!data.text || typeof data.text !== 'string') {
-      return;
+      return null;
     }
 
     const trimmedText = data.text.trim();
     if (!trimmedText) {
-      return;
+      return null;
     }
 
     if (trimmedText.length > MAX_CLIP_LENGTH) {
-      return;
+      return null;
     }
 
     // Global Deduplication
-    const existingIndex = clips.findIndex(c => c.text === trimmedText);
+    const existingIndex = clips.findIndex((c) => c.text === trimmedText);
+    let clip;
 
     if (existingIndex !== -1) {
-      const existingClip = clips[existingIndex];
-      if (existingClip.pinned) {
-        existingClip.timestamp = data.timestamp || Date.now();
-        if (saveUrl && data.url) existingClip.url = data.url;
-        const cleanedClips = await cleanupClips(clips);
-        await chrome.storage.local.set({ clips: cleanedClips });
-        await updateBadge(cleanedClips.length);
-        return;
+      const existing = clips[existingIndex];
+      existing.timestamp = data.timestamp || Date.now();
+      existing.copyCount = (existing.copyCount || 1) + 1;
+      existing.lastCopied = Date.now();
+      if (saveUrl && data.url) {
+        existing.url = data.url;
       }
+      clip = existing;
       clips.splice(existingIndex, 1);
+      clips.unshift(clip);
+    } else {
+      clip = {
+        id: Date.now() + Math.floor(Math.random() * 1000),
+        text: trimmedText,
+        url: saveUrl && data.url ? data.url : '',
+        timestamp: data.timestamp || Date.now(),
+        pinned: false,
+        copyCount: 1,
+        lastCopied: Date.now(),
+        category: data.category || detectCategory(trimmedText, data.dataUrl),
+        dataUrl: data.dataUrl,
+        dimensions: data.dimensions,
+        ocrText: data.ocrText,
+        qrData: data.qrData
+      };
+      clips.unshift(clip);
     }
 
-    const newClip = {
-      id: data.timestamp || Date.now(),
-      text: trimmedText,
-      url: saveUrl ? (data.url || '') : '',
-      timestamp: data.timestamp || Date.now(),
-      pinned: false,
-      copyCount: 0,
-      lastCopied: null
-    };
-
-    clips.unshift(newClip);
-    const cleanedClips = await cleanupClips(clips);
-
-    await chrome.storage.local.set({ clips: cleanedClips });
-    await updateBadge(cleanedClips.length);
-
+    clips = await cleanupClips(clips, settings);
+    await chrome.storage.local.set({ clips });
+    await updateBadge(clips.length);
+    return clip;
   } catch (err) {
-    console.error('Error saving clip:', err);
+    console.error('Error handling clipboard copy:', err);
     throw err;
   }
 }
 
-async function cleanupClips(clips) {
-  const result = await chrome.storage.local.get(['settings']);
-  const settings = result.settings || {};
-  const maxClips = settings.maxClips !== undefined ? settings.maxClips : DEFAULT_MAX_CLIPS;
-  const maxAgeMs = settings.maxAgeMs !== undefined ? settings.maxAgeMs : DEFAULT_MAX_AGE_MS;
+function detectCategory(text, dataUrl) {
+  if (dataUrl && typeof dataUrl === 'string' && dataUrl.startsWith('data:image/')) return 'image';
+  if (text.startsWith('http://') || text.startsWith('https://')) return 'link';
+  if (text.includes('function') || text.includes('const ') || text.includes('let ') || text.includes('<svg') || text.includes('<div')) return 'code';
+  return 'text';
+}
+
+async function cleanupClips(clips, settings) {
+  const maxClips = (settings && typeof settings.maxClips === 'number') ? settings.maxClips : DEFAULT_MAX_CLIPS;
   const now = Date.now();
 
-  const recentAndPinned = clips.filter(clip => {
+  const validClips = clips.filter((clip) => {
     if (clip.pinned) return true;
-    if (maxAgeMs === 0) return true;
-    return (now - clip.timestamp) < maxAgeMs;
+    return now - clip.timestamp < DEFAULT_MAX_AGE_MS;
   });
 
-  const pinnedClips = recentAndPinned.filter(c => c.pinned);
-  const unpinnedClips = recentAndPinned.filter(c => !c.pinned);
+  const pinned = validClips.filter((c) => c.pinned);
+  const unpinned = validClips.filter((c) => !c.pinned);
+  const cappedUnpinned = unpinned.slice(0, maxClips);
 
-  if (unpinnedClips.length > maxClips) {
-    unpinnedClips.length = maxClips;
-  }
+  return [...pinned, ...cappedUnpinned];
+}
 
-  return [...pinnedClips, ...unpinnedClips];
+async function togglePin(id) {
+  const { clips = [] } = await chrome.storage.local.get(['clips']);
+  const clip = clips.find((c) => c.id === id);
+  if (!clip) return false;
+  clip.pinned = !clip.pinned;
+  await chrome.storage.local.set({ clips });
+  return clip.pinned;
+}
+
+async function deleteClip(id) {
+  const { clips = [] } = await chrome.storage.local.get(['clips']);
+  const filtered = clips.filter((c) => c.id !== id);
+  await chrome.storage.local.set({ clips: filtered });
+  await updateBadge(filtered.length);
+  return true;
+}
+
+async function clearUnpinned() {
+  const { clips = [] } = await chrome.storage.local.get(['clips']);
+  const pinnedOnly = clips.filter((c) => c.pinned);
+  const clearedCount = clips.length - pinnedOnly.length;
+  await chrome.storage.local.set({ clips: pinnedOnly });
+  await updateBadge(pinnedOnly.length);
+  return clearedCount;
 }
 
 async function updateBadge(count) {
-  try {
-    const text = count > 0 ? count.toString() : '';
-    await chrome.action.setBadgeText({ text });
-    if (text) {
-      await chrome.action.setBadgeBackgroundColor({ color: '#2563eb' });
+  if (typeof chrome !== 'undefined' && chrome.action && chrome.action.setBadgeText) {
+    try {
+      const text = count > 0 ? String(count) : '';
+      await chrome.action.setBadgeText({ text });
+      if (text) {
+        if (chrome.action.setBadgeBackgroundColor) {
+          await chrome.action.setBadgeBackgroundColor({ color: '#2563eb' });
+        }
+        if (chrome.action.setBadgeTextColor) {
+          await chrome.action.setBadgeTextColor({ color: '#ffffff' });
+        }
+      }
+    } catch (err) {
+      console.debug('Badge update skipped:', err);
     }
-  } catch (err) {
-    console.error('Error updating badge:', err);
   }
 }
 
 chrome.runtime.onInstalled.addListener(async () => {
   try {
-    const { clips } = await chrome.storage.local.get(['clips']);
-    await updateBadge(clips ? clips.length : 0);
-
-    const { theme, locale, settings } = await chrome.storage.local.get(['theme', 'locale', 'settings']);
-    if (!theme) {
-      await chrome.storage.local.set({ theme: 'dark' });
-    }
-    if (!locale) {
-      const browserLang = navigator.language || 'en';
-      const detectedLocale = browserLang.startsWith('fr') ? 'fr' : 'en';
-      await chrome.storage.local.set({ locale: detectedLocale });
-    }
-    if (!settings) {
-      await chrome.storage.local.set({
-        settings: {
-          saveUrl: true,
-          ignorePasswords: true,
-          maxClips: DEFAULT_MAX_CLIPS,
-          maxAgeMs: DEFAULT_MAX_AGE_MS
-        }
-      });
-    }
+    const { clips = [] } = await chrome.storage.local.get(['clips']);
+    await updateBadge(clips.length);
 
     if (chrome.tabs && chrome.scripting) {
       const tabs = await chrome.tabs.query({ url: ['http://*/*', 'https://*/*'] });
@@ -166,32 +214,15 @@ chrome.runtime.onInstalled.addListener(async () => {
       }
     }
   } catch (err) {
-    console.error('Error in onInstalled:', err);
+    console.error('onInstalled error:', err);
   }
 });
 
 chrome.runtime.onStartup.addListener(async () => {
   try {
-    const { clips } = await chrome.storage.local.get(['clips']);
-    const cleanedClips = await cleanupClips(clips || []);
-    await chrome.storage.local.set({ clips: cleanedClips });
-    await updateBadge(cleanedClips.length);
+    const { clips = [] } = await chrome.storage.local.get(['clips']);
+    await updateBadge(clips.length);
   } catch (err) {
-    console.error('Error in onStartup:', err);
-  }
-});
-
-chrome.alarms.create('cleanupClips', { periodInMinutes: 60 });
-
-chrome.alarms.onAlarm.addListener(async (alarm) => {
-  if (alarm.name === 'cleanupClips') {
-    try {
-      const { clips } = await chrome.storage.local.get(['clips']);
-      const cleanedClips = await cleanupClips(clips || []);
-      await chrome.storage.local.set({ clips: cleanedClips });
-      await updateBadge(cleanedClips.length);
-    } catch (err) {
-      console.error('Error in cleanup alarm:', err);
-    }
+    console.error('onStartup error:', err);
   }
 });
