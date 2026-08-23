@@ -526,13 +526,13 @@ class ScreenSnipper {
 
 const snipper = new ScreenSnipper();
 
-// Direct in-page Keyboard Shortcut (Shottr-style: Cmd/Ctrl + Shift + 2 / é)
+// Direct in-page Keyboard Shortcut (Cmd/Ctrl + Shift + X / O or Alt + Shift + X / O)
 window.addEventListener('keydown', (e: KeyboardEvent) => {
   const isCmdOrCtrl = e.metaKey || e.ctrlKey;
-  const isDigit2 = e.code === 'Digit2' || e.key === '2' || e.key === 'é' || e.key === '"';
-  const isAltShiftS = e.altKey && e.shiftKey && (e.key === 's' || e.key === 'S');
+  const isKeyMatch = e.key === 'x' || e.key === 'X' || e.key === 'o' || e.key === 'O' || e.code === 'KeyX' || e.code === 'KeyO';
+  const isAltShift = e.altKey && e.shiftKey && (e.key === 'x' || e.key === 'X' || e.key === 'o' || e.key === 'O');
 
-  if ((isCmdOrCtrl && e.shiftKey && isDigit2) || isAltShiftS) {
+  if ((isCmdOrCtrl && e.shiftKey && isKeyMatch) || isAltShift) {
     e.preventDefault();
     snipper.activate();
   }

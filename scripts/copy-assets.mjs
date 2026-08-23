@@ -37,14 +37,21 @@ const iconsDest = path.join(distDir, 'icons');
 copyDir(iconsSrc, iconsDest);
 console.log('✅ Copied icons to dist/icons/');
 
-// 3. Move popup.html from dist/src/popup/popup.html to dist/popup.html if needed
-const nestedPopup = path.join(distDir, 'src', 'popup', 'popup.html');
-const targetPopup = path.join(distDir, 'popup.html');
-if (fs.existsSync(nestedPopup)) {
-  let content = fs.readFileSync(nestedPopup, 'utf8');
-  // Adjust relative paths
-  content = content.replace(/\.\.\/\.\.\/assets\//g, 'assets/');
-  content = content.replace(/\.\.\/\.\.\/icons\//g, 'icons/');
-  fs.writeFileSync(targetPopup, content, 'utf8');
-  console.log('✅ Normalized dist/popup.html with root-relative paths');
+// 3. Copy clean standalone root runtime scripts (avoiding Vite module chunk splitting issues in content scripts)
+const standaloneFiles = [
+  'content.js',
+  'background.js',
+  'popup.js',
+  'popup.css',
+  'popup.html',
+  'i18n.js'
+];
+
+for (const file of standaloneFiles) {
+  const src = path.join(rootDir, file);
+  const dest = path.join(distDir, file);
+  if (fs.existsSync(src)) {
+    fs.copyFileSync(src, dest);
+    console.log(`✅ Copied ${file} to dist/`);
+  }
 }

@@ -54,8 +54,8 @@
     },
     "snip_ocr": {
       "suggested_key": {
-        "default": "Alt+Shift+S",
-        "mac": "Command+Shift+2"
+        "default": "Alt+Shift+X",
+        "mac": "Command+Shift+X"
       },
       "description": "Snip area & extract OCR text (Shottr Style)"
     }
