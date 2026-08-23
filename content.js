@@ -446,6 +446,16 @@ function ensureStylesInjected() {
   (document.head || document.documentElement).appendChild(style);
 }
 
+let lastMouseX = typeof window !== 'undefined' ? window.innerWidth / 2 : 400;
+let lastMouseY = typeof window !== 'undefined' ? window.innerHeight / 3 : 200;
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('mousemove', (e) => {
+    lastMouseX = e.clientX;
+    lastMouseY = e.clientY;
+  }, { passive: true });
+}
+
 class QuickPasteMenu {
   constructor() {
     this.overlay = null;
@@ -481,50 +491,63 @@ class QuickPasteMenu {
     this.clips = clips.slice(0, 5);
     this.selectedIndex = 0;
 
-    // Overlay backdrop
+    // Overlay backdrop (transparent click-catcher)
     this.overlay = document.createElement('div');
     this.overlay.id = 'php-quick-paste-overlay';
     this.overlay.style.cssText = `
       position: fixed;
       inset: 0;
       z-index: 2147483646;
-      background: rgba(0, 0, 0, 0.4);
-      backdrop-filter: blur(2px);
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      padding-top: 14vh;
+      background: rgba(0, 0, 0, 0.12);
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-      animation: phpFadeIn 0.12s ease-out;
       user-select: none;
     `;
 
-    // Modal Card
+    // Modal Card positioned right at the mouse cursor
     const card = document.createElement('div');
     card.id = 'php-quick-paste-card';
     const bgCard = isDark ? '#0f172a' : '#ffffff';
-    const borderCard = isDark ? '#334155' : '#e2e8f0';
+    const borderCard = isDark ? '#334155' : '#cbd5e1';
     const textMain = isDark ? '#f8fafc' : '#0f172a';
     const bgHeader = isDark ? '#1e293b' : '#f8fafc';
     const textSub = isDark ? '#94a3b8' : '#64748b';
 
+    const cardWidth = 380;
+    const cardHeight = Math.min(360, 48 + this.clips.length * 48 + 40);
+
+    let left = lastMouseX + 8;
+    let top = lastMouseY + 8;
+
+    // Viewport clamping so it never overflows screen bounds
+    if (left + cardWidth > window.innerWidth - 16) {
+      left = Math.max(16, lastMouseX - cardWidth - 8);
+    }
+    if (top + cardHeight > window.innerHeight - 16) {
+      top = Math.max(16, window.innerHeight - cardHeight - 16);
+    }
+
     card.style.cssText = `
-      width: 440px;
-      max-width: 92vw;
+      position: fixed;
+      left: ${left}px;
+      top: ${top}px;
+      width: ${cardWidth}px;
+      max-width: 90vw;
       background: ${bgCard};
       color: ${textMain};
       border: 1px solid ${borderCard};
-      border-radius: 12px;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      box-shadow: 0 20px 40px -8px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.08);
       overflow: hidden;
       display: flex;
       flex-direction: column;
+      animation: phpFadeIn 0.12s ease-out;
+      z-index: 2147483647;
     `;
 
     // Header
     const header = document.createElement('div');
     header.style.cssText = `
-      padding: 10px 14px;
+      padding: 8px 12px;
       border-bottom: 1px solid ${borderCard};
       display: flex;
       align-items: center;
