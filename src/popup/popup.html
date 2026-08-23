@@ -121,138 +121,141 @@
       </div>
     </div>
 
-    <!-- Settings Modal -->
-    <div class="modal-backdrop" id="settingsModal" role="dialog" aria-modal="true" aria-labelledby="settingsModalTitle">
-      <div class="modal-dialog">
-        <div class="modal-header">
-          <h2 class="modal-title" id="settingsModalTitle">Settings</h2>
-          <button class="modal-close-btn" id="settingsCloseBtn" aria-label="Close settings">✕</button>
+    <!-- Settings View (Apple Grouped Inset Design) -->
+    <div class="settings-view" id="settingsModal" role="dialog" aria-modal="true" aria-labelledby="settingsModalTitle">
+      <div class="settings-header">
+        <h2 class="settings-title" id="settingsModalTitle">Paramètres</h2>
+        <button class="icon-btn close-settings-btn" id="settingsCloseBtn" aria-label="Fermer les paramètres">✕</button>
+      </div>
+
+      <div class="settings-scroll-body">
+        <!-- Section: Général -->
+        <div class="settings-group">
+          <span class="settings-group-title" id="groupGeneralTitle">GÉNÉRAL</span>
+          <div class="settings-card">
+            <div class="settings-item">
+              <span class="settings-item-label" id="themeSettingLabel">Thème</span>
+              <div class="settings-segmented-pill" id="themeSegmented">
+                <button type="button" class="seg-pill-btn active" data-theme-val="dark" id="btnThemeDark">🌙 Sombre</button>
+                <button type="button" class="seg-pill-btn" data-theme-val="light" id="btnThemeLight">☀️ Clair</button>
+              </div>
+            </div>
+            <div class="settings-item">
+              <span class="settings-item-label" id="languageSettingLabel">Langue</span>
+              <div class="settings-segmented-pill" id="langSegmented">
+                <button type="button" class="seg-pill-btn active" data-lang-val="fr" id="btnLangFr">🇫🇷 FR</button>
+                <button type="button" class="seg-pill-btn" data-lang-val="en" id="btnLangEn">🇬🇧 EN</button>
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="modal-body settings-body">
-          <div class="setting-row">
-            <div class="setting-text">
-              <label for="settingTheme" id="themeSettingLabel">Thème d'affichage</label>
-              <span class="setting-desc" id="themeSettingDesc">Style de l'interface</span>
+
+        <!-- Section: Menu Rapide -->
+        <div class="settings-group">
+          <span class="settings-group-title" id="groupQuickMenuTitle">MENU RAPIDE (OPTION + V)</span>
+          <div class="settings-card">
+            <div class="settings-item">
+              <div class="settings-item-info">
+                <span class="settings-item-label" id="quickMenuLimitLabel">Nombre d'éléments</span>
+                <span class="settings-item-desc" id="quickMenuLimitDesc">Dans le pop-up sous la souris</span>
+              </div>
+              <div class="settings-segmented-pill" id="quickLimitSegmented">
+                <button type="button" class="seg-pill-btn" data-limit="5">5</button>
+                <button type="button" class="seg-pill-btn" data-limit="10">10</button>
+                <button type="button" class="seg-pill-btn active" data-limit="20">20</button>
+              </div>
             </div>
-            <select id="settingTheme" class="form-select">
-              <option value="dark" id="optThemeDark">🌙 Sombre (Obsidian)</option>
-              <option value="light" id="optThemeLight">☀️ Clair (Alabaster)</option>
-            </select>
-          </div>
-
-          <div class="setting-row">
-            <div class="setting-text">
-              <label for="settingLocale" id="languageSettingLabel">Langue d'affichage</label>
-              <span class="setting-desc" id="languageSettingDesc">Interface utilisateur</span>
-            </div>
-            <select id="settingLocale" class="form-select">
-              <option value="fr" id="optLangFr">🇫🇷 Français</option>
-              <option value="en" id="optLangEn">🇬🇧 English</option>
-            </select>
-          </div>
-
-          <hr class="settings-divider">
-
-          <div class="setting-row">
-            <div class="setting-text">
-              <label for="settingSaveUrl" id="saveUrlLabel">Save source website URL</label>
-            </div>
-            <label class="toggle-switch">
-              <input type="checkbox" id="settingSaveUrl" checked>
-              <span class="toggle-slider"></span>
-            </label>
-          </div>
-
-          <div class="setting-row">
-            <div class="setting-text">
-              <label for="settingIgnorePasswords" id="ignorePasswordsLabel">Ignore sensitive fields & passwords</label>
-            </div>
-            <label class="toggle-switch">
-              <input type="checkbox" id="settingIgnorePasswords" checked>
-              <span class="toggle-slider"></span>
-            </label>
-          </div>
-
-          <div class="setting-row">
-            <div class="setting-text">
-              <label for="settingMaxClips" id="maxClipsLabel">Maximum clips in history</label>
-            </div>
-            <select id="settingMaxClips" class="form-select">
-              <option value="25">25 clips</option>
-              <option value="50" selected>50 clips</option>
-              <option value="100">100 clips</option>
-              <option value="200">200 clips</option>
-            </select>
-          </div>
-
-          <div class="setting-row">
-            <div class="setting-text">
-              <label for="settingMaxAge" id="maxAgeLabel">Clip retention period</label>
-            </div>
-            <select id="settingMaxAge" class="form-select">
-              <option value="86400000" id="opt1Day">24 Hours</option>
-              <option value="604800000" id="opt7Days">7 Days</option>
-              <option value="2592000000" id="opt30Days">30 Days</option>
-              <option value="0" id="optNever">Never (Keep forever)</option>
-            </select>
-          </div>
-
-          <div class="setting-row">
-            <div class="setting-text">
-              <label for="settingQuickMenuLimit" id="quickMenuLimitLabel">Capacité du Menu Rapide</label>
-              <span class="setting-desc" id="quickMenuLimitDesc">Nombre d'éléments sous la souris</span>
-            </div>
-            <select id="settingQuickMenuLimit" class="form-select">
-              <option value="5" id="opt5Clips">5 éléments (Compact)</option>
-              <option value="10" id="opt10Clips">10 éléments (Standard)</option>
-              <option value="20" id="opt20Clips" selected>20 éléments (Défilement fluide)</option>
-            </select>
-          </div>
-
-          <hr class="settings-divider">
-
-          <div class="shortcuts-section">
-            <h3 class="backup-title" id="shortcutsSectionTitle">Raccourcis Clavier</h3>
-            
-            <div class="shortcut-record-row">
-              <div class="shortcut-label-col">
-                <span class="shortcut-label" id="snipShortcutLabel">Cadrage & OCR (Shottr)</span>
-                <span class="shortcut-desc" id="snipShortcutDesc">Capture et extraction de texte</span>
+            <div class="settings-item">
+              <div class="settings-item-info">
+                <span class="settings-item-label" id="quickPasteShortcutLabel">Raccourci Menu</span>
+                <span class="settings-item-desc" id="quickPasteShortcutDesc">Ouvre sous la souris</span>
               </div>
               <div class="shortcut-btn-wrapper">
-                <button class="shortcut-record-btn" id="recordSnipBtn" data-action="snip" title="Cliquer pour enregistrer un raccourci">
-                  <span class="shortcut-display" id="snipShortcutDisplay">⌘ + Shift + X</span>
-                </button>
-                <button class="shortcut-reset-btn" id="resetSnipBtn" title="Réinitialiser">↺</button>
-              </div>
-            </div>
-
-            <div class="shortcut-record-row">
-              <div class="shortcut-label-col">
-                <span class="shortcut-label" id="quickPasteShortcutLabel">Menu Rapide (5 Récents)</span>
-                <span class="shortcut-desc" id="quickPasteShortcutDesc">Pop-up sous le curseur souris</span>
-              </div>
-              <div class="shortcut-btn-wrapper">
-                <button class="shortcut-record-btn" id="recordQuickPasteBtn" data-action="quickPaste" title="Cliquer pour enregistrer un raccourci">
+                <button class="shortcut-record-btn" id="recordQuickPasteBtn" data-action="quickPaste" title="Cliquer pour enregistrer">
                   <span class="shortcut-display" id="quickPasteShortcutDisplay">Option + V</span>
                 </button>
                 <button class="shortcut-reset-btn" id="resetQuickPasteBtn" title="Réinitialiser">↺</button>
               </div>
             </div>
           </div>
+        </div>
 
-          <hr class="settings-divider">
+        <!-- Section: Cadrage OCR -->
+        <div class="settings-group">
+          <span class="settings-group-title" id="groupSnipTitle">CADRAGE & OCR</span>
+          <div class="settings-card">
+            <div class="settings-item">
+              <div class="settings-item-info">
+                <span class="settings-item-label" id="snipShortcutLabel">Raccourci Cadrage</span>
+                <span class="settings-item-desc" id="snipShortcutDesc">Capture et extraction de texte</span>
+              </div>
+              <div class="shortcut-btn-wrapper">
+                <button class="shortcut-record-btn" id="recordSnipBtn" data-action="snip" title="Cliquer pour enregistrer">
+                  <span class="shortcut-display" id="snipShortcutDisplay">⌘ + Shift + X</span>
+                </button>
+                <button class="shortcut-reset-btn" id="resetSnipBtn" title="Réinitialiser">↺</button>
+              </div>
+            </div>
+          </div>
+        </div>
 
-          <div class="backup-section">
-            <h3 class="backup-title" id="backupSectionTitle">Backup & Restore</h3>
-            <div class="backup-actions">
+        <!-- Section: Historique & Confidentialité -->
+        <div class="settings-group">
+          <span class="settings-group-title" id="groupPrivacyTitle">HISTORIQUE & CONFIDENTIALITÉ</span>
+          <div class="settings-card">
+            <div class="settings-item">
+              <div class="settings-item-info">
+                <label for="settingSaveUrl" class="settings-item-label" id="saveUrlLabel">Conserver l'URL source</label>
+                <span class="settings-item-desc" id="saveUrlDesc">Associe le site web au texte</span>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="settingSaveUrl" checked>
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div class="settings-item">
+              <div class="settings-item-info">
+                <label for="settingIgnorePasswords" class="settings-item-label" id="ignorePasswordsLabel">Ignorer mots de passe</label>
+                <span class="settings-item-desc" id="ignorePasswordsDesc">Sécurité des champs sensibles</span>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="settingIgnorePasswords" checked>
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div class="settings-item">
+              <span class="settings-item-label" id="maxClipsLabel">Capacité d'historique</span>
+              <select id="settingMaxClips" class="form-select clean-select">
+                <option value="25">25 clips</option>
+                <option value="50" selected>50 clips</option>
+                <option value="100">100 clips</option>
+                <option value="200">200 clips</option>
+              </select>
+            </div>
+            <div class="settings-item">
+              <span class="settings-item-label" id="maxAgeLabel">Conservation</span>
+              <select id="settingMaxAge" class="form-select clean-select">
+                <option value="86400000" id="opt1Day">24 Heures</option>
+                <option value="604800000" id="opt7Days">7 Jours</option>
+                <option value="2592000000" id="opt30Days">30 Jours</option>
+                <option value="0" id="optNever">Toujours</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section: Sauvegarde -->
+        <div class="settings-group">
+          <span class="settings-group-title" id="groupBackupTitle">DONNÉES & SAUVEGARDE</span>
+          <div class="settings-card">
+            <div class="settings-item settings-actions-row">
               <button class="btn btn-secondary btn-full" id="exportBackupBtn">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                   <polyline points="17 8 12 3 7 8"></polyline>
                   <line x1="12" y1="3" x2="12" y2="15"></line>
                 </svg>
-                <span id="exportBtnText">Export (JSON)</span>
+                <span id="exportBtnText">Exporter JSON</span>
               </button>
               <button class="btn btn-secondary btn-full" id="importBackupBtn">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -260,7 +263,7 @@
                   <polyline points="7 10 12 15 17 10"></polyline>
                   <line x1="12" y1="15" x2="12" y2="3"></line>
                 </svg>
-                <span id="importBtnText">Import (JSON)</span>
+                <span id="importBtnText">Importer JSON</span>
               </button>
               <input type="file" id="importFileInput" accept=".json" style="display: none;">
             </div>

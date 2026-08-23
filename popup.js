@@ -428,47 +428,76 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (snipHeaderLabel) snipHeaderLabel.textContent = i18n.t('snipHeaderLabel');
         if (settingsBtn) settingsBtn.title = i18n.t('settings');
 
+        // Settings Inset Groups & Labels
+        const settingsModalTitle = document.getElementById('settingsModalTitle');
+        if (settingsModalTitle) settingsModalTitle.textContent = i18n.t('settingsModalTitle');
+
+        const groupGeneralTitle = document.getElementById('groupGeneralTitle');
         const themeSettingLabel = document.getElementById('themeSettingLabel');
-        const themeSettingDesc = document.getElementById('themeSettingDesc');
-        const optThemeDark = document.getElementById('optThemeDark');
-        const optThemeLight = document.getElementById('optThemeLight');
+        const btnThemeDark = document.getElementById('btnThemeDark');
+        const btnThemeLight = document.getElementById('btnThemeLight');
         const languageSettingLabel = document.getElementById('languageSettingLabel');
-        const languageSettingDesc = document.getElementById('languageSettingDesc');
-        const optLangFr = document.getElementById('optLangFr');
-        const optLangEn = document.getElementById('optLangEn');
+        const btnLangFr = document.getElementById('btnLangFr');
+        const btnLangEn = document.getElementById('btnLangEn');
 
+        if (groupGeneralTitle) groupGeneralTitle.textContent = i18n.t('groupGeneralTitle');
         if (themeSettingLabel) themeSettingLabel.textContent = i18n.t('themeSettingLabel');
-        if (themeSettingDesc) themeSettingDesc.textContent = i18n.t('themeSettingDesc');
-        if (optThemeDark) optThemeDark.textContent = i18n.t('optThemeDark');
-        if (optThemeLight) optThemeLight.textContent = i18n.t('optThemeLight');
+        if (btnThemeDark) btnThemeDark.textContent = i18n.t('btnThemeDark');
+        if (btnThemeLight) btnThemeLight.textContent = i18n.t('btnThemeLight');
         if (languageSettingLabel) languageSettingLabel.textContent = i18n.t('languageSettingLabel');
-        if (languageSettingDesc) languageSettingDesc.textContent = i18n.t('languageSettingDesc');
-        if (optLangFr) optLangFr.textContent = i18n.t('optLangFr');
-        if (optLangEn) optLangEn.textContent = i18n.t('optLangEn');
+        if (btnLangFr) btnLangFr.textContent = i18n.t('btnLangFr');
+        if (btnLangEn) btnLangEn.textContent = i18n.t('btnLangEn');
 
+        const groupQuickMenuTitle = document.getElementById('groupQuickMenuTitle');
         const quickMenuLimitLabel = document.getElementById('quickMenuLimitLabel');
         const quickMenuLimitDesc = document.getElementById('quickMenuLimitDesc');
-        const opt5Clips = document.getElementById('opt5Clips');
-        const opt10Clips = document.getElementById('opt10Clips');
-        const opt20Clips = document.getElementById('opt20Clips');
-
-        if (quickMenuLimitLabel) quickMenuLimitLabel.textContent = i18n.t('quickMenuLimitLabel');
-        if (quickMenuLimitDesc) quickMenuLimitDesc.textContent = i18n.t('quickMenuLimitDesc');
-        if (opt5Clips) opt5Clips.textContent = i18n.t('opt5Clips');
-        if (opt10Clips) opt10Clips.textContent = i18n.t('opt10Clips');
-        if (opt20Clips) opt20Clips.textContent = i18n.t('opt20Clips');
-
-        const shortcutsSectionTitle = document.getElementById('shortcutsSectionTitle');
-        const snipShortcutLabel = document.getElementById('snipShortcutLabel');
-        const snipShortcutDesc = document.getElementById('snipShortcutDesc');
         const quickPasteShortcutLabel = document.getElementById('quickPasteShortcutLabel');
         const quickPasteShortcutDesc = document.getElementById('quickPasteShortcutDesc');
 
-        if (shortcutsSectionTitle) shortcutsSectionTitle.textContent = i18n.t('shortcutsSectionTitle');
-        if (snipShortcutLabel) snipShortcutLabel.textContent = i18n.t('snipShortcutLabel');
-        if (snipShortcutDesc) snipShortcutDesc.textContent = i18n.t('snipShortcutDesc');
+        if (groupQuickMenuTitle) groupQuickMenuTitle.textContent = i18n.t('groupQuickMenuTitle');
+        if (quickMenuLimitLabel) quickMenuLimitLabel.textContent = i18n.t('quickMenuLimitLabel');
+        if (quickMenuLimitDesc) quickMenuLimitDesc.textContent = i18n.t('quickMenuLimitDesc');
         if (quickPasteShortcutLabel) quickPasteShortcutLabel.textContent = i18n.t('quickPasteShortcutLabel');
         if (quickPasteShortcutDesc) quickPasteShortcutDesc.textContent = i18n.t('quickPasteShortcutDesc');
+
+        const groupSnipTitle = document.getElementById('groupSnipTitle');
+        const snipShortcutLabel = document.getElementById('snipShortcutLabel');
+        const snipShortcutDesc = document.getElementById('snipShortcutDesc');
+
+        if (groupSnipTitle) groupSnipTitle.textContent = i18n.t('groupSnipTitle');
+        if (snipShortcutLabel) snipShortcutLabel.textContent = i18n.t('snipShortcutLabel');
+        if (snipShortcutDesc) snipShortcutDesc.textContent = i18n.t('snipShortcutDesc');
+
+        const groupPrivacyTitle = document.getElementById('groupPrivacyTitle');
+        const saveUrlLabel = document.getElementById('saveUrlLabel');
+        const saveUrlDesc = document.getElementById('saveUrlDesc');
+        const ignorePasswordsLabel = document.getElementById('ignorePasswordsLabel');
+        const ignorePasswordsDesc = document.getElementById('ignorePasswordsDesc');
+        const maxClipsLabel = document.getElementById('maxClipsLabel');
+        const maxAgeLabel = document.getElementById('maxAgeLabel');
+        const opt1Day = document.getElementById('opt1Day');
+        const opt7Days = document.getElementById('opt7Days');
+        const opt30Days = document.getElementById('opt30Days');
+        const optNever = document.getElementById('optNever');
+
+        if (groupPrivacyTitle) groupPrivacyTitle.textContent = i18n.t('groupPrivacyTitle');
+        if (saveUrlLabel) saveUrlLabel.textContent = i18n.t('saveUrlLabel');
+        if (saveUrlDesc) saveUrlDesc.textContent = i18n.t('saveUrlDesc');
+        if (ignorePasswordsLabel) ignorePasswordsLabel.textContent = i18n.t('ignorePasswordsLabel');
+        if (ignorePasswordsDesc) ignorePasswordsDesc.textContent = i18n.t('ignorePasswordsDesc');
+        if (maxClipsLabel) maxClipsLabel.textContent = i18n.t('maxClipsLabel');
+        if (maxAgeLabel) maxAgeLabel.textContent = i18n.t('maxAgeLabel');
+        if (opt1Day) opt1Day.textContent = i18n.t('opt1Day');
+        if (opt7Days) opt7Days.textContent = i18n.t('opt7Days');
+        if (opt30Days) opt30Days.textContent = i18n.t('opt30Days');
+        if (optNever) optNever.textContent = i18n.t('optNever');
+
+        const groupBackupTitle = document.getElementById('groupBackupTitle');
+        const exportBtnText = document.getElementById('exportBtnText');
+        const importBtnText = document.getElementById('importBtnText');
+        if (groupBackupTitle) groupBackupTitle.textContent = i18n.t('groupBackupTitle');
+        if (exportBtnText) exportBtnText.textContent = i18n.t('exportBtnText');
+        if (importBtnText) importBtnText.textContent = i18n.t('importBtnText');
     }
 
     const isMac = typeof navigator !== 'undefined' ? (navigator.platform?.includes('Mac') || navigator.userAgent?.includes('Mac')) : true;
@@ -696,33 +725,71 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-    const settingTheme = document.getElementById('settingTheme');
-    const settingLocale = document.getElementById('settingLocale');
-
     settingsBtn?.addEventListener('click', async () => {
         await refreshShortcutsUI();
         const { settings, theme, locale } = await chrome.storage.local.get(['settings', 'theme', 'locale']);
-        if (settingTheme) settingTheme.value = theme === 'light' || document.body.classList.contains('light-mode') ? 'light' : 'dark';
-        if (settingLocale) settingLocale.value = locale || i18n.locale || 'fr';
+        const isLight = theme === 'light' || document.body.classList.contains('light-mode');
+        document.querySelectorAll('#themeSegmented .seg-pill-btn').forEach((b) => {
+            b.classList.toggle('active', b.getAttribute('data-theme-val') === (isLight ? 'light' : 'dark'));
+        });
+
+        const currentLocale = locale || i18n.locale || 'fr';
+        document.querySelectorAll('#langSegmented .seg-pill-btn').forEach((b) => {
+            b.classList.toggle('active', b.getAttribute('data-lang-val') === currentLocale);
+        });
+
+        const currentLimit = String(settings?.quickMenuLimit || 20);
+        document.querySelectorAll('#quickLimitSegmented .seg-pill-btn').forEach((b) => {
+            b.classList.toggle('active', b.getAttribute('data-limit') === currentLimit);
+        });
+
         if (settingSaveUrl) settingSaveUrl.checked = settings?.saveUrl !== undefined ? settings.saveUrl : true;
         if (settingIgnorePasswords) settingIgnorePasswords.checked = settings?.ignorePasswords !== undefined ? settings.ignorePasswords : true;
         if (settingMaxClips) settingMaxClips.value = String(settings?.maxClips || 50);
         if (settingMaxAge) settingMaxAge.value = String(settings?.maxAgeMs || 86400000);
-        if (settingQuickMenuLimit) settingQuickMenuLimit.value = String(settings?.quickMenuLimit || 20);
         settingsModal.classList.add('open', 'show');
     });
 
-    settingTheme?.addEventListener('change', async () => {
-        const isLight = settingTheme.value === 'light';
-        document.body.classList.toggle('light-mode', isLight);
-        await chrome.storage.local.set({ theme: isLight ? 'light' : 'dark' });
+    // Theme Segmented Control
+    document.querySelectorAll('#themeSegmented .seg-pill-btn').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+            const themeVal = btn.getAttribute('data-theme-val');
+            document.querySelectorAll('#themeSegmented .seg-pill-btn').forEach((b) => b.classList.remove('active'));
+            btn.classList.add('active');
+            const isLight = themeVal === 'light';
+            document.body.classList.toggle('light-mode', isLight);
+            await chrome.storage.local.set({ theme: themeVal });
+        });
     });
 
-    settingLocale?.addEventListener('change', async () => {
-        i18n.locale = settingLocale.value;
-        await chrome.storage.local.set({ locale: settingLocale.value });
-        updateLanguageUI();
-        render();
+    // Language Segmented Control
+    document.querySelectorAll('#langSegmented .seg-pill-btn').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+            const langVal = btn.getAttribute('data-lang-val');
+            document.querySelectorAll('#langSegmented .seg-pill-btn').forEach((b) => b.classList.remove('active'));
+            btn.classList.add('active');
+            i18n.locale = langVal;
+            await chrome.storage.local.set({ locale: langVal });
+            updateLanguageUI();
+            render();
+        });
+    });
+
+    // Quick Menu Limit Segmented Control
+    document.querySelectorAll('#quickLimitSegmented .seg-pill-btn').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+            const limit = Number(btn.getAttribute('data-limit') || 20);
+            document.querySelectorAll('#quickLimitSegmented .seg-pill-btn').forEach((b) => b.classList.remove('active'));
+            btn.classList.add('active');
+            const { settings = {} } = await chrome.storage.local.get('settings');
+            const updated = { ...settings, quickMenuLimit: limit };
+            await chrome.storage.local.set({ settings: updated });
+            try {
+                if (typeof chrome !== 'undefined' && chrome.runtime?.sendMessage) {
+                    await chrome.runtime.sendMessage({ type: 'SETTINGS_CHANGED' });
+                }
+            } catch {}
+        });
     });
 
     async function saveCurrentSettings() {
@@ -732,8 +799,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             saveUrl: settingSaveUrl ? settingSaveUrl.checked : true,
             ignorePasswords: settingIgnorePasswords ? settingIgnorePasswords.checked : true,
             maxClips: settingMaxClips ? Number(settingMaxClips.value) : 50,
-            maxAgeMs: settingMaxAge ? Number(settingMaxAge.value) : 86400000,
-            quickMenuLimit: settingQuickMenuLimit ? Number(settingQuickMenuLimit.value) : 20
+            maxAgeMs: settingMaxAge ? Number(settingMaxAge.value) : 86400000
         };
         await chrome.storage.local.set({ settings: updated });
         try {

@@ -818,36 +818,206 @@ body.light-mode .highlight {
   user-select: text;
 }
 
-/* ---------------- Settings Form ---------------- */
-.settings-body {
-  display: flex;
+/* ---------------- Apple Inset Grouped Settings View ---------------- */
+.settings-view {
+  position: absolute;
+  inset: 0;
+  background-color: var(--bg-app);
+  z-index: 150;
+  display: none;
   flex-direction: column;
-  gap: 12px;
+  animation: settingsSlideIn 0.18s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.setting-row {
+.settings-view.open,
+.settings-view.show {
+  display: flex;
+}
+
+@keyframes settingsSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.settings-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg-surface);
+  flex-shrink: 0;
+}
+
+.settings-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+  color: var(--text-primary);
+}
+
+.close-settings-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  font-size: 12px;
+}
+
+.settings-scroll-body {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Custom Scrollbar for Settings */
+.settings-scroll-body::-webkit-scrollbar {
+  width: 4px;
+}
+.settings-scroll-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+.settings-scroll-body::-webkit-scrollbar-thumb {
+  background: var(--border-subtle);
+  border-radius: 4px;
+}
+
+/* Settings Inset Groups (Apple iOS / macOS Style) */
+.settings-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.settings-group-title {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding-left: 4px;
+}
+
+.settings-card {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+}
+
+.settings-item {
+  padding: 10px 12px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
+  border-bottom: 1px solid var(--border-subtle);
 }
 
-.setting-text {
+.settings-item:last-child {
+  border-bottom: none;
+}
+
+.settings-item-info {
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 1.5px;
+  min-width: 0;
+  flex: 1;
 }
 
-.setting-text label {
+.settings-item-label {
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 550;
   color: var(--text-primary);
-  cursor: pointer;
+  white-space: nowrap;
 }
 
-.setting-desc {
-  font-size: 10.5px;
+.settings-item-desc {
+  font-size: 10px;
   color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Segmented Pills for Fast Selection */
+.settings-segmented-pill {
+  display: inline-flex;
+  align-items: center;
+  background-color: var(--bg-app);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  padding: 2px;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.seg-pill-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 550;
+  padding: 4px 9px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.12s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
+  user-select: none;
+}
+
+.seg-pill-btn:hover {
+  color: var(--text-primary);
+}
+
+.seg-pill-btn.active {
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+  font-weight: 650;
+}
+
+[data-theme="light"] .seg-pill-btn.active,
+body.light-mode .seg-pill-btn.active {
+  background-color: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+.clean-select {
+  background-color: var(--bg-app);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 11.5px;
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: 7px;
+  outline: none;
+  cursor: pointer;
+  flex-shrink: 0;
+  min-width: 90px;
+}
+
+.clean-select:focus {
+  border-color: var(--border-focus);
+}
+
+.settings-actions-row {
+  display: flex;
+  gap: 8px;
+  padding: 8px 10px;
 }
 
 /* Modern Toggle Switch */
@@ -897,64 +1067,12 @@ input:checked + .toggle-slider:before {
   transform: translateX(16px);
 }
 
-.form-select {
-  background-color: var(--bg-app);
-  border: 1px solid var(--border-subtle);
-  color: var(--text-primary);
-  font-family: var(--font-sans);
-  font-size: 11px;
-  padding: 5px 8px;
-  border-radius: 7px;
-  outline: none;
-  cursor: pointer;
-  transition: border-color 0.15s ease;
-}
-
-.form-select:focus {
-  border-color: var(--border-focus);
-}
-
-.settings-divider {
-  border: none;
-  border-top: 1px solid var(--border-subtle);
-  margin: 4px 0;
-}
-
 /* ---------------- Interactive Shortcut Recorder ---------------- */
-.shortcuts-section {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.shortcut-record-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 8px;
-}
-
-.shortcut-label-col {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.shortcut-label {
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--text-primary);
-}
-
-.shortcut-desc {
-  font-size: 10.5px;
-  color: var(--text-muted);
-}
-
 .shortcut-btn-wrapper {
   display: flex;
   align-items: center;
   gap: 4px;
+  flex-shrink: 0;
 }
 
 .shortcut-record-btn {
@@ -964,12 +1082,12 @@ input:checked + .toggle-slider:before {
   font-family: var(--font-mono, monospace);
   font-size: 11px;
   font-weight: 600;
-  padding: 4px 10px;
+  padding: 4px 9px;
   border-radius: 7px;
   cursor: pointer;
   outline: none;
   transition: all 0.15s ease;
-  min-width: 105px;
+  min-width: 95px;
   text-align: center;
   user-select: none;
 }
@@ -995,14 +1113,14 @@ input:checked + .toggle-slider:before {
   background: transparent;
   border: 1px solid transparent;
   color: var(--text-muted);
-  width: 24px;
-  height: 24px;
-  border-radius: 6px;
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
+  font-size: 11px;
   transition: all 0.15s ease;
 }
 
@@ -1010,23 +1128,6 @@ input:checked + .toggle-slider:before {
   background-color: var(--bg-app);
   color: var(--text-primary);
   border-color: var(--border-subtle);
-}
-
-.backup-section {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.backup-title {
-  font-size: 11.5px;
-  font-weight: 600;
-  color: var(--text-secondary);
-}
-
-.backup-actions {
-  display: flex;
-  gap: 8px;
 }
 
 /* ---------------- Buttons ---------------- */

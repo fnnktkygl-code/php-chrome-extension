@@ -183,29 +183,52 @@ export class PopupController {
     settingIgnorePasswords?.addEventListener('change', () => this.saveSettings());
     settingMaxClips?.addEventListener('change', () => this.saveSettings());
     settingMaxAge?.addEventListener('change', () => this.saveSettings());
-    document.getElementById('settingQuickMenuLimit')?.addEventListener('change', () => this.saveSettings());
 
-    const settingTheme = document.getElementById('settingTheme') as HTMLSelectElement;
-    settingTheme?.addEventListener('change', async () => {
-      const newTheme = settingTheme.value as 'dark' | 'light';
-      if (newTheme === 'light') {
-        document.body.classList.add('light-mode');
-        document.documentElement.setAttribute('data-theme', 'light');
-      } else {
-        document.body.classList.remove('light-mode');
-        document.documentElement.setAttribute('data-theme', 'dark');
-      }
-      await this.storage.setTheme(newTheme);
-      this.updateThemeUI();
+    // Theme Segmented Control
+    document.querySelectorAll('#themeSegmented .seg-pill-btn').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const theme = btn.getAttribute('data-theme-val') as 'dark' | 'light';
+        document.querySelectorAll('#themeSegmented .seg-pill-btn').forEach((b) => b.classList.remove('active'));
+        btn.classList.add('active');
+        if (theme === 'light') {
+          document.body.classList.add('light-mode');
+          document.documentElement.setAttribute('data-theme', 'light');
+        } else {
+          document.body.classList.remove('light-mode');
+          document.documentElement.setAttribute('data-theme', 'dark');
+        }
+        await this.storage.setTheme(theme);
+        this.updateThemeUI();
+      });
     });
 
-    const settingLocale = document.getElementById('settingLocale') as HTMLSelectElement;
-    settingLocale?.addEventListener('change', async () => {
-      const newLocale = settingLocale.value as 'en' | 'fr';
-      this.i18n.setLocale(newLocale);
-      await this.storage.setLocale(newLocale);
-      this.updateLanguageUI();
-      this.render();
+    // Language Segmented Control
+    document.querySelectorAll('#langSegmented .seg-pill-btn').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const next = btn.getAttribute('data-lang-val') as 'en' | 'fr';
+        document.querySelectorAll('#langSegmented .seg-pill-btn').forEach((b) => b.classList.remove('active'));
+        btn.classList.add('active');
+        this.i18n.setLocale(next);
+        await this.storage.setLocale(next);
+        this.updateLanguageUI();
+        this.render();
+      });
+    });
+
+    // Quick Menu Limit Segmented Control
+    document.querySelectorAll('#quickLimitSegmented .seg-pill-btn').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const limit = Number(btn.getAttribute('data-limit') || 20);
+        document.querySelectorAll('#quickLimitSegmented .seg-pill-btn').forEach((b) => b.classList.remove('active'));
+        btn.classList.add('active');
+        const settings = await this.storage.getSettings();
+        await this.storage.setSettings({ ...settings, quickMenuLimit: limit });
+        try {
+          if (typeof chrome !== 'undefined' && chrome.runtime?.sendMessage) {
+            await chrome.runtime.sendMessage({ type: 'SETTINGS_CHANGED' });
+          }
+        } catch {}
+      });
     });
 
     // Backup
@@ -684,7 +707,6 @@ export class PopupController {
     const opt30Days = document.getElementById('opt30Days');
     const optNever = document.getElementById('optNever');
 
-    const backupSectionTitle = document.getElementById('backupSectionTitle');
     const exportBtnText = document.getElementById('exportBtnText');
     const importBtnText = document.getElementById('importBtnText');
 
@@ -713,62 +735,66 @@ export class PopupController {
 
     // Modals
     if (previewModalTitle) previewModalTitle.textContent = this.i18n.t('modalTitle');
-    if (settingsModalTitle) settingsModalTitle.textContent = this.i18n.t('settingsTitle');
 
+    // Settings Inset Groups & Labels
+    if (settingsModalTitle) settingsModalTitle.textContent = this.i18n.t('settingsModalTitle');
+
+    const groupGeneralTitle = document.getElementById('groupGeneralTitle');
     const themeSettingLabel = document.getElementById('themeSettingLabel');
-    const themeSettingDesc = document.getElementById('themeSettingDesc');
-    const optThemeDark = document.getElementById('optThemeDark');
-    const optThemeLight = document.getElementById('optThemeLight');
+    const btnThemeDark = document.getElementById('btnThemeDark');
+    const btnThemeLight = document.getElementById('btnThemeLight');
     const languageSettingLabel = document.getElementById('languageSettingLabel');
-    const languageSettingDesc = document.getElementById('languageSettingDesc');
-    const optLangFr = document.getElementById('optLangFr');
-    const optLangEn = document.getElementById('optLangEn');
+    const btnLangFr = document.getElementById('btnLangFr');
+    const btnLangEn = document.getElementById('btnLangEn');
 
+    if (groupGeneralTitle) groupGeneralTitle.textContent = this.i18n.t('groupGeneralTitle');
     if (themeSettingLabel) themeSettingLabel.textContent = this.i18n.t('themeSettingLabel');
-    if (themeSettingDesc) themeSettingDesc.textContent = this.i18n.t('themeSettingDesc');
-    if (optThemeDark) optThemeDark.textContent = this.i18n.t('optThemeDark');
-    if (optThemeLight) optThemeLight.textContent = this.i18n.t('optThemeLight');
+    if (btnThemeDark) btnThemeDark.textContent = this.i18n.t('btnThemeDark');
+    if (btnThemeLight) btnThemeLight.textContent = this.i18n.t('btnThemeLight');
     if (languageSettingLabel) languageSettingLabel.textContent = this.i18n.t('languageSettingLabel');
-    if (languageSettingDesc) languageSettingDesc.textContent = this.i18n.t('languageSettingDesc');
-    if (optLangFr) optLangFr.textContent = this.i18n.t('optLangFr');
-    if (optLangEn) optLangEn.textContent = this.i18n.t('optLangEn');
+    if (btnLangFr) btnLangFr.textContent = this.i18n.t('btnLangFr');
+    if (btnLangEn) btnLangEn.textContent = this.i18n.t('btnLangEn');
 
-    if (saveUrlLabel) saveUrlLabel.textContent = this.i18n.t('saveUrlLabel');
-    if (ignorePasswordsLabel) ignorePasswordsLabel.textContent = this.i18n.t('ignorePasswordsLabel');
-    if (maxClipsLabel) maxClipsLabel.textContent = this.i18n.t('maxClipsLabel');
-    if (maxAgeLabel) maxAgeLabel.textContent = this.i18n.t('maxAgeLabel');
-    if (opt1Day) opt1Day.textContent = this.i18n.t('expiry1Day');
-    if (opt7Days) opt7Days.textContent = this.i18n.t('expiry7Days');
-    if (opt30Days) opt30Days.textContent = this.i18n.t('expiry30Days');
-    if (optNever) optNever.textContent = this.i18n.t('expiryNever');
-
-    if (backupSectionTitle) backupSectionTitle.textContent = this.i18n.t('backupSectionTitle');
-    if (exportBtnText) exportBtnText.textContent = this.i18n.t('exportBtnText');
-    if (importBtnText) importBtnText.textContent = this.i18n.t('importBtnText');
-
+    const groupQuickMenuTitle = document.getElementById('groupQuickMenuTitle');
     const quickMenuLimitLabel = document.getElementById('quickMenuLimitLabel');
     const quickMenuLimitDesc = document.getElementById('quickMenuLimitDesc');
-    const opt5Clips = document.getElementById('opt5Clips');
-    const opt10Clips = document.getElementById('opt10Clips');
-    const opt20Clips = document.getElementById('opt20Clips');
-
-    if (quickMenuLimitLabel) quickMenuLimitLabel.textContent = this.i18n.t('quickMenuLimitLabel');
-    if (quickMenuLimitDesc) quickMenuLimitDesc.textContent = this.i18n.t('quickMenuLimitDesc');
-    if (opt5Clips) opt5Clips.textContent = this.i18n.t('opt5Clips');
-    if (opt10Clips) opt10Clips.textContent = this.i18n.t('opt10Clips');
-    if (opt20Clips) opt20Clips.textContent = this.i18n.t('opt20Clips');
-
-    const shortcutsSectionTitle = document.getElementById('shortcutsSectionTitle');
-    const snipShortcutLabel = document.getElementById('snipShortcutLabel');
-    const snipShortcutDesc = document.getElementById('snipShortcutDesc');
     const quickPasteShortcutLabel = document.getElementById('quickPasteShortcutLabel');
     const quickPasteShortcutDesc = document.getElementById('quickPasteShortcutDesc');
 
-    if (shortcutsSectionTitle) shortcutsSectionTitle.textContent = this.i18n.t('shortcutsSectionTitle');
-    if (snipShortcutLabel) snipShortcutLabel.textContent = this.i18n.t('snipShortcutLabel');
-    if (snipShortcutDesc) snipShortcutDesc.textContent = this.i18n.t('snipShortcutDesc');
+    if (groupQuickMenuTitle) groupQuickMenuTitle.textContent = this.i18n.t('groupQuickMenuTitle');
+    if (quickMenuLimitLabel) quickMenuLimitLabel.textContent = this.i18n.t('quickMenuLimitLabel');
+    if (quickMenuLimitDesc) quickMenuLimitDesc.textContent = this.i18n.t('quickMenuLimitDesc');
     if (quickPasteShortcutLabel) quickPasteShortcutLabel.textContent = this.i18n.t('quickPasteShortcutLabel');
     if (quickPasteShortcutDesc) quickPasteShortcutDesc.textContent = this.i18n.t('quickPasteShortcutDesc');
+
+    const groupSnipTitle = document.getElementById('groupSnipTitle');
+    const snipShortcutLabel = document.getElementById('snipShortcutLabel');
+    const snipShortcutDesc = document.getElementById('snipShortcutDesc');
+
+    if (groupSnipTitle) groupSnipTitle.textContent = this.i18n.t('groupSnipTitle');
+    if (snipShortcutLabel) snipShortcutLabel.textContent = this.i18n.t('snipShortcutLabel');
+    if (snipShortcutDesc) snipShortcutDesc.textContent = this.i18n.t('snipShortcutDesc');
+
+    const groupPrivacyTitle = document.getElementById('groupPrivacyTitle');
+    const saveUrlDesc = document.getElementById('saveUrlDesc');
+    const ignorePasswordsDesc = document.getElementById('ignorePasswordsDesc');
+
+    if (groupPrivacyTitle) groupPrivacyTitle.textContent = this.i18n.t('groupPrivacyTitle');
+    if (saveUrlLabel) saveUrlLabel.textContent = this.i18n.t('saveUrlLabel');
+    if (saveUrlDesc) saveUrlDesc.textContent = this.i18n.t('saveUrlDesc');
+    if (ignorePasswordsLabel) ignorePasswordsLabel.textContent = this.i18n.t('ignorePasswordsLabel');
+    if (ignorePasswordsDesc) ignorePasswordsDesc.textContent = this.i18n.t('ignorePasswordsDesc');
+    if (maxClipsLabel) maxClipsLabel.textContent = this.i18n.t('maxClipsLabel');
+    if (maxAgeLabel) maxAgeLabel.textContent = this.i18n.t('maxAgeLabel');
+    if (opt1Day) opt1Day.textContent = this.i18n.t('opt1Day');
+    if (opt7Days) opt7Days.textContent = this.i18n.t('opt7Days');
+    if (opt30Days) opt30Days.textContent = this.i18n.t('opt30Days');
+    if (optNever) optNever.textContent = this.i18n.t('optNever');
+
+    const groupBackupTitle = document.getElementById('groupBackupTitle');
+    if (groupBackupTitle) groupBackupTitle.textContent = this.i18n.t('groupBackupTitle');
+    if (exportBtnText) exportBtnText.textContent = this.i18n.t('exportBtnText');
+    if (importBtnText) importBtnText.textContent = this.i18n.t('importBtnText');
   }
 
   private openPreviewModal(id: number): void {
@@ -827,19 +853,27 @@ export class PopupController {
     const settingIgnorePasswords = document.getElementById('settingIgnorePasswords') as HTMLInputElement;
     const settingMaxClips = document.getElementById('settingMaxClips') as HTMLSelectElement;
     const settingMaxAge = document.getElementById('settingMaxAge') as HTMLSelectElement;
-    const settingQuickMenuLimit = document.getElementById('settingQuickMenuLimit') as HTMLSelectElement;
     const settingsModal = document.getElementById('settingsModal');
 
-    const settingTheme = document.getElementById('settingTheme') as HTMLSelectElement;
-    const settingLocale = document.getElementById('settingLocale') as HTMLSelectElement;
+    const isLight = document.body.classList.contains('light-mode');
+    document.querySelectorAll('#themeSegmented .seg-pill-btn').forEach((b) => {
+      b.classList.toggle('active', b.getAttribute('data-theme-val') === (isLight ? 'light' : 'dark'));
+    });
 
-    if (settingTheme) settingTheme.value = document.body.classList.contains('light-mode') ? 'light' : 'dark';
-    if (settingLocale) settingLocale.value = this.i18n.getLocale();
+    const currentLocale = this.i18n.getLocale();
+    document.querySelectorAll('#langSegmented .seg-pill-btn').forEach((b) => {
+      b.classList.toggle('active', b.getAttribute('data-lang-val') === currentLocale);
+    });
+
+    const currentLimit = String(settings.quickMenuLimit || 20);
+    document.querySelectorAll('#quickLimitSegmented .seg-pill-btn').forEach((b) => {
+      b.classList.toggle('active', b.getAttribute('data-limit') === currentLimit);
+    });
+
     if (settingSaveUrl) settingSaveUrl.checked = settings.saveUrl;
     if (settingIgnorePasswords) settingIgnorePasswords.checked = settings.ignorePasswords;
     if (settingMaxClips) settingMaxClips.value = String(settings.maxClips);
     if (settingMaxAge) settingMaxAge.value = String(settings.maxAgeMs);
-    if (settingQuickMenuLimit) settingQuickMenuLimit.value = String(settings.quickMenuLimit || 20);
 
     await this.refreshShortcutsUI();
 
