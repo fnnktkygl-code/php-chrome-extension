@@ -6,6 +6,10 @@ export default defineConfig({
     globals: true,
     include: ['tests/**/*.test.ts'],
     testTimeout: 5000,
-    watch: false
+    watch: false,
+    coverage: {
+      include: ['src/**/*.ts'],
+      exclude: ['src/**/*.d.ts']
+    }
   }
 });

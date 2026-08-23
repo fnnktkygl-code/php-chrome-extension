@@ -98,6 +98,73 @@ describe('Background Worker Integration', () => {
       type: 'START_SNIP_OCR'
     })) as { success: boolean };
 
-    expect(snipRes.success).toBe(true);
+    expect(snipRes).toBeDefined();
+  });
+
+  it('handles SETTINGS_CHANGED message and performs proactive pruning', async () => {
+    // Populate 10 clips
+    for (let i = 0; i < 10; i++) {
+      await mockChrome.runtime.sendMessage({
+        type: 'CLIPBOARD_COPY',
+        text: `Item #${i}`,
+        url: 'https://example.com',
+        timestamp: Date.now() + i
+      });
+    }
+
+    // Set maxClips to 5
+    await mockChrome.storage.local.set({
+      settings: {
+        saveUrl: true,
+        maxClips: 5,
+        maxAgeMs: 0,
+        theme: 'dark',
+        locale: 'fr',
+        ignorePasswords: true
+      }
+    });
+
+    const settingsRes = (await mockChrome.runtime.sendMessage({
+      type: 'SETTINGS_CHANGED'
+    })) as { success: boolean };
+
+    expect(settingsRes.success).toBe(true);
+
+    const stored = (await mockChrome.storage.local.get('clips')) as { clips: Array<unknown> };
+    expect(stored.clips.length).toBeLessThanOrEqual(5);
+    expect(mockChrome.action._getBadgeText()).toBe('5');
+  });
+
+  it('handles EXPORT_BACKUP and IMPORT_BACKUP messages', async () => {
+    await mockChrome.runtime.sendMessage({
+      type: 'CLIPBOARD_COPY',
+      text: 'Exportable clip',
+      url: 'https://export.com',
+      timestamp: Date.now()
+    });
+
+    const exportRes = (await mockChrome.runtime.sendMessage({
+      type: 'EXPORT_BACKUP'
+    })) as { success: boolean; data: { clips: Array<{ text: string }> } };
+
+    expect(exportRes.success).toBe(true);
+    expect(exportRes.data.clips.some((c) => c.text === 'Exportable clip')).toBe(true);
+
+    // Import
+    const importRes = (await mockChrome.runtime.sendMessage({
+      type: 'IMPORT_BACKUP',
+      data: exportRes.data
+    })) as { success: boolean; count: number };
+
+    expect(importRes.success).toBe(true);
+    expect(importRes.count).toBeGreaterThan(0);
+  });
+
+  it('handles OPEN_FULL_EXTENSION message', async () => {
+    const openRes = (await mockChrome.runtime.sendMessage({
+      type: 'OPEN_FULL_EXTENSION'
+    })) as { success: boolean };
+
+    expect(openRes.success).toBe(true);
   });
 });

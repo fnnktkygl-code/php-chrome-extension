@@ -141,8 +141,12 @@ export function setupMockChrome() {
         badgeColor = color;
       },
       setBadgeTextColor: async () => {},
+      openPopup: async () => {},
       _getBadgeText: () => badgeText,
       _getBadgeColor: () => badgeColor
+    },
+    windows: {
+      create: async (options: unknown) => ({ id: 1, ...(typeof options === 'object' && options ? options : {}) })
     },
     alarms: {
       create: () => {},

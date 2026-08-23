@@ -90,6 +90,27 @@ describe('Performance & Stress Benchmarks (State of the Art)', () => {
       expect(resultsOcr.length).toBeGreaterThan(0);
       expect(totalSearchTime).toBeLessThan(50); // < 50ms for 4 complex searches across 500 objects (<12ms each)
     });
+
+    it('executes ultra-fast search across 5,000 in-memory clips in under 45ms', () => {
+      const largeClipSet: Clip[] = Array.from({ length: 5000 }, (_, i) => ({
+        id: i + 1,
+        text: `Item #${i}: function calculateMetric() { return ${i * 3.14}; } // auth token: abc-${i}`,
+        url: `https://domain-${i % 25}.org/path`,
+        timestamp: Date.now() - i * 1000,
+        pinned: i % 100 === 0,
+        copyCount: 1,
+        lastCopied: null,
+        category: i % 2 === 0 ? 'code' : 'link',
+        ocrText: i % 5 === 0 ? `Captured screenshot text snippet #${i}` : undefined
+      }));
+
+      const start = performance.now();
+      const results = SearchService.filterClips(largeClipSet, 'all', 'calculateMetric');
+      const duration = performance.now() - start;
+
+      expect(results.length).toBe(5000);
+      expect(duration).toBeLessThan(45);
+    });
   });
 
   describe('3. Real-Time Regex & Category Classifier Performance', () => {

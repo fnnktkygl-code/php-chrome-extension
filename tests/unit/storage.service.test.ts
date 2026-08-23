@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { StorageService, StorageBackend } from '../../src/application/storage.service';
-import { Clip, DEFAULT_SETTINGS } from '../../src/domain/types';
+import { Clip, DEFAULT_SETTINGS, Settings } from '../../src/domain/types';
 
 class MemoryStorageBackend implements StorageBackend {
   private store: Record<string, unknown> = {};
@@ -128,6 +128,33 @@ describe('StorageService', () => {
 
     await storage.importBackup(evilJson);
     expect((Object.prototype as { polluted?: string }).polluted).toBeUndefined();
+  });
+
+  it('persists and retrieves custom shortcuts, quickMenuLimit, theme and locale', async () => {
+    // Theme & Locale
+    await storage.setTheme('light');
+    expect(await storage.getTheme()).toBe('light');
+
+    await storage.setLocale('fr');
+    expect(await storage.getLocale()).toBe('fr');
+
+    // Custom Settings
+    const customSettings: Settings = {
+      ...DEFAULT_SETTINGS,
+      quickMenuLimit: 10,
+      maxClips: 100,
+      shortcuts: {
+        snip: { code: 'KeyK', key: 'k', metaKey: true, display: '⌘ + K' },
+        quickPaste: { code: 'KeyP', key: 'p', altKey: true, display: 'Option + P' }
+      }
+    };
+
+    await storage.setSettings(customSettings);
+    const retrieved = await storage.getSettings();
+    expect(retrieved.quickMenuLimit).toBe(10);
+    expect(retrieved.maxClips).toBe(100);
+    expect(retrieved.shortcuts?.snip?.code).toBe('KeyK');
+    expect(retrieved.shortcuts?.quickPaste?.code).toBe('KeyP');
   });
 
   it('rejects corrupt, deeply recursive or invalid clips in importBackup', async () => {
