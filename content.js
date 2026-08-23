@@ -1,49 +1,65 @@
-// content.js - Robust Production Version
-// Uses synchronous selection capture for maximum stability
+// content.js - Robust Multi-source Clipboard Capture
 
-document.addEventListener('copy', () => {
-  try {
-    // Skip if copy was triggered inside a password field for security
-    const activeEl = document.activeElement;
-    if (activeEl && (activeEl.type === 'password' || activeEl.getAttribute('type') === 'password')) {
-      return;
-    }
-
-    // 1. Try to get the selection from the window immediately (Synchronous)
-    // This is the most reliable method during a 'copy' event.
-    const selection = window.getSelection().toString();
-
-    if (selection && selection.trim().length > 0) {
-      chrome.runtime.sendMessage({
-        type: 'CLIPBOARD_COPY',
-        text: selection,
-        url: window.location.href,
-        timestamp: Date.now()
-      }).catch(err => console.debug('PHP Extension: Send failed', err));
-      return;
-    }
-
-    // 2. Fallback: If window selection is empty (e.g. copying from a specific input element or "Copy Link Address"),
-    // we can try the async clipboard API.
-    // We wait slightly longer to ensure the system clipboard has been updated.
-    setTimeout(async () => {
-      try {
-        const text = await navigator.clipboard.readText();
-        if (text && text.trim().length > 0) {
-          chrome.runtime.sendMessage({
-            type: 'CLIPBOARD_COPY',
-            text: text,
-            url: window.location.href,
-            timestamp: Date.now()
-          }).catch(err => console.debug('PHP Extension: Send failed', err));
-        }
-      } catch (err) {
-        // Silently fail on permission errors
-      }
-    }, 200);
-
-  } catch (e) {
-    // Catch-all for any unexpected runtime errors
-    console.debug('PHP Extension: Copy event capture failed', e);
+function isSensitiveElement(el) {
+  if (!el) return false;
+  if (el.type === 'password' || el.getAttribute('type') === 'password') return true;
+  const autocomplete = el.getAttribute('autocomplete');
+  if (autocomplete && (autocomplete.includes('password') || autocomplete.includes('current-password') || autocomplete.includes('new-password'))) {
+    return true;
   }
-});
+  if (el.getAttribute('data-sensitive') === 'true') return true;
+  return false;
+}
+
+function getSelectedText(e) {
+  let text = window.getSelection() ? window.getSelection().toString() : '';
+
+  if (!text) {
+    const activeEl = document.activeElement;
+    if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA')) {
+      if (typeof activeEl.selectionStart === 'number' && typeof activeEl.selectionEnd === 'number') {
+        text = activeEl.value.substring(activeEl.selectionStart, activeEl.selectionEnd);
+      }
+    }
+  }
+
+  if (!text && document.activeElement && document.activeElement.isContentEditable) {
+    text = window.getSelection() ? window.getSelection().toString() : '';
+  }
+
+  if (!text && e && e.clipboardData) {
+    try {
+      text = e.clipboardData.getData('text/plain') || '';
+    } catch {
+      // Ignore
+    }
+  }
+
+  return text;
+}
+
+function handleCopyOrCut(e) {
+  try {
+    const activeEl = document.activeElement;
+    if (isSensitiveElement(activeEl)) {
+      return;
+    }
+
+    const text = getSelectedText(e);
+    if (text && text.trim().length > 0) {
+      if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.id) {
+        chrome.runtime.sendMessage({
+          type: 'CLIPBOARD_COPY',
+          text: text.trim(),
+          url: window.location.href,
+          timestamp: Date.now()
+        }).catch(err => console.debug('PHP: Copy message skipped', err));
+      }
+    }
+  } catch (err) {
+    console.debug('PHP: Copy handler error', err);
+  }
+}
+
+document.addEventListener('copy', handleCopyOrCut, true);
+document.addEventListener('cut', handleCopyOrCut, true);

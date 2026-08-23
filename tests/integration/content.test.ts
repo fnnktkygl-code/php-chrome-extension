@@ -8,7 +8,7 @@ describe('Content Script Integration', () => {
     mockChrome = setupMockChrome();
     document.body.innerHTML = `
       <div>
-        <input type="text" id="normalInput" value="public text">
+        <input type="text" id="normalInput" value="public input text">
         <input type="password" id="passwordInput" value="secret123">
         <div id="contentBlock">Selected Article Content</div>
       </div>
@@ -49,5 +49,26 @@ describe('Content Script Integration', () => {
 
     expect(sentMessage).not.toBeNull();
     expect((sentMessage as { text: string }).text).toBe('Selected Article Content');
+  });
+
+  it('captures selection from regular input fields', async () => {
+    const normalInput = document.getElementById('normalInput') as HTMLInputElement;
+    normalInput.focus();
+    normalInput.setSelectionRange(0, 6); // "public"
+
+    window.getSelection = vi.fn().mockReturnValue({
+      toString: () => ''
+    });
+
+    let sentMessage: unknown = null;
+    mockChrome.runtime.onMessage.addListener((msg) => {
+      sentMessage = msg;
+    });
+
+    const copyEvent = new Event('copy', { bubbles: true, cancelable: true });
+    normalInput.dispatchEvent(copyEvent);
+
+    expect(sentMessage).not.toBeNull();
+    expect((sentMessage as { text: string }).text).toBe('public');
   });
 });

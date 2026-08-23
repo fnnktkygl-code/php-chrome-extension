@@ -112,6 +112,23 @@ chrome.runtime.onInstalled.addListener(async () => {
     }
 
     await clipboardService.updateActionBadge(clips.length);
+
+    // Auto-inject content script into all currently open tabs
+    if (chrome.tabs && chrome.scripting) {
+      const tabs = await chrome.tabs.query({ url: ['http://*/*', 'https://*/*'] });
+      for (const tab of tabs) {
+        if (tab.id && tab.url && !tab.url.startsWith('chrome://') && !tab.url.startsWith('chrome-extension://')) {
+          chrome.scripting
+            .executeScript({
+              target: { tabId: tab.id },
+              files: ['content.js']
+            })
+            .catch(() => {
+              // Ignore tabs that restrict scripting
+            });
+        }
+      }
+    }
   } catch (err) {
     console.error('PHP Background onInstalled error:', err);
   }

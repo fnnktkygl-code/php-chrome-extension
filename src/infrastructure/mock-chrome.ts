@@ -59,6 +59,7 @@ export function setupMockChrome() {
       local: localStorage
     },
     runtime: {
+      id: 'mock-extension-id',
       onMessage: {
         addListener(fn: (message: unknown, sender: unknown, sendResponse: (res: unknown) => void) => boolean | void) {
           listeners.push(fn);

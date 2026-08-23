@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "PHP - Paste History Past",
-  "version": "1.0.1",
+  "version": "2.0.0",
   "description": "Quick access to your clipboard history with multi-language support - never lose copied text again",
   "homepage_url": "https://github.com/fnnktkygl-code/php-chrome-extension",
   "permissions": [
@@ -10,7 +10,11 @@
     "clipboardRead",
     "alarms",
     "notifications",
-    "favicon"
+    "favicon",
+    "scripting"
+  ],
+  "host_permissions": [
+    "<all_urls>"
   ],
   "action": {
     "default_popup": "popup.html",

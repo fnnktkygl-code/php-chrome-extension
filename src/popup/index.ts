@@ -1,3 +1,4 @@
+import { ClipboardService } from '../application/clipboard.service';
 import { I18nService } from '../application/i18n.service';
 import { SearchService } from '../application/search.service';
 import { SecurityService } from '../application/security.service';
@@ -161,14 +162,12 @@ export class PopupController {
       if (navigator.clipboard && navigator.clipboard.readText) {
         const text = await navigator.clipboard.readText();
         if (text && text.trim().length > 0) {
-          if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.sendMessage) {
-            await chrome.runtime.sendMessage({
-              type: 'CLIPBOARD_COPY',
-              text: text,
-              url: '',
-              timestamp: Date.now()
-            });
-          }
+          const clipboardService = new ClipboardService(this.storage);
+          await clipboardService.handleCopy({
+            text: text.trim(),
+            url: '',
+            timestamp: Date.now()
+          });
         }
       }
     } catch {
