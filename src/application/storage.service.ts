@@ -12,7 +12,6 @@ export class ChromeStorageBackend implements StorageBackend {
     if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
       return (await chrome.storage.local.get(keys)) as Record<string, T>;
     }
-    // In-memory fallback
     const result: Record<string, T> = {};
     return result;
   }
@@ -41,6 +40,10 @@ export class StorageService {
 
   constructor(backend?: StorageBackend) {
     this.backend = backend || new ChromeStorageBackend();
+  }
+
+  public async clearAll(): Promise<void> {
+    await this.backend.clear();
   }
 
   public async getClips(): Promise<Clip[]> {
@@ -103,7 +106,7 @@ export class StorageService {
 
     // Validate clips
     const validClips: Clip[] = payload.clips
-      .filter((c) => c && typeof c.text === 'string' && c.text.trim().length > 0)
+      .filter((c): c is Clip => Boolean(c && typeof c === 'object' && typeof c.text === 'string' && c.text.trim().length > 0))
       .map((c) => ({
         id: typeof c.id === 'number' ? c.id : Date.now() + Math.random(),
         text: String(c.text).trim(),
@@ -112,7 +115,11 @@ export class StorageService {
         pinned: Boolean(c.pinned),
         copyCount: typeof c.copyCount === 'number' ? c.copyCount : 0,
         lastCopied: typeof c.lastCopied === 'number' ? c.lastCopied : null,
-        category: c.category === 'link' || c.category === 'code' ? c.category : 'text'
+        category: c.category === 'link' || c.category === 'code' || c.category === 'image' ? c.category : 'text',
+        dataUrl: typeof c.dataUrl === 'string' && c.dataUrl.startsWith('data:image/') ? c.dataUrl : undefined,
+        dimensions: c.dimensions && typeof c.dimensions.width === 'number' ? c.dimensions : undefined,
+        ocrText: typeof c.ocrText === 'string' ? c.ocrText : undefined,
+        qrData: typeof c.qrData === 'string' ? c.qrData : undefined
       }));
 
     if (validClips.length === 0) {
@@ -121,11 +128,17 @@ export class StorageService {
 
     await this.setClips(validClips);
 
-    if (payload.settings) {
-      await this.setSettings({
-        ...DEFAULT_SETTINGS,
-        ...payload.settings
-      });
+    if (payload.settings && typeof payload.settings === 'object') {
+      // Safe assignment preventing prototype pollution
+      const cleanSettings: Settings = {
+        saveUrl: Boolean(payload.settings.saveUrl ?? DEFAULT_SETTINGS.saveUrl),
+        ignorePasswords: Boolean(payload.settings.ignorePasswords ?? DEFAULT_SETTINGS.ignorePasswords),
+        maxClips: typeof payload.settings.maxClips === 'number' ? payload.settings.maxClips : DEFAULT_SETTINGS.maxClips,
+        maxAgeMs: typeof payload.settings.maxAgeMs === 'number' ? payload.settings.maxAgeMs : DEFAULT_SETTINGS.maxAgeMs,
+        theme: payload.settings.theme === 'light' ? 'light' : 'dark',
+        locale: payload.settings.locale === 'fr' ? 'fr' : 'en'
+      };
+      await this.setSettings(cleanSettings);
     }
 
     return { success: true, count: validClips.length };

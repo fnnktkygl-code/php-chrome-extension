@@ -67,7 +67,7 @@ export class SearchService {
    * Determines the category of a clip (link, code, text, or image).
    */
   public static detectCategory(text: string, dataUrl?: string): ClipCategory {
-    if (dataUrl || text.startsWith('data:image/')) {
+    if ((dataUrl && dataUrl.startsWith('data:image/')) || (text && text.startsWith('data:image/'))) {
       return 'image';
     }
 
@@ -76,8 +76,9 @@ export class SearchService {
     }
 
     const trimmed = text.trim();
+    const sample = trimmed.substring(0, 4000);
     for (const pattern of this.CODE_INDICATORS) {
-      if (pattern.test(trimmed)) {
+      if (pattern.test(sample)) {
         return 'code';
       }
     }

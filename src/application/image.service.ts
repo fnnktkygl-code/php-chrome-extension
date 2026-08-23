@@ -160,16 +160,23 @@ export class ImageService {
    * Converts a DataURL back to a binary Blob for clipboard writing.
    */
   public static dataUrlToBlob(dataUrl: string): Blob {
-    const arr = dataUrl.split(',');
-    const mimeMatch = arr[0].match(/:(.*?);/);
-    const mime = mimeMatch ? mimeMatch[1] : 'image/png';
-    const bstr = atob(arr[1]);
-    let n = bstr.length;
-    const u8arr = new Uint8Array(n);
-    while (n--) {
-      u8arr[n] = bstr.charCodeAt(n);
+    try {
+      if (!dataUrl || typeof dataUrl !== 'string' || !dataUrl.includes(',')) {
+        return new Blob([], { type: 'image/png' });
+      }
+      const arr = dataUrl.split(',');
+      const mimeMatch = arr[0].match(/:(.*?);/);
+      const mime = mimeMatch ? mimeMatch[1] : 'image/png';
+      const bstr = atob(arr[1]);
+      let n = bstr.length;
+      const u8arr = new Uint8Array(n);
+      while (n--) {
+        u8arr[n] = bstr.charCodeAt(n);
+      }
+      return new Blob([u8arr], { type: mime });
+    } catch {
+      return new Blob([], { type: 'image/png' });
     }
-    return new Blob([u8arr], { type: mime });
   }
 
   /**
