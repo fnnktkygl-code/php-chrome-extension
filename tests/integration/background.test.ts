@@ -30,6 +30,18 @@ describe('Background Worker Integration', () => {
     expect(mockChrome.action._getBadgeText()).toBe('1');
   });
 
+  it('blocks messages sent from untrusted external extension senders', async () => {
+    const response = (await mockChrome.runtime.sendMessage(
+      {
+        type: 'CLEAR_CLIPS'
+      },
+      { id: 'rogue-malicious-extension-id' }
+    )) as { success: boolean; error: string };
+
+    expect(response.success).toBe(false);
+    expect(response.error).toBe('Unauthorized sender');
+  });
+
   it('handles TOGGLE_PIN, DELETE_CLIP and CLEAR_CLIPS messages', async () => {
     const now = Date.now();
     await mockChrome.runtime.sendMessage({

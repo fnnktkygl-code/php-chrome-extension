@@ -6,8 +6,15 @@ const storageService = new StorageService();
 const clipboardService = new ClipboardService(storageService);
 
 // 1. Message Dispatcher
-chrome.runtime.onMessage.addListener((message: RuntimeMessage, _sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((message: RuntimeMessage, sender, sendResponse) => {
   if (!message || typeof message !== 'object') {
+    return false;
+  }
+
+  // Security verification: Block untrusted external extension origins
+  if (sender.id && typeof chrome !== 'undefined' && chrome.runtime?.id && sender.id !== chrome.runtime.id) {
+    console.warn('PHP Background: Blocked untrusted external sender', sender);
+    sendResponse({ success: false, error: 'Unauthorized sender' });
     return false;
   }
 

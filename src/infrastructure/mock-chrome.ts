@@ -82,7 +82,7 @@ export function setupMockChrome() {
         },
         _listeners: startupListeners
       },
-      sendMessage: async (message: unknown) => {
+      sendMessage: async (message: unknown, senderOverride: Record<string, unknown> = {}) => {
         let finalResponse: unknown = undefined;
 
         for (const listener of listeners) {
@@ -93,7 +93,8 @@ export function setupMockChrome() {
               resolve();
             };
 
-            const result = listener(message, {}, sendResponse);
+            const sender = { id: 'mock-extension-id', ...senderOverride };
+            const result = listener(message, sender, sendResponse);
             if (result === true) {
               isAsync = true;
             }
