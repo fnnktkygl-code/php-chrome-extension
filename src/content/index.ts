@@ -560,10 +560,10 @@ class QuickPasteMenu {
     // Modal Card positioned right at the mouse cursor
     const card = document.createElement('div');
     card.id = 'php-quick-paste-card';
-    const borderCard = isDark ? '#334155' : '#cbd5e1';
+    const borderCard = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)';
     const textMain = isDark ? '#f8fafc' : '#0f172a';
-    const bgHeader = isDark ? '#1e293b' : '#f8fafc';
-    const bgSearch = isDark ? '#1e293b' : '#f1f5f9';
+    const bgHeader = isDark ? '#141b26' : '#ffffff';
+    const bgSearch = isDark ? '#0b0f17' : '#f1f5f9';
     const textSub = isDark ? '#94a3b8' : '#64748b';
 
     const cardWidth = 390;
@@ -587,13 +587,13 @@ class QuickPasteMenu {
       width: ${cardWidth}px;
       max-width: 92vw;
       max-height: ${cardMaxHeight}px;
-      background: ${isDark ? 'rgba(15, 23, 42, 0.94)' : 'rgba(255, 255, 255, 0.96)'};
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
+      background: ${isDark ? 'rgba(11, 15, 23, 0.96)' : 'rgba(248, 250, 252, 0.98)'};
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
       color: ${textMain};
-      border: 1px solid ${isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.08)'};
+      border: 1px solid ${borderCard};
       border-radius: 14px;
-      box-shadow: 0 24px 50px -10px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.08);
+      box-shadow: 0 24px 50px -10px rgba(0, 0, 0, 0.55), 0 0 0 1px ${isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.04)'};
       overflow: hidden;
       display: flex;
       flex-direction: column;
@@ -601,28 +601,84 @@ class QuickPasteMenu {
       z-index: 2147483647;
     `;
 
-    // Header
+    // Header (Draggable)
     const header = document.createElement('div');
     header.style.cssText = `
-      padding: 8px 12px;
+      padding: 9px 12px;
       border-bottom: 1px solid ${borderCard};
       display: flex;
       align-items: center;
       justify-content: space-between;
       background: ${bgHeader};
+      cursor: grab;
+      user-select: none;
     `;
+    header.title = this.isFr ? 'Glisser pour déplacer' : 'Drag to move';
     header.innerHTML = `
-      <div style="display:flex; align-items:center; gap:8px; font-weight:600; font-size:13px; color:${textMain};">
-        <span style="display:inline-flex; align-items:center; justify-content:center; width:20px; height:20px; border-radius:5px; background:#2563eb; color:#fff; font-size:11px;">📋</span>
+      <div style="display:flex; align-items:center; gap:8px; font-weight:650; font-size:12.5px; color:${textMain}; pointer-events:none;">
+        <span style="display:inline-flex; align-items:center; justify-content:center; width:20px; height:20px; border-radius:6px; background:#38bdf8; color:#0b0f17; font-size:11px; font-weight:700;">📋</span>
         <span>${this.isFr ? 'PHP • Menu Rapide' : 'PHP • Quick Menu'}</span>
       </div>
       <div style="font-size:11px; color:${textSub}; display:flex; gap:6px; align-items:center;">
-        <kbd style="background:${isDark ? '#0f172a' : '#f1f5f9'}; padding:2px 6px; border-radius:4px; border:1px solid ${borderCard}; font-size:10px; font-family:monospace;">1-9</kbd>
-        <span>${this.isFr ? 'coller' : 'paste'} •</span>
-        <kbd style="background:${isDark ? '#0f172a' : '#f1f5f9'}; padding:2px 6px; border-radius:4px; border:1px solid ${borderCard}; font-size:10px; font-family:monospace;">Échap</kbd>
+        <kbd style="background:${isDark ? '#0b0f17' : '#f1f5f9'}; padding:2px 6px; border-radius:4px; border:1px solid ${borderCard}; font-size:10px; font-family:monospace; color:${textSub};">1-9</kbd>
+        <button id="php-qp-close-btn" aria-label="Close" style="background:transparent; border:none; color:${textSub}; font-size:13px; width:22px; height:22px; border-radius:5px; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; margin-left:2px; transition:all 0.12s ease;" title="${this.isFr ? 'Fermer (Échap)' : 'Close (Esc)'}">✕</button>
       </div>
     `;
     card.appendChild(header);
+
+    // Draggable Window Support
+    header.addEventListener('mousedown', (e) => {
+      const target = e.target as HTMLElement;
+      if (target.closest('#php-qp-close-btn')) return;
+
+      e.preventDefault();
+      let isDragging = true;
+      header.style.cursor = 'grabbing';
+      const initialMouseX = e.clientX;
+      const initialMouseY = e.clientY;
+      const rect = card.getBoundingClientRect();
+      const initialCardLeft = rect.left;
+      const initialCardTop = rect.top;
+
+      const onMouseMove = (moveEvent: MouseEvent) => {
+        if (!isDragging) return;
+        const dx = moveEvent.clientX - initialMouseX;
+        const dy = moveEvent.clientY - initialMouseY;
+        let newLeft = initialCardLeft + dx;
+        let newTop = initialCardTop + dy;
+
+        newLeft = Math.max(8, Math.min(window.innerWidth - card.offsetWidth - 8, newLeft));
+        newTop = Math.max(8, Math.min(window.innerHeight - card.offsetHeight - 8, newTop));
+
+        card.style.left = `${newLeft}px`;
+        card.style.top = `${newTop}px`;
+      };
+
+      const onMouseUp = () => {
+        isDragging = false;
+        header.style.cursor = 'grab';
+        window.removeEventListener('mousemove', onMouseMove);
+        window.removeEventListener('mouseup', onMouseUp);
+      };
+
+      window.addEventListener('mousemove', onMouseMove);
+      window.addEventListener('mouseup', onMouseUp);
+    });
+
+    // Close button event
+    const closeBtn = header.querySelector('#php-qp-close-btn') as HTMLButtonElement;
+    closeBtn?.addEventListener('mouseenter', () => {
+      closeBtn.style.backgroundColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)';
+      closeBtn.style.color = textMain;
+    });
+    closeBtn?.addEventListener('mouseleave', () => {
+      closeBtn.style.backgroundColor = 'transparent';
+      closeBtn.style.color = textSub;
+    });
+    closeBtn?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.close();
+    });
 
     // Search bar row
     const searchBar = document.createElement('div');
@@ -801,17 +857,19 @@ class QuickPasteMenu {
     this.filteredClips.forEach((clip, index) => {
       const item = document.createElement('div');
       item.className = 'php-qp-item';
-      item.dataset.index = String(index);
+      const isSelected = index === this.selectedIndex;
       item.style.cssText = `
         padding: 8px 10px;
-        border-radius: 6px;
+        border-radius: 8px;
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: space-between;
         gap: 10px;
-        transition: background 0.08s ease;
-        background: ${index === this.selectedIndex ? (this.isDark ? '#1e293b' : '#f1f5f9') : 'transparent'};
+        transition: all 0.1s ease;
+        border: 1px solid ${isSelected ? (this.isDark ? 'rgba(56, 189, 248, 0.45)' : 'rgba(2, 132, 199, 0.45)') : 'transparent'};
+        background: ${isSelected ? (this.isDark ? '#141b26' : '#ffffff') : 'transparent'};
+        box-shadow: ${isSelected ? (this.isDark ? '0 2px 8px rgba(0, 0, 0, 0.35)' : '0 2px 6px rgba(0, 0, 0, 0.06)') : 'none'};
       `;
 
       const icon = clip.category === 'link' ? '🔗' : clip.category === 'code' ? '💻' : clip.category === 'image' ? '🖼️' : '📝';
@@ -819,8 +877,8 @@ class QuickPasteMenu {
       const cleanText = rawText.replace(/\s+/g, ' ').trim();
 
       const badgeHtml = index < 9
-        ? `<span style="font-size:11px; font-weight:700; color:#38bdf8; background:${this.isDark ? '#0f172a' : '#e2e8f0'}; border:1px solid ${borderCard}; border-radius:4px; width:18px; height:18px; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0;">${index + 1}</span>`
-        : `<span style="font-size:10px; color:${textSub}; width:18px; height:18px; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0;">•</span>`;
+        ? `<span style="font-size:10.5px; font-weight:700; color:${this.isDark ? '#38bdf8' : '#0284c7'}; background:${this.isDark ? '#0b0f17' : '#f1f5f9'}; border:1px solid ${borderCard}; border-radius:5px; width:19px; height:19px; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0;">${index + 1}</span>`
+        : `<span style="font-size:10px; color:${textSub}; width:19px; height:19px; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0;">•</span>`;
 
       item.innerHTML = `
         <div style="display:flex; align-items:center; gap:8px; flex:1; min-width:0;">
@@ -849,7 +907,9 @@ class QuickPasteMenu {
     const items = this.overlay.querySelectorAll('.php-qp-item') as NodeListOf<HTMLDivElement>;
     items.forEach((item, idx) => {
       const isSelected = idx === index;
-      item.style.background = isSelected ? (this.isDark ? '#1e293b' : '#f1f5f9') : 'transparent';
+      item.style.background = isSelected ? (this.isDark ? '#141b26' : '#ffffff') : 'transparent';
+      item.style.borderColor = isSelected ? (this.isDark ? 'rgba(56, 189, 248, 0.45)' : 'rgba(2, 132, 199, 0.45)') : 'transparent';
+      item.style.boxShadow = isSelected ? (this.isDark ? '0 2px 8px rgba(0, 0, 0, 0.35)' : '0 2px 6px rgba(0, 0, 0, 0.06)') : 'none';
       if (isSelected) {
         item.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
       }
