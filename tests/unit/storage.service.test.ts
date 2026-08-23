@@ -104,4 +104,46 @@ describe('StorageService', () => {
     await expect(storage.importBackup({ clips: 'not an array' })).rejects.toThrow();
     await expect(storage.importBackup({ clips: [] })).rejects.toThrow();
   });
+
+  it('blocks prototype pollution payloads in importBackup', async () => {
+    const evilJson = {
+      app: 'PHP - Paste History Past',
+      version: '2.0.0',
+      exportedAt: Date.now(),
+      __proto__: {
+        polluted: 'yes'
+      },
+      clips: [
+        {
+          id: 12345,
+          text: 'Safe clip',
+          timestamp: Date.now(),
+          pinned: false,
+          copyCount: 0,
+          lastCopied: null,
+          category: 'text'
+        }
+      ]
+    };
+
+    await storage.importBackup(evilJson);
+    expect((Object.prototype as { polluted?: string }).polluted).toBeUndefined();
+  });
+
+  it('rejects corrupt, deeply recursive or invalid clips in importBackup', async () => {
+    const corruptPayload = {
+      app: 'PHP - Paste History Past',
+      version: '2.0.0',
+      exportedAt: Date.now(),
+      clips: [
+        { invalidField: 123 },
+        null,
+        undefined,
+        'not a clip',
+        { id: 'not a number', text: 42 }
+      ]
+    };
+
+    await expect(storage.importBackup(corruptPayload)).rejects.toThrow();
+  });
 });

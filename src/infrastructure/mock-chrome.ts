@@ -4,6 +4,7 @@
 
 export class MockChromeStorageArea {
   private data: Record<string, unknown> = {};
+  public onChangedCallback?: (changes: Record<string, { oldValue?: unknown; newValue?: unknown }>, areaName: string) => void;
 
   public async get(keys: string | string[] | Record<string, unknown> | null): Promise<Record<string, unknown>> {
     if (keys === null) {
@@ -29,7 +30,14 @@ export class MockChromeStorageArea {
   }
 
   public async set(items: Record<string, unknown>): Promise<void> {
+    const changes: Record<string, { oldValue?: unknown; newValue?: unknown }> = {};
+    for (const [key, val] of Object.entries(items)) {
+      changes[key] = { oldValue: this.data[key], newValue: val };
+    }
     this.data = { ...this.data, ...items };
+    if (this.onChangedCallback) {
+      this.onChangedCallback(changes, 'local');
+    }
   }
 
   public async remove(keys: string | string[]): Promise<void> {
@@ -47,16 +55,33 @@ export class MockChromeStorageArea {
 export function setupMockChrome() {
   const localStorage = new MockChromeStorageArea();
   const listeners: Array<(message: unknown, sender: unknown, sendResponse: (res: unknown) => void) => boolean | void> = [];
+  const storageChangedListeners: Array<(changes: Record<string, { oldValue?: unknown; newValue?: unknown }>, areaName: string) => void> = [];
   const alarmListeners: Array<(alarm: { name: string }) => void> = [];
   const installedListeners: Array<() => void> = [];
   const startupListeners: Array<() => void> = [];
+
+  localStorage.onChangedCallback = (changes, area) => {
+    for (const l of storageChangedListeners) {
+      l(changes, area);
+    }
+  };
 
   let badgeText = '';
   let badgeColor = '';
 
   const mockChrome = {
     storage: {
-      local: localStorage
+      local: localStorage,
+      onChanged: {
+        addListener(fn: (changes: Record<string, { oldValue?: unknown; newValue?: unknown }>, areaName: string) => void) {
+          storageChangedListeners.push(fn);
+        },
+        removeListener(fn: (changes: Record<string, { oldValue?: unknown; newValue?: unknown }>, areaName: string) => void) {
+          const idx = storageChangedListeners.indexOf(fn);
+          if (idx !== -1) storageChangedListeners.splice(idx, 1);
+        },
+        _listeners: storageChangedListeners
+      }
     },
     runtime: {
       id: 'mock-extension-id',
@@ -115,11 +140,13 @@ export function setupMockChrome() {
       setBadgeBackgroundColor: async ({ color }: { color: string }) => {
         badgeColor = color;
       },
+      setBadgeTextColor: async () => {},
       _getBadgeText: () => badgeText,
       _getBadgeColor: () => badgeColor
     },
     alarms: {
-      create: (_name: string, _info: unknown) => {},
+      create: () => {},
+      clear: async () => true,
       onAlarm: {
         addListener(fn: (alarm: { name: string }) => void) {
           alarmListeners.push(fn);
@@ -127,8 +154,13 @@ export function setupMockChrome() {
         _listeners: alarmListeners
       }
     },
-    notifications: {
-      create: (_options: unknown) => {}
+    tabs: {
+      query: async () => [],
+      sendMessage: async () => {},
+      captureVisibleTab: async () => 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
+    },
+    scripting: {
+      executeScript: async () => []
     }
   };
 

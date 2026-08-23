@@ -83,4 +83,21 @@ describe('Background Worker Integration', () => {
     })) as { success: boolean };
     expect(delRes.success).toBe(true);
   });
+
+  it('handles CAPTURE_TAB_VIEWPORT message and returns image dataUrl', async () => {
+    const captureRes = (await mockChrome.runtime.sendMessage({
+      type: 'CAPTURE_TAB_VIEWPORT'
+    })) as { success: boolean; dataUrl: string };
+
+    expect(captureRes.success).toBe(true);
+    expect(captureRes.dataUrl).toContain('data:image/png;base64');
+  });
+
+  it('handles START_SNIP_OCR message safely', async () => {
+    const snipRes = (await mockChrome.runtime.sendMessage({
+      type: 'START_SNIP_OCR'
+    })) as { success: boolean };
+
+    expect(snipRes.success).toBe(true);
+  });
 });

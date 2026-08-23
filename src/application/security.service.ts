@@ -64,7 +64,9 @@ export class SecurityService {
     if (typeof text !== 'string') {
       return null;
     }
-    const cleanUnicode = this.stripInvisibleUnicode(text);
+    // High-performance boundary: Pre-cap to 2x max length to prevent regex bottlenecks on 10MB payloads
+    const sample = text.length > MAX_CLIP_LENGTH * 2 ? text.substring(0, MAX_CLIP_LENGTH * 2) : text;
+    const cleanUnicode = this.stripInvisibleUnicode(sample);
     const trimmed = cleanUnicode.trim();
     if (!trimmed) {
       return null;

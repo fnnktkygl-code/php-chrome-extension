@@ -1,73 +1,58 @@
 import { Clip, ClipCategory, FilterMode } from '../domain/types';
 
 /**
- * SearchService handles search querying, comprehensive category detection, and domain extraction.
+ * SearchService provides fuzzy matching, text highlighting, and content category classification.
  */
 export class SearchService {
+  private static readonly URL_REGEX =
+    /^(https?:\/\/)?((([a-z\d]([a-z\d-]*[a-z\d])*)\.)+[a-z]{2,}|((\d{1,3}\.){3}\d{1,3})|localhost)(:\d+)?(\/[-a-z\d%_.~+]*)*(\?[;&a-z\d%_.~+=-]*)?(#[-a-z\d_]*)?$/i;
+
   private static readonly CODE_INDICATORS: RegExp[] = [
-    // 1. XML / HTML / SVG tags & structures
-    /<\/?(svg|path|circle|rect|line|polygon|polyline|ellipse|g|defs|use|symbol|clipPath|mask|text|tspan)\b/i,
-    /<\/?(html|head|body|div|span|p|a|button|input|form|table|thead|tbody|tr|td|th|ul|ol|li|h[1-6]|script|style|link|meta|template|header|footer|nav|main|section|article)\b/i,
+    // 1. XML, HTML, SVG Tags (including <svg>, <circle>, <path>, <rect>, <div>, etc.)
+    /<\/?(svg|circle|path|rect|line|polyline|polygon|g|defs|linearGradient|pattern|text|use|html|head|body|div|span|p|a|button|input|form|table|thead|tbody|tr|td|th|ul|ol|li|script|style|link|meta)\b/i,
     /xmlns="http:\/\/www\.w3\.org\/(2000\/svg|1999\/xhtml)"/i,
     /<!DOCTYPE\s+html>/i,
-    /<[a-zA-Z0-9_\-:]+(\s+[^>]*)?\/?>.*?<\/[a-zA-Z0-9_\-:]+>/s,
 
-    // 2. JavaScript / TypeScript
-    /^\s*(import\s+.*\s+from\s+['"]|export\s+(default\s+)?(const|let|var|function|class|type|interface)|const\s+[\w${}\[\],\s]+\s*=|let\s+[\w${}\[\],\s]+\s*=|var\s+[\w${}\[\],\s]+\s*=)/m,
-    /^\s*(function\s*[\w$]*\s*\(|async\s+function|const\s+[\w$]+\s*=\s*(async\s*)?\([^)]*\)\s*=>)/m,
-    /=>\s*[{]/,
-    /\b(console\.(log|error|warn|info|debug)|document\.getElementById|window\.addEventListener)\b/,
+    // 2. JavaScript / TypeScript / Modern Web
+    /^\s*(import\s+.*\s+from\s+['"]|export\s+(default\s+)?(class|function|const|let|var|type|interface)|const\s+\w+\s*=|let\s+\w+\s*=|var\s+\w+\s*=|function\s*\w*\s*\(|=>\s*\{|\(\)\s*=>)/m,
 
-    // 3. Python
-    /^\s*(def\s+[\w_]+\s*\(|class\s+[\w_]+(\s*\([^)]*\))?\s*:|from\s+[\w_.]+\s+import|import\s+[\w_.]+|elif\s+.*:|async\s+def\s+|raise\s+\w+|yield\s+)/m,
-    /if\s+__name__\s*==\s*['"]__main__['"]\s*:/,
+    // 3. Control Flow & Language Keywords
+    /^\s*(if\s*\(.+\)\s*\{|for\s*\(.+\)\s*\{|while\s*\(.+\)\s*\{|switch\s*\(.+\)\s*\{|try\s*\{|catch\s*\(.+\)\s*\{)/m,
 
-    // 4. PHP
-    /^\s*(<\?php|\$this->|namespace\s+[\w\\]+;|public\s+function|private\s+function|protected\s+function|\$\w+\s*=)/m,
+    // 4. SQL Statements
+    /^\s*(SELECT\s+[\s\S]+\s+FROM|INSERT\s+INTO|UPDATE\s+\w+\s+SET|DELETE\s+FROM|CREATE\s+TABLE|ALTER\s+TABLE|DROP\s+TABLE)\b/im,
 
-    // 5. SQL
-    /^\s*(SELECT\s+[\s\S]+\s+FROM|INSERT\s+INTO\s+|UPDATE\s+[\s\S]+\s+SET|DELETE\s+FROM\s+|CREATE\s+(TABLE|DATABASE|INDEX|VIEW)|ALTER\s+TABLE|DROP\s+(TABLE|DATABASE)|TRUNCATE\s+TABLE)\b/im,
-
-    // 6. CSS / SCSS
+    // 5. CSS / SCSS Selectors and Rules
     /^\s*([.#@:a-z][\w\-.:#\s,>+~*]*)\s*\{[\s\S]*\}/m,
-    /@(media|keyframes|import|font-face|tailwind|apply)\b/i,
 
-    // 7. Shell / Terminal / Docker Commands
-    /^\s*(echo\s+|sudo\s+|docker\s+|docker-compose\s+|npm\s+|npx\s+|yarn\s+|pnpm\s+|bun\s+|pip\s+|pip3\s+|cargo\s+|git\s+|kubectl\s+|curl\s+|wget\s+|ssh\s+|scp\s+|brew\s+|apt\s+|apt-get\s+|chmod\s+|chown\s+|mkdir\s+|touch\s+|systemctl\s+|service\s+|export\s+[\w_]+=)/m,
-
-    // 8. Rust / Go / C / C++ / Java
-    /^\s*(fn\s+[\w_]+\s*\(|pub\s+fn\s+|impl\s+|struct\s+\w+\s*\{|enum\s+\w+\s*\{|trait\s+\w+\s*\{|let\s+mut\s+)/m,
-    /^\s*(package\s+main|func\s+(\([^)]+\)\s*)?[\w_]+\s*\(|type\s+\w+\s+struct)/m,
-    /^\s*(#include\s+[<"]|int\s+main\s*\(|std::|public\s+static\s+void\s+main)/m,
-
-    // 9. JSON & Data objects
+    // 6. JSON Object / Array (multi-line or structured)
     /^\s*\{\s*"[\w\-]+"\s*:\s*[\s\S]+\}\s*$/,
-    /^\s*\[\s*\{\s*"[\w\-]+"\s*:\s*[\s\S]+\}\s*\]\s*$/
+    /^\s*\[\s*\{\s*"[\w\-]+"\s*:\s*[\s\S]+\}\s*\]\s*$/,
+
+    // 7. Python, PHP, Rust, Go patterns
+    /^\s*(def\s+\w+\s*\(|class\s+\w+(\(.*\))?\s*:|<\?php|fn\s+\w+\s*\(|package\s+main|func\s+\w+\s*\()/m,
+
+    // 8. Terminal / Shell Commands & Scripts
+    /^\s*(echo\s+|npm\s+(run|test|install|i|build)|git\s+(commit|push|pull|status|checkout|add)|docker\s+(run|build|compose|ps)|curl\s+-|brew\s+install|chmod\s+\+x|sudo\s+apt)/im
   ];
 
   /**
-   * Checks if text is a valid web URL or localhost.
+   * Checks whether the given text is a valid HTTP(S) URL.
    */
   public static isUrl(text: string): boolean {
-    if (!text) return false;
+    if (!text || typeof text !== 'string') return false;
     const trimmed = text.trim();
-    if (trimmed.includes('\n') || trimmed.includes('\r') || trimmed.includes(' ')) return false;
-
-    try {
-      const url = new URL(
-        trimmed.startsWith('http://') || trimmed.startsWith('https://') ? trimmed : `https://${trimmed}`
-      );
-      return url.hostname.includes('.') || url.hostname === 'localhost';
-    } catch {
+    if (trimmed.includes('\n') || trimmed.includes('\r') || trimmed.includes(' ')) {
       return false;
     }
+    return this.URL_REGEX.test(trimmed);
   }
 
   /**
-   * Determines the category of a clip (link, code, text, or image).
+   * Detects the category of a text or image payload: 'link' | 'code' | 'image' | 'text'.
    */
   public static detectCategory(text: string, dataUrl?: string): ClipCategory {
-    if ((dataUrl && dataUrl.startsWith('data:image/')) || (text && text.startsWith('data:image/'))) {
+    if (dataUrl && typeof dataUrl === 'string' && dataUrl.startsWith('data:image/')) {
       return 'image';
     }
 
@@ -75,8 +60,9 @@ export class SearchService {
       return 'link';
     }
 
-    const trimmed = text.trim();
-    const sample = trimmed.substring(0, 4000);
+    // Safety sample cap: inspect the first 4,000 chars to avoid ReDoS on huge 10MB inputs
+    const sample = text.substring(0, 4000);
+
     for (const pattern of this.CODE_INDICATORS) {
       if (pattern.test(sample)) {
         return 'code';
@@ -90,13 +76,32 @@ export class SearchService {
    * Extracts clean hostname/domain from a URL.
    */
   public static extractDomain(url: string): string {
-    if (!url) return '';
+    if (!url || typeof url !== 'string') return '';
+    const trimmed = url.trim();
+    const lower = trimmed.toLowerCase();
+
+    if (
+      lower.startsWith('javascript:') ||
+      lower.startsWith('data:') ||
+      lower.startsWith('blob:') ||
+      lower.startsWith('file:') ||
+      lower.startsWith('vbscript:')
+    ) {
+      return '';
+    }
+
     try {
-      let normalized = url.trim();
-      if (!normalized.startsWith('http://') && !normalized.startsWith('https://')) {
+      let normalized = trimmed;
+      if (!lower.startsWith('http://') && !lower.startsWith('https://')) {
+        if (normalized.includes('://')) {
+          return '';
+        }
         normalized = 'https://' + normalized;
       }
       const parsed = new URL(normalized);
+      if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+        return '';
+      }
       return parsed.hostname.replace(/^www\./, '');
     } catch {
       return '';
@@ -108,59 +113,69 @@ export class SearchService {
    */
   public static filterClips(
     clips: Clip[],
-    filterMode: FilterMode,
-    query: string
+    filter: FilterMode = 'all',
+    query: string = ''
   ): Clip[] {
-    let result = [...clips];
+    let filtered = clips;
 
-    // Apply category / tab filter
-    if (filterMode === 'links') {
-      result = result.filter((c) => c.category === 'link' || this.isUrl(c.text));
-    } else if (filterMode === 'pinned') {
-      result = result.filter((c) => c.pinned);
-    } else if (filterMode === 'code') {
-      result = result.filter((c) => c.category === 'code');
-    } else if (filterMode === 'images') {
-      result = result.filter((c) => c.category === 'image');
+    // 1. Filter by category
+    if (filter === 'links') {
+      filtered = filtered.filter((c) => c.category === 'link' || this.isUrl(c.text));
+    } else if (filter === 'code') {
+      filtered = filtered.filter((c) => c.category === 'code');
+    } else if (filter === 'images') {
+      filtered = filtered.filter((c) => c.category === 'image');
+    } else if (filter === 'pinned') {
+      filtered = filtered.filter((c) => c.pinned);
     }
 
-    // Apply search query
-    const cleanQuery = query.trim().toLowerCase();
-    if (cleanQuery) {
-      const queryTokens = cleanQuery.split(/\s+/).filter(Boolean);
-      result = result.filter((clip) => {
-        const textLower = (clip.text || '').toLowerCase();
-        const urlLower = (clip.url || '').toLowerCase();
-        const ocrLower = (clip.ocrText || '').toLowerCase();
-        const qrLower = (clip.qrData || '').toLowerCase();
-
-        return queryTokens.every(
-          (token) =>
-            textLower.includes(token) ||
-            urlLower.includes(token) ||
-            ocrLower.includes(token) ||
-            qrLower.includes(token)
-        );
-      });
+    // 2. Search query matching
+    const q = query.trim().toLowerCase();
+    if (!q) {
+      return filtered;
     }
 
-    return result;
+    const tokens = q.split(/\s+/).filter(Boolean);
+
+    return filtered.filter((clip) => {
+      const textMatch = clip.text ? clip.text.toLowerCase() : '';
+      const urlMatch = clip.url ? clip.url.toLowerCase() : '';
+      const domainMatch = clip.url ? this.extractDomain(clip.url).toLowerCase() : '';
+      const ocrMatch = clip.ocrText ? clip.ocrText.toLowerCase() : '';
+      const qrMatch = clip.qrData ? clip.qrData.toLowerCase() : '';
+
+      return tokens.every(
+        (token) =>
+          textMatch.includes(token) ||
+          urlMatch.includes(token) ||
+          domainMatch.includes(token) ||
+          ocrMatch.includes(token) ||
+          qrMatch.includes(token)
+      );
+    });
   }
 
   /**
-   * Highlights matching search tokens in an HTML-escaped string.
+   * Returns HTML string with highlighted matching words.
    */
   public static highlightMatches(escapedText: string, query: string): string {
-    if (!escapedText || !query.trim()) return escapedText;
-    const tokens = query
-      .trim()
-      .split(/\s+/)
-      .map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
-      .filter(Boolean);
+    if (!query.trim() || !escapedText) return escapedText;
 
-    if (tokens.length === 0) return escapedText;
+    const terms = Array.from(
+      new Set(
+        query
+          .trim()
+          .split(/\s+/)
+          .filter((t) => t.length > 0)
+          .map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+      )
+    );
 
-    const regex = new RegExp(`(${tokens.join('|')})`, 'gi');
-    return escapedText.replace(regex, '<mark class="search-highlight">$1</mark>');
+    if (terms.length === 0) return escapedText;
+
+    // Safety boundary: Cap to 5,000 characters to prevent HTML memory blowup on single-character mass replacements
+    const sample = escapedText.length > 5000 ? escapedText.substring(0, 5000) : escapedText;
+    const regex = new RegExp(`(${terms.join('|')})`, 'gi');
+    return sample.replace(regex, '<mark class="search-highlight">$1</mark>');
   }
 }

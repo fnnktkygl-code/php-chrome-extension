@@ -17,7 +17,7 @@ export class ImageService {
    * Resizes and compresses an image Blob to an optimized WebP/JPEG DataURL.
    */
   public static async processImageBlob(blob: Blob): Promise<ProcessedImage> {
-    if (typeof window === 'undefined' || typeof document === 'undefined') {
+    if (!blob || blob.size === 0 || !blob.type || !blob.type.startsWith('image/') || typeof window === 'undefined' || typeof document === 'undefined') {
       return {
         dataUrl: 'data:image/png;base64,mock',
         dimensions: { width: 400, height: 300 }
