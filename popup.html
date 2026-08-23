@@ -68,7 +68,7 @@
         </div>
       </div>
 
-      <!-- Modern Segmented Control Navigation -->
+      <!-- Modern Segmented Control Navigation (5 tabs) -->
       <nav class="segmented-control" role="tablist">
         <button class="segment-btn active" data-tab="all" role="tab" aria-selected="true">
           <span id="tabAllLabel">All</span>
@@ -81,6 +81,10 @@
         <button class="segment-btn" data-tab="code" role="tab" aria-selected="false">
           <span id="tabCodeLabel">Code</span>
           <span class="segment-count" id="codeCount">0</span>
+        </button>
+        <button class="segment-btn" data-tab="images" role="tab" aria-selected="false">
+          <span id="tabImagesLabel">Images</span>
+          <span class="segment-count" id="imagesCount">0</span>
         </button>
         <button class="segment-btn" data-tab="pinned" role="tab" aria-selected="false">
           <span id="tabPinnedLabel">Pinned</span>
@@ -95,7 +99,7 @@
             <circle cx="11" cy="11" r="8"></circle>
             <path d="m21 21-4.3-4.3"></path>
           </svg>
-          <input type="text" id="searchInput" placeholder="Search clips (Ctrl/Cmd + F)..." autocomplete="off" spellcheck="false">
+          <input type="text" id="searchInput" placeholder="Search clips & OCR (Ctrl/Cmd + F)..." autocomplete="off" spellcheck="false">
           <button class="clear-search-btn" id="clearSearchBtn" aria-label="Clear search">✕</button>
         </div>
         <div class="search-feedback" id="searchFeedback"></div>
@@ -124,6 +128,9 @@
           </div>
         </div>
         <div class="modal-body">
+          <div id="previewImageContainer" style="display: none; text-align: center; margin-bottom: 10px;">
+            <img id="previewImageEl" src="" alt="Full Preview" style="max-width: 100%; border-radius: 6px; max-height: 280px; object-fit: contain;">
+          </div>
           <pre class="preview-content" id="previewContent"></pre>
         </div>
       </div>

@@ -2,7 +2,7 @@
  * Core Domain Types for PHP - Paste History Past
  */
 
-export type ClipCategory = 'text' | 'link' | 'code';
+export type ClipCategory = 'text' | 'link' | 'code' | 'image';
 
 export interface Clip {
   id: number;
@@ -13,6 +13,10 @@ export interface Clip {
   copyCount: number;
   lastCopied: number | null;
   category: ClipCategory;
+  dataUrl?: string;
+  dimensions?: { width: number; height: number };
+  ocrText?: string;
+  qrData?: string;
 }
 
 export interface Settings {
@@ -24,7 +28,7 @@ export interface Settings {
   ignorePasswords: boolean;
 }
 
-export type FilterMode = 'all' | 'links' | 'pinned' | 'code';
+export type FilterMode = 'all' | 'links' | 'code' | 'images' | 'pinned';
 
 export interface ExportData {
   app: 'PHP - Paste History Past';
@@ -40,6 +44,11 @@ export type RuntimeMessage =
       text: string;
       url: string;
       timestamp: number;
+      category?: ClipCategory;
+      dataUrl?: string;
+      dimensions?: { width: number; height: number };
+      ocrText?: string;
+      qrData?: string;
     }
   | {
       type: 'SETTINGS_CHANGED';

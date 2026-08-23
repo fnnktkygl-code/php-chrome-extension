@@ -1,184 +1,187 @@
-// i18n.js - Enhanced Internationalization system
+// i18n.js - Localization
 
 const translations = {
-  en: {
-    // Header
-    appTitle: "PHP - Paste History Past",
-    themeToggle: "Toggle theme",
-    clearAll: "Clear all",
-    
-    // Tabs
-    tabAll: "All",
-    tabLinks: "Links",
-    tabPinned: "Pinned",
-    
-    // Search
-    searchPlaceholder: "Search your clips...",
-    
-    // Clip Actions
-    preview: "Preview",
-    delete: "Delete clip",
-    pin: "Pin clip",
-    unpin: "Unpin clip",
-    clickToCopy: "Click to copy",
-    readMore: "Read more",
-    readLess: "Read less",
-    
-    // Clip Meta
-    justNow: "just now",
-    minutesAgo: "{0}m ago",
-    hoursAgo: "{0}h ago",
-    daysAgo: "{0}d ago",
-    chars: "{0} chars",
-    
-    // Categories
-    categoryLink: "🔗 Link",
-    categoryText: "📝 Text",
-    
-    // Empty States
-    emptyAllTitle: "No clips yet",
-    emptyAllText: "Copy some text and watch the magic happen.<br>Your clips are saved locally & securely.",
-    emptyLinksTitle: "No links found",
-    emptyLinksText: "Links you copy will appear in this tab.",
-    emptyPinnedTitle: "No pinned clips",
-    emptyPinnedText: "Pin important clips to keep them forever.",
-    emptySearchTitle: "No matches found",
-    emptySearchText: "Try a different search term.",
-    
-    // Modal
-    modalTitle: "Full Preview",
-    
-    // Toast
-    copiedToast: "✓ Copied to clipboard",
-    
-    // Confirmations
-    confirmDelete: "Are you sure you want to delete this clip?",
-    confirmClearAll: "Clear all non-pinned clips? This cannot be undone.",
-    
-    // Language
-    language: "Language",
-    languageEnglish: "English",
-    languageFrench: "Français",
-    
-    // Settings
-    settingsTitle: "Settings",
-    saveUrlLabel: "Save source URL",
-    maxClipsLabel: "Max clips limit",
-    maxAgeLabel: "Clip retention period",
-    expiry1Day: "1 Day",
-    expiry7Days: "7 Days",
-    expiry30Days: "30 Days",
-    expiryNever: "Never"
-  },
-  
-  fr: {
-    // Header
-    appTitle: "PHP - Historique de Collage",
-    themeToggle: "Changer le thème",
-    clearAll: "Tout effacer",
-    
-    // Tabs
-    tabAll: "Tout",
-    tabLinks: "Liens",
-    tabPinned: "Épinglés",
-    
-    // Search
-    searchPlaceholder: "Rechercher dans vos clips...",
-    
-    // Clip Actions
-    preview: "Aperçu",
-    delete: "Supprimer le clip",
-    pin: "Épingler le clip",
-    unpin: "Désépingler le clip",
-    clickToCopy: "Cliquer pour copier",
-    readMore: "Lire plus",
-    readLess: "Lire moins",
-    
-    // Clip Meta
-    justNow: "à l'instant",
-    minutesAgo: "il y a {0}m",
-    hoursAgo: "il y a {0}h",
-    daysAgo: "il y a {0}j",
-    chars: "{0} caract.",
-    
-    // Categories
-    categoryLink: "🔗 Lien",
-    categoryText: "📝 Texte",
-    
-    // Empty States
-    emptyAllTitle: "Aucun clip pour le moment",
-    emptyAllText: "Copiez du texte et regardez la magie opérer.<br>Vos clips sont sauvegardés localement et en toute sécurité.",
-    emptyLinksTitle: "Aucun lien trouvé",
-    emptyLinksText: "Les liens que vous copiez apparaîtront dans cet onglet.",
-    emptyPinnedTitle: "Aucun clip épinglé",
-    emptyPinnedText: "Épinglez les clips importants pour les garder pour toujours.",
-    emptySearchTitle: "Aucun résultat",
-    emptySearchText: "Essayez un autre terme de recherche.",
-    
-    // Modal
-    modalTitle: "Aperçu complet",
-    
-    // Toast
-    copiedToast: "✓ Copié dans le presse-papiers",
-    
-    // Confirmations
-    confirmDelete: "Êtes-vous sûr de vouloir supprimer ce clip ?",
-    confirmClearAll: "Effacer tous les clips non épinglés ? Cette action est irréversible.",
-    
-    // Language
-    language: "Langue",
-    languageEnglish: "English",
-    languageFrench: "Français",
-    
-    // Settings
-    settingsTitle: "Paramètres",
-    saveUrlLabel: "Enregistrer l'URL source",
-    maxClipsLabel: "Limite max de clips",
-    maxAgeLabel: "Durée de conservation",
-    expiry1Day: "1 jour",
-    expiry7Days: "7 jours",
-    expiry30Days: "30 jours",
-    expiryNever: "Jamais"
-  }
+    en: {
+        appTitle: "PHP - Paste History Past",
+        themeToggle: "Toggle theme",
+        clearAll: "Clear all non-pinned",
+        refresh: "Refresh",
+        settings: "Settings",
+        exportBackup: "Export backup",
+        importBackup: "Import backup",
+
+        // Tabs
+        tabAll: "All",
+        tabLinks: "Links",
+        tabCode: "Code",
+        tabImages: "Images",
+        tabPinned: "Pinned",
+
+        // Search
+        searchPlaceholder: "Search your clips & OCR (Ctrl/Cmd + F)...",
+        searchResults: "{0} result{1}",
+
+        // Clip Actions
+        preview: "Preview full text",
+        delete: "Delete clip",
+        pin: "Pin clip",
+        unpin: "Unpin clip",
+        clickToCopy: "Click to copy",
+        readMore: "Read more",
+        readLess: "Read less",
+        copyImage: "Copy Image",
+        extractOcr: "Extract Text (OCR)",
+
+        // Categories
+        categoryLink: "Link",
+        categoryCode: "Code",
+        categoryText: "Text",
+        categoryImage: "Image",
+
+        // Modals
+        modalTitle: "Full Preview",
+        modalClose: "Close",
+        settingsTitle: "Extension Settings",
+        saveUrlLabel: "Save source website URL",
+        maxClipsLabel: "Maximum clips in history",
+        maxAgeLabel: "Clip retention period",
+        ignorePasswordsLabel: "Ignore sensitive fields & passwords",
+        expiry1Day: "24 Hours",
+        expiry7Days: "7 Days",
+        expiry30Days: "30 Days",
+        expiryNever: "Never (Keep forever)",
+
+        // Backup
+        backupSectionTitle: "Backup & Restore",
+        exportBtnText: "Export History (JSON)",
+        importBtnText: "Import History (JSON)",
+        importSuccess: "Successfully imported {0} clips!",
+        importInvalid: "Invalid backup file format.",
+
+        // Toasts
+        copiedToast: "✓ Copied to clipboard",
+        imageCopiedToast: "✓ Image copied to clipboard",
+        ocrCopiedToast: "✓ OCR text copied to clipboard",
+        deletedToast: "Clip deleted",
+        clearedToast: "Cleared {0} unpinned clip{1}",
+
+        // Confirmations
+        confirmDelete: "Are you sure you want to delete this clip?",
+        confirmClearAll: "Clear all unpinned clips? Pinned clips will be kept.",
+
+        // Language
+        language: "Language",
+        languageEnglish: "English",
+        languageFrench: "Français"
+    },
+    fr: {
+        appTitle: "PHP - Historique de Collage",
+        themeToggle: "Changer le thème",
+        clearAll: "Effacer les non-épinglés",
+        refresh: "Actualiser",
+        settings: "Paramètres",
+        exportBackup: "Exporter la sauvegarde",
+        importBackup: "Importer la sauvegarde",
+
+        // Tabs
+        tabAll: "Tout",
+        tabLinks: "Liens",
+        tabCode: "Code",
+        tabImages: "Images",
+        tabPinned: "Épinglés",
+
+        // Search
+        searchPlaceholder: "Rechercher dans vos clips & OCR (Ctrl/Cmd + F)...",
+        searchResults: "{0} résultat{1}",
+
+        // Clip Actions
+        preview: "Aperçu complet",
+        delete: "Supprimer le clip",
+        pin: "Épingler le clip",
+        unpin: "Désépingler le clip",
+        clickToCopy: "Cliquer pour copier",
+        readMore: "Lire plus",
+        readLess: "Lire moins",
+        copyImage: "Copier l'image",
+        extractOcr: "Extraire le texte (OCR)",
+
+        // Categories
+        categoryLink: "Lien",
+        categoryCode: "Code",
+        categoryText: "Texte",
+        categoryImage: "Image",
+
+        // Modals
+        modalTitle: "Aperçu complet",
+        modalClose: "Fermer",
+        settingsTitle: "Paramètres",
+        saveUrlLabel: "Enregistrer l'URL source du site",
+        maxClipsLabel: "Limite max d'éléments",
+        maxAgeLabel: "Durée de conservation",
+        ignorePasswordsLabel: "Ignorer les mots de passe et champs sensibles",
+        expiry1Day: "24 Heures",
+        expiry7Days: "7 Jours",
+        expiry30Days: "30 Jours",
+        expiryNever: "Jamais (Garder pour toujours)",
+
+        // Backup
+        backupSectionTitle: "Sauvegarde & Restauration",
+        exportBtnText: "Exporter l’historique (JSON)",
+        importBtnText: "Importer l’historique (JSON)",
+        importSuccess: "{0} clips importés avec succès !",
+        importInvalid: "Format de fichier de sauvegarde invalide.",
+
+        // Toasts
+        copiedToast: "✓ Copié dans le presse-papiers",
+        imageCopiedToast: "✓ Image copiée dans le presse-papiers",
+        ocrCopiedToast: "✓ Texte OCR copié dans le presse-papiers",
+        deletedToast: "Clip supprimé",
+        clearedToast: "{0} clip{1} non-épinglé{1} effacé{1}",
+
+        // Confirmations
+        confirmDelete: "Êtes-vous sûr de vouloir supprimer ce clip ?",
+        confirmClearAll: "Effacer tous les clips non épinglés ? Les épinglés seront conservés.",
+
+        // Language
+        language: "Langue",
+        languageEnglish: "English",
+        languageFrench: "Français"
+    }
 };
 
 class I18n {
-  constructor() {
-    this.currentLocale = 'en';
-    this.translations = translations;
-  }
+    constructor() {
+        this.locale = 'en';
+    }
 
-  async init() {
-    const { locale } = await chrome.storage.local.get('locale');
-    this.currentLocale = locale || this.detectBrowserLanguage();
-    await chrome.storage.local.set({ locale: this.currentLocale });
-  }
+    async init() {
+        const { locale } = await chrome.storage.local.get('locale');
+        if (locale) {
+            this.locale = locale;
+        } else {
+            const browserLang = navigator.language || 'en';
+            this.locale = browserLang.startsWith('fr') ? 'fr' : 'en';
+            await chrome.storage.local.set({ locale: this.locale });
+        }
+    }
 
-  detectBrowserLanguage() {
-    const browserLang = navigator.language || navigator.userLanguage;
-    return browserLang.startsWith('fr') ? 'fr' : 'en';
-  }
+    t(key, ...args) {
+        let text = (translations[this.locale] && translations[this.locale][key]) || 
+                   (translations.en && translations.en[key]) || 
+                   key;
+        
+        args.forEach((arg, index) => {
+            text = text.replace(new RegExp(`\\{${index}\\}`, 'g'), arg);
+        });
 
-  async setLocale(locale) {
-    this.currentLocale = locale;
-    await chrome.storage.local.set({ locale });
-  }
+        return text;
+    }
 
-  t(key, ...args) {
-    let text = this.translations[this.currentLocale]?.[key] || this.translations.en[key] || key;
-    
-    // Replace placeholders {0}, {1}, etc.
-    args.forEach((arg, index) => {
-      text = text.replace(`{${index}}`, arg);
-    });
-    
-    return text;
-  }
-
-  getCurrentLocale() {
-    return this.currentLocale;
-  }
+    async toggleLocale() {
+        this.locale = this.locale === 'en' ? 'fr' : 'en';
+        await chrome.storage.local.set({ locale: this.locale });
+        return this.locale;
+    }
 }
 
-// Export for use in popup.js
 const i18n = new I18n();

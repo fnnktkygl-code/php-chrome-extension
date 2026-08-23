@@ -1,4 +1,4 @@
-import { Clip, Settings } from '../domain/types';
+import { Clip, ClipCategory, Settings } from '../domain/types';
 import { SearchService } from './search.service';
 import { SecurityService } from './security.service';
 import { StorageService } from './storage.service';
@@ -7,6 +7,11 @@ export interface ClipboardPayload {
   text: string;
   url?: string;
   timestamp?: number;
+  category?: ClipCategory;
+  dataUrl?: string;
+  dimensions?: { width: number; height: number };
+  ocrText?: string;
+  qrData?: string;
 }
 
 export class ClipboardService {
@@ -20,19 +25,34 @@ export class ClipboardService {
    * Processes an incoming clipboard capture.
    */
   public async handleCopy(payload: ClipboardPayload): Promise<Clip | null> {
-    const cleanText = SecurityService.sanitizeClipText(payload.text);
-    if (!cleanText) {
-      return null;
+    const isImage = payload.category === 'image' || Boolean(payload.dataUrl);
+    let cleanText = '';
+
+    if (isImage) {
+      cleanText = payload.text || payload.ocrText || payload.qrData || 'Image Clip';
+    } else {
+      const sanitized = SecurityService.sanitizeClipText(payload.text);
+      if (!sanitized) {
+        return null;
+      }
+      cleanText = sanitized;
     }
 
     const settings = await this.storage.getSettings();
     let clips = await this.storage.getClips();
     const timestamp = payload.timestamp || Date.now();
     const url = settings.saveUrl ? (payload.url || '') : '';
-    const category = SearchService.detectCategory(cleanText);
+    const category: ClipCategory = isImage
+      ? 'image'
+      : SearchService.detectCategory(cleanText, payload.dataUrl);
 
     // Deduplication check
-    const existingIndex = clips.findIndex((c) => c.text === cleanText);
+    const existingIndex = clips.findIndex((c) => {
+      if (isImage && payload.dataUrl && c.dataUrl) {
+        return c.dataUrl === payload.dataUrl;
+      }
+      return c.text === cleanText;
+    });
 
     let savedClip: Clip;
 
@@ -43,6 +63,9 @@ export class ClipboardService {
         existing.timestamp = timestamp;
         if (url) existing.url = url;
         existing.category = category;
+        if (payload.dataUrl) existing.dataUrl = payload.dataUrl;
+        if (payload.ocrText) existing.ocrText = payload.ocrText;
+        if (payload.qrData) existing.qrData = payload.qrData;
         savedClip = existing;
       } else {
         // Move to top with updated timestamp
@@ -51,7 +74,11 @@ export class ClipboardService {
           ...existing,
           timestamp,
           url: url || existing.url,
-          category
+          category,
+          dataUrl: payload.dataUrl || existing.dataUrl,
+          dimensions: payload.dimensions || existing.dimensions,
+          ocrText: payload.ocrText || existing.ocrText,
+          qrData: payload.qrData || existing.qrData
         };
         clips.unshift(savedClip);
       }
@@ -64,7 +91,11 @@ export class ClipboardService {
         pinned: false,
         copyCount: 0,
         lastCopied: null,
-        category
+        category,
+        dataUrl: payload.dataUrl,
+        dimensions: payload.dimensions,
+        ocrText: payload.ocrText,
+        qrData: payload.qrData
       };
       clips.unshift(savedClip);
     }
@@ -99,31 +130,49 @@ export class ClipboardService {
   public cleanupClips(clips: Clip[], settings: Settings, now: number = Date.now()): Clip[] {
     const { maxClips, maxAgeMs } = settings;
 
-    // Filter out expired unpinned clips
+    // 1. Evict expired unpinned clips
     const validClips = clips.filter((clip) => {
-      if (clip.pinned) return true;
-      if (maxAgeMs === 0) return true; // never expire
+      if (clip.pinned) return true; // Pinned never expire
+      if (maxAgeMs === 0) return true; // Retention set to Never
       return now - clip.timestamp < maxAgeMs;
     });
 
+    // 2. Separate pinned and unpinned
     const pinned = validClips.filter((c) => c.pinned);
     const unpinned = validClips.filter((c) => !c.pinned);
 
-    // Enforce max clips limit on unpinned
-    if (unpinned.length > maxClips) {
-      unpinned.length = maxClips;
-    }
+    // 3. Limit unpinned capacity
+    const cappedUnpinned = unpinned.slice(0, maxClips);
 
-    return [...pinned, ...unpinned];
+    return [...pinned, ...cappedUnpinned];
   }
 
   /**
-   * Toggles the pinned status of a clip.
+   * Updates Chrome extension action badge text with the active clip count.
    */
-  public async togglePin(clipId: number): Promise<boolean> {
+  public async updateActionBadge(count: number): Promise<void> {
+    if (typeof chrome !== 'undefined' && chrome.action && chrome.action.setBadgeText) {
+      try {
+        const text = count > 0 ? String(count) : '';
+        await chrome.action.setBadgeText({ text });
+        if (text && chrome.action.setBadgeBackgroundColor) {
+          await chrome.action.setBadgeBackgroundColor({ color: '#2563eb' });
+        }
+      } catch (err) {
+        console.debug('Badge update skipped in test environment', err);
+      }
+    }
+  }
+
+  /**
+   * Toggles pin status for a given clip id.
+   */
+  public async togglePin(id: number): Promise<boolean> {
     const clips = await this.storage.getClips();
-    const clip = clips.find((c) => c.id === clipId);
-    if (!clip) return false;
+    const clip = clips.find((c) => c.id === id);
+    if (!clip) {
+      return false;
+    }
 
     clip.pinned = !clip.pinned;
     this.sortClips(clips);
@@ -132,14 +181,14 @@ export class ClipboardService {
   }
 
   /**
-   * Deletes a specific clip by ID.
+   * Deletes a clip by id.
    */
-  public async deleteClip(clipId: number): Promise<boolean> {
+  public async deleteClip(id: number): Promise<boolean> {
     let clips = await this.storage.getClips();
-    const initialLen = clips.length;
-    clips = clips.filter((c) => c.id !== clipId);
+    const beforeCount = clips.length;
+    clips = clips.filter((c) => c.id !== id);
 
-    if (clips.length !== initialLen) {
+    if (clips.length !== beforeCount) {
       await this.storage.setClips(clips);
       await this.updateActionBadge(clips.length);
       return true;
@@ -161,32 +210,15 @@ export class ClipboardService {
   }
 
   /**
-   * Records that a clip was copied back to clipboard.
+   * Increments copy counter for analytics & metadata.
    */
-  public async recordCopy(clipId: number): Promise<void> {
+  public async recordCopy(id: number): Promise<boolean> {
     const clips = await this.storage.getClips();
-    const clip = clips.find((c) => c.id === clipId);
-    if (clip) {
-      clip.copyCount = (clip.copyCount || 0) + 1;
-      clip.lastCopied = Date.now();
-      await this.storage.setClips(clips);
-    }
-  }
-
-  /**
-   * Updates the extension action badge with current count.
-   */
-  public async updateActionBadge(count: number): Promise<void> {
-    if (typeof chrome !== 'undefined' && chrome.action) {
-      try {
-        const text = count > 0 ? (count > 99 ? '99+' : String(count)) : '';
-        await chrome.action.setBadgeText({ text });
-        if (text) {
-          await chrome.action.setBadgeBackgroundColor({ color: '#6366f1' });
-        }
-      } catch (err) {
-        console.debug('Badge update skipped:', err);
-      }
-    }
+    const clip = clips.find((c) => c.id === id);
+    if (!clip) return false;
+    clip.copyCount = (clip.copyCount || 0) + 1;
+    clip.lastCopied = Date.now();
+    await this.storage.setClips(clips);
+    return true;
   }
 }

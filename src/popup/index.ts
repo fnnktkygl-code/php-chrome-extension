@@ -1,5 +1,6 @@
 import { ClipboardService } from '../application/clipboard.service';
 import { I18nService } from '../application/i18n.service';
+import { ImageService } from '../application/image.service';
 import { SearchService } from '../application/search.service';
 import { SecurityService } from '../application/security.service';
 import { StorageService } from '../application/storage.service';
@@ -114,7 +115,11 @@ export class PopupController {
     previewCloseBtn?.addEventListener('click', () => this.closePreviewModal());
     previewCopyBtn?.addEventListener('click', () => {
       if (this.activePreviewClip) {
-        this.copyClip(this.activePreviewClip.id);
+        if (this.activePreviewClip.category === 'image' && this.activePreviewClip.dataUrl) {
+          this.copyImage(this.activePreviewClip.id);
+        } else {
+          this.copyClip(this.activePreviewClip.id);
+        }
       }
     });
     previewModal?.addEventListener('click', (e) => {
@@ -159,6 +164,34 @@ export class PopupController {
 
   private async checkSystemClipboard(): Promise<void> {
     try {
+      // 1. Try reading rich image clipboard
+      if (navigator.clipboard && navigator.clipboard.read) {
+        try {
+          const items = await navigator.clipboard.read();
+          for (const item of items) {
+            const imageType = item.types.find((t) => t.startsWith('image/'));
+            if (imageType) {
+              const blob = await item.getType(imageType);
+              const processed = await ImageService.processImageBlob(blob);
+              const clipboardService = new ClipboardService(this.storage);
+              await clipboardService.handleCopy({
+                text: processed.qrData || 'Image Clip',
+                url: '',
+                timestamp: Date.now(),
+                category: 'image',
+                dataUrl: processed.dataUrl,
+                dimensions: processed.dimensions,
+                qrData: processed.qrData
+              });
+              return;
+            }
+          }
+        } catch {
+          // Fall back to text read
+        }
+      }
+
+      // 2. Read standard text clipboard
       if (navigator.clipboard && navigator.clipboard.readText) {
         const text = await navigator.clipboard.readText();
         if (text && text.trim().length > 0) {
@@ -179,18 +212,21 @@ export class PopupController {
     const total = this.clips.length;
     const links = this.clips.filter((c) => c.category === 'link' || SearchService.isUrl(c.text)).length;
     const code = this.clips.filter((c) => c.category === 'code').length;
+    const images = this.clips.filter((c) => c.category === 'image').length;
     const pinned = this.clips.filter((c) => c.pinned).length;
 
     const clipCount = document.getElementById('clipCount');
     const allCount = document.getElementById('allCount');
     const linksCount = document.getElementById('linksCount');
     const codeCount = document.getElementById('codeCount');
+    const imagesCount = document.getElementById('imagesCount');
     const pinnedCount = document.getElementById('pinnedCount');
 
     if (clipCount) clipCount.textContent = String(total);
     if (allCount) allCount.textContent = String(total);
     if (linksCount) linksCount.textContent = String(links);
     if (codeCount) codeCount.textContent = String(code);
+    if (imagesCount) imagesCount.textContent = String(images);
     if (pinnedCount) pinnedCount.textContent = String(pinned);
   }
 
@@ -223,6 +259,7 @@ export class PopupController {
   private renderClipCard(clip: Clip): string {
     const isPinned = clip.pinned;
     const isExpanded = this.expandedClipIds.has(clip.id);
+    const isImage = clip.category === 'image' && Boolean(clip.dataUrl);
     const domain = SearchService.extractDomain(clip.url);
     const categoryClass = `category-${clip.category}`;
     const categoryLabel =
@@ -230,6 +267,8 @@ export class PopupController {
         ? this.i18n.t('categoryLink')
         : clip.category === 'code'
         ? this.i18n.t('categoryCode')
+        : clip.category === 'image'
+        ? this.i18n.t('categoryImage')
         : this.i18n.t('categoryText');
 
     const escaped = SecurityService.escapeHtml(clip.text);
@@ -242,15 +281,38 @@ export class PopupController {
 
     return `
       <article
-        class="clip-card ${isPinned ? 'pinned' : ''} ${isCode ? 'is-code' : ''}"
+        class="clip-card ${isPinned ? 'pinned' : ''} ${isCode ? 'is-code' : ''} ${isImage ? 'is-image' : ''}"
         data-id="${clip.id}"
         tabindex="0"
         role="button"
         aria-label="${SecurityService.escapeHtml(clip.text.substring(0, 40))}"
       >
         <div class="clip-header clip-card-header">
-          <span class="clip-category-pill clip-category-tag ${categoryClass}">${categoryLabel}</span>
+          <div class="clip-category-pills">
+            <span class="clip-category-pill clip-category-tag ${categoryClass}">${categoryLabel}</span>
+            ${clip.qrData ? `<span class="clip-category-pill category-qr" title="${SecurityService.escapeHtml(clip.qrData)}">QR</span>` : ''}
+          </div>
           <div class="clip-actions clip-card-actions">
+            ${
+              isImage
+                ? `<button class="card-action-btn clip-action-btn action-copy-image" data-action="copy-image" data-id="${clip.id}" title="${this.i18n.t('copyImage')}" aria-label="Copy image">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <rect width="18" height="18" x="3" y="3" rx="2" ry="2"></rect>
+                      <circle cx="9" cy="9" r="2"></circle>
+                      <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"></path>
+                    </svg>
+                  </button>
+                  <button class="card-action-btn clip-action-btn action-ocr" data-action="ocr" data-id="${clip.id}" title="${this.i18n.t('extractOcr')}" aria-label="Extract OCR">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                      <polyline points="14 2 14 8 20 8"></polyline>
+                      <line x1="16" y1="13" x2="8" y2="13"></line>
+                      <line x1="16" y1="17" x2="8" y2="17"></line>
+                      <polyline points="10 9 9 9 8 9"></polyline>
+                    </svg>
+                  </button>`
+                : ''
+            }
             <button class="card-action-btn clip-action-btn action-preview" data-action="preview" data-id="${clip.id}" title="${this.i18n.t('preview')}" aria-label="Preview">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path>
@@ -273,12 +335,20 @@ export class PopupController {
           </div>
         </div>
 
-        <div class="clip-content clip-text-content ${isCode ? 'code-snippet' : ''} ${isExpanded ? 'expanded' : ''}">
-          ${highlighted}
-        </div>
+        ${
+          isImage
+            ? `<div class="clip-image-preview-wrapper">
+                 <img class="clip-thumbnail" src="${clip.dataUrl}" alt="Clip Image" loading="lazy">
+               </div>
+               ${clip.ocrText ? `<div class="clip-ocr-preview">📝 ${SecurityService.escapeHtml(clip.ocrText.substring(0, 90))}</div>` : ''}
+               ${clip.qrData ? `<div class="clip-ocr-preview">🔗 ${SecurityService.escapeHtml(clip.qrData)}</div>` : ''}`
+            : `<div class="clip-content clip-text-content ${isCode ? 'code-snippet' : ''} ${isExpanded ? 'expanded' : ''}">
+                 ${highlighted}
+               </div>`
+        }
 
         ${
-          needsExpand
+          needsExpand && !isImage
             ? `<button class="expand-toggle-btn" data-id="${clip.id}">${isExpanded ? this.i18n.t('readLess') : this.i18n.t('readMore')}</button>`
             : ''
         }
@@ -287,7 +357,7 @@ export class PopupController {
           <div class="clip-meta-left">
             <span>${this.i18n.formatRelativeTime(clip.timestamp)}</span>
             <span class="clip-meta-dot">•</span>
-            <span>${this.i18n.t('chars', clip.text.length)}</span>
+            <span>${isImage && clip.dimensions ? `${clip.dimensions.width}×${clip.dimensions.height}` : this.i18n.t('chars', clip.text.length)}</span>
             ${clip.copyCount > 0 ? `<span class="clip-meta-dot">•</span><span class="copy-counter">${this.i18n.t('copiedTimes', clip.copyCount)}</span>` : ''}
           </div>
 
@@ -318,14 +388,24 @@ export class PopupController {
         if (target.closest('.card-action-btn, .clip-action-btn') || target.closest('.expand-toggle-btn')) {
           return;
         }
-        this.copyClip(clipId, card as HTMLElement);
+        const clip = this.clips.find((c) => c.id === clipId);
+        if (clip && clip.category === 'image' && clip.dataUrl) {
+          this.copyImage(clipId, card as HTMLElement);
+        } else {
+          this.copyClip(clipId, card as HTMLElement);
+        }
       });
 
       card.addEventListener('keydown', (e: Event) => {
         const keyEvent = e as KeyboardEvent;
         if (keyEvent.key === 'Enter' || keyEvent.key === ' ') {
           keyEvent.preventDefault();
-          this.copyClip(clipId, card as HTMLElement);
+          const clip = this.clips.find((c) => c.id === clipId);
+          if (clip && clip.category === 'image' && clip.dataUrl) {
+            this.copyImage(clipId, card as HTMLElement);
+          } else {
+            this.copyClip(clipId, card as HTMLElement);
+          }
         }
       });
     });
@@ -355,6 +435,10 @@ export class PopupController {
           this.togglePin(id);
         } else if (action === 'delete') {
           this.deleteClip(id);
+        } else if (action === 'copy-image') {
+          this.copyImage(id);
+        } else if (action === 'ocr') {
+          this.extractOcr(id);
         }
       });
     });
@@ -380,6 +464,50 @@ export class PopupController {
     } catch {
       this.showToast('Failed to copy', true);
     }
+  }
+
+  public async copyImage(id: number, cardEl?: HTMLElement): Promise<void> {
+    const clip = this.clips.find((c) => c.id === id);
+    if (!clip || !clip.dataUrl) return;
+
+    try {
+      const success = await ImageService.copyImageToClipboard(clip.dataUrl);
+      if (success) {
+        if (cardEl) {
+          cardEl.classList.add('copying');
+          setTimeout(() => cardEl.classList.remove('copying'), 400);
+        }
+        this.showToast(this.i18n.t('imageCopiedToast'));
+        clip.copyCount = (clip.copyCount || 0) + 1;
+        clip.lastCopied = Date.now();
+        await this.storage.setClips(this.clips);
+      } else {
+        // Fallback: copy dataUrl as text
+        await navigator.clipboard.writeText(clip.dataUrl);
+        this.showToast(this.i18n.t('copiedToast'));
+      }
+    } catch {
+      this.showToast('Failed to copy image', true);
+    }
+  }
+
+  public async extractOcr(id: number): Promise<void> {
+    const clip = this.clips.find((c) => c.id === id);
+    if (!clip) return;
+
+    if (clip.qrData) {
+      await navigator.clipboard.writeText(clip.qrData);
+      this.showToast(`✓ ${clip.qrData}`);
+      return;
+    }
+
+    if (clip.ocrText) {
+      await navigator.clipboard.writeText(clip.ocrText);
+      this.showToast(this.i18n.t('ocrCopiedToast'));
+      return;
+    }
+
+    this.showToast(this.i18n.t('extractOcr'));
   }
 
   public async togglePin(id: number): Promise<void> {
@@ -461,6 +589,7 @@ export class PopupController {
     const tabAllLabel = document.getElementById('tabAllLabel');
     const tabLinksLabel = document.getElementById('tabLinksLabel');
     const tabCodeLabel = document.getElementById('tabCodeLabel');
+    const tabImagesLabel = document.getElementById('tabImagesLabel');
     const tabPinnedLabel = document.getElementById('tabPinnedLabel');
     const searchInput = document.getElementById('searchInput') as HTMLInputElement;
     const refreshBtn = document.getElementById('refreshBtn');
@@ -493,6 +622,7 @@ export class PopupController {
     if (tabAllLabel) tabAllLabel.textContent = this.i18n.t('tabAll');
     if (tabLinksLabel) tabLinksLabel.textContent = this.i18n.t('tabLinks');
     if (tabCodeLabel) tabCodeLabel.textContent = this.i18n.t('tabCode');
+    if (tabImagesLabel) tabImagesLabel.textContent = this.i18n.t('tabImages');
     if (tabPinnedLabel) tabPinnedLabel.textContent = this.i18n.t('tabPinned');
     if (searchInput) searchInput.placeholder = this.i18n.t('searchPlaceholder');
     if (refreshBtn) refreshBtn.title = this.i18n.t('refresh');
@@ -521,8 +651,23 @@ export class PopupController {
     if (!clip) return;
     this.activePreviewClip = clip;
     const previewContent = document.getElementById('previewContent');
+    const previewImageContainer = document.getElementById('previewImageContainer');
+    const previewImageEl = document.getElementById('previewImageEl') as HTMLImageElement;
     const previewModal = document.getElementById('previewModal');
-    if (previewContent) previewContent.textContent = clip.text;
+
+    if (clip.category === 'image' && clip.dataUrl) {
+      if (previewImageContainer && previewImageEl) {
+        previewImageEl.src = clip.dataUrl;
+        previewImageContainer.style.display = 'block';
+      }
+      if (previewContent) {
+        previewContent.textContent = clip.ocrText || clip.qrData || `Image: ${clip.dimensions?.width || ''}×${clip.dimensions?.height || ''}`;
+      }
+    } else {
+      if (previewImageContainer) previewImageContainer.style.display = 'none';
+      if (previewContent) previewContent.textContent = clip.text;
+    }
+
     previewModal?.classList.add('open');
     previewModal?.classList.add('show');
   }
@@ -647,6 +792,10 @@ export class PopupController {
       titleKey = 'emptyCodeTitle';
       textKey = 'emptyCodeText';
       iconSvg = `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>`;
+    } else if (this.filter === 'images') {
+      titleKey = 'emptyImagesTitle';
+      textKey = 'emptyImagesText';
+      iconSvg = `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"></rect><circle cx="9" cy="9" r="2"></circle><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"></path></svg>`;
     } else if (this.filter === 'pinned') {
       titleKey = 'emptyPinnedTitle';
       textKey = 'emptyPinnedText';

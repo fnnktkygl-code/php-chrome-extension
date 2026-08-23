@@ -19,6 +19,7 @@ export const TRANSLATIONS: Record<Locale, Translations> = {
     tabAll: 'All',
     tabLinks: 'Links',
     tabCode: 'Code',
+    tabImages: 'Images',
     tabPinned: 'Pinned',
 
     // Search
@@ -33,6 +34,8 @@ export const TRANSLATIONS: Record<Locale, Translations> = {
     clickToCopy: 'Click to copy',
     readMore: 'Read more',
     readLess: 'Read less',
+    copyImage: 'Copy Image',
+    extractOcr: 'Extract Text (OCR)',
 
     // Clip Meta
     justNow: 'just now',
@@ -43,17 +46,20 @@ export const TRANSLATIONS: Record<Locale, Translations> = {
     copiedTimes: 'Copied {0}x',
 
     // Categories
-    categoryLink: '🔗 Link',
-    categoryCode: '💻 Code',
-    categoryText: '📝 Text',
+    categoryLink: 'Link',
+    categoryCode: 'Code',
+    categoryText: 'Text',
+    categoryImage: 'Image',
 
     // Empty States
     emptyAllTitle: 'No clips yet',
-    emptyAllText: 'Copy any text (Ctrl+C / Cmd+C) to save it locally & securely.',
+    emptyAllText: 'Copy any text or code (Ctrl+C / Cmd+C) to save it locally & securely.',
     emptyLinksTitle: 'No links found',
     emptyLinksText: 'URLs and links you copy will appear here.',
     emptyCodeTitle: 'No code snippets',
-    emptyCodeText: 'Commands, SQL queries and code snippets will appear here.',
+    emptyCodeText: 'SVG, HTML, SQL queries and code snippets will appear here.',
+    emptyImagesTitle: 'No images copied',
+    emptyImagesText: 'Copy images or screenshots to collect them here.',
     emptyPinnedTitle: 'No pinned clips',
     emptyPinnedText: 'Pin important clips with the pin icon to prevent auto-deletion.',
     emptySearchTitle: 'No matches found',
@@ -81,6 +87,8 @@ export const TRANSLATIONS: Record<Locale, Translations> = {
 
     // Toast Notifications
     copiedToast: '✓ Copied to clipboard',
+    imageCopiedToast: '✓ Image copied to clipboard',
+    ocrCopiedToast: '✓ OCR text copied to clipboard',
     deletedToast: 'Clip deleted',
     clearedToast: 'Cleared {0} unpinned clip{1}',
 
@@ -108,6 +116,7 @@ export const TRANSLATIONS: Record<Locale, Translations> = {
     tabAll: 'Tout',
     tabLinks: 'Liens',
     tabCode: 'Code',
+    tabImages: 'Images',
     tabPinned: 'Épinglés',
 
     // Search
@@ -122,6 +131,8 @@ export const TRANSLATIONS: Record<Locale, Translations> = {
     clickToCopy: 'Cliquer pour copier',
     readMore: 'Lire plus',
     readLess: 'Lire moins',
+    copyImage: "Copier l'image",
+    extractOcr: 'Extraire le texte (OCR)',
 
     // Clip Meta
     justNow: "à l'instant",
@@ -132,17 +143,20 @@ export const TRANSLATIONS: Record<Locale, Translations> = {
     copiedTimes: 'Copié {0}x',
 
     // Categories
-    categoryLink: '🔗 Lien',
-    categoryCode: '💻 Code',
-    categoryText: '📝 Texte',
+    categoryLink: 'Lien',
+    categoryCode: 'Code',
+    categoryText: 'Texte',
+    categoryImage: 'Image',
 
     // Empty States
     emptyAllTitle: 'Aucun clip pour le moment',
-    emptyAllText: 'Copiez du texte (Ctrl+C / Cmd+C) pour le sauvegarder localement.',
+    emptyAllText: 'Copiez du texte ou du code (Ctrl+C / Cmd+C) pour le sauvegarder localement.',
     emptyLinksTitle: 'Aucun lien trouvé',
     emptyLinksText: 'Les URLs et liens copiés apparaîtront ici.',
     emptyCodeTitle: 'Aucun extrait de code',
-    emptyCodeText: 'Les commandes, requêtes SQL et codes copiés apparaîtront ici.',
+    emptyCodeText: 'Le code SVG, HTML, SQL et les commandes apparaîtront ici.',
+    emptyImagesTitle: 'Aucune image copiée',
+    emptyImagesText: 'Copiez des images ou captures pour les retrouver ici.',
     emptyPinnedTitle: 'Aucun clip épinglé',
     emptyPinnedText: 'Épinglez les clips importants pour empêcher leur suppression automatique.',
     emptySearchTitle: 'Aucun résultat trouvé',
@@ -170,6 +184,8 @@ export const TRANSLATIONS: Record<Locale, Translations> = {
 
     // Toast Notifications
     copiedToast: '✓ Copié dans le presse-papiers',
+    imageCopiedToast: '✓ Image copiée dans le presse-papiers',
+    ocrCopiedToast: '✓ Texte OCR copié dans le presse-papiers',
     deletedToast: 'Clip supprimé',
     clearedToast: '{0} clip{1} non-épinglé{1} effacé{1}',
 
