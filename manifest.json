@@ -48,7 +48,7 @@
     "quick_paste": {
       "suggested_key": {
         "default": "Alt+V",
-        "mac": "Command+Shift+V"
+        "mac": "Alt+V"
       },
       "description": "Quick access to 5 recent clips at mouse cursor"
     },

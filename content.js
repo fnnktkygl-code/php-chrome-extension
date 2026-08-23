@@ -785,34 +785,42 @@ class QuickPasteMenu {
 const snipper = new ScreenSnipper();
 const quickMenu = new QuickPasteMenu();
 
-// Direct in-page Keyboard Shortcuts
-window.addEventListener('keydown', (e) => {
+// Direct in-page Keyboard Shortcuts (Capture Phase)
+function handleGlobalKeydown(e) {
   const isCmdOrCtrl = e.metaKey || e.ctrlKey;
+  const isKeyV = e.code === 'KeyV' || e.key === 'v' || e.key === 'V' || e.key === '√';
+  const isKeyX = e.code === 'KeyX' || e.key === 'x' || e.key === 'X';
+  const isKeyO = e.code === 'KeyO' || e.key === 'o' || e.key === 'O';
 
-  // 1. OCR / Snip Area Shortcut: Cmd/Ctrl + Shift + X (or C / S / O) or Alt + Shift + X (or S / C / O)
-  const isSnipKey = e.key === 'x' || e.key === 'X' || e.key === 'o' || e.key === 'O' || e.code === 'KeyX' || e.code === 'KeyO';
-  const isAltShiftSnip = e.altKey && e.shiftKey && (e.key === 'x' || e.key === 'X' || e.key === 's' || e.key === 'S' || e.key === 'o' || e.key === 'O');
-
-  if ((isCmdOrCtrl && e.shiftKey && isSnipKey) || isAltShiftSnip) {
+  // 1. OCR / Snip Area Shortcut: Cmd/Ctrl + Shift + X (or O) or Alt + Shift + X (or O)
+  if ((isCmdOrCtrl && e.shiftKey && (isKeyX || isKeyO)) || (e.altKey && e.shiftKey && (isKeyX || isKeyO))) {
     e.preventDefault();
+    e.stopImmediatePropagation();
     quickMenu.close();
     snipper.activate();
     return;
   }
 
-  // 2. Quick Paste (5 Recents) Shortcut: Cmd/Ctrl + Shift + V or Alt + V or Cmd + Option + V
-  const isQuickPasteKey =
-    (isCmdOrCtrl && e.shiftKey && (e.key === 'v' || e.key === 'V' || e.code === 'KeyV')) ||
-    (e.altKey && (e.key === 'v' || e.key === 'V' || e.code === 'KeyV')) ||
-    (e.metaKey && e.altKey && (e.key === 'v' || e.key === 'V' || e.code === 'KeyV'));
+  // 2. Quick Paste (5 Recents) Shortcut:
+  // - Option + V / Alt + V (Mac / Windows standard)
+  // - Cmd + Option + V (Raycast / Maccy standard)
+  // - Cmd + Shift + V / Ctrl + Shift + V
+  const isQuickPaste =
+    (e.altKey && isKeyV) ||
+    (e.metaKey && e.altKey && isKeyV) ||
+    (isCmdOrCtrl && e.shiftKey && isKeyV);
 
-  if (isQuickPasteKey) {
+  if (isQuickPaste) {
     e.preventDefault();
+    e.stopImmediatePropagation();
     snipper.close();
     quickMenu.toggle();
     return;
   }
-}, true);
+}
+
+window.addEventListener('keydown', handleGlobalKeydown, true);
+document.addEventListener('keydown', handleGlobalKeydown, true);
 
 // Listen for trigger message from background / popup
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
