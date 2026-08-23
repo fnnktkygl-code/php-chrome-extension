@@ -406,20 +406,27 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (langIndicator) langIndicator.textContent = loc.toUpperCase();
         if (languageToggle) languageToggle.title = `${i18n.t('language')}: ${loc.toUpperCase()}`;
 
-        document.getElementById('appTitle').textContent = i18n.t('appTitle');
-        document.getElementById('tabAllLabel').textContent = i18n.t('tabAll');
-        document.getElementById('tabLinksLabel').textContent = i18n.t('tabLinks');
-        document.getElementById('tabCodeLabel').textContent = i18n.t('tabCode');
-        document.getElementById('tabImagesLabel').textContent = i18n.t('tabImages');
-        document.getElementById('tabPinnedLabel').textContent = i18n.t('tabPinned');
+        const appTitle = document.getElementById('appTitle');
+        if (appTitle) appTitle.textContent = i18n.t('appTitle');
+        const tabAllLabel = document.getElementById('tabAllLabel');
+        if (tabAllLabel) tabAllLabel.textContent = i18n.t('tabAll');
+        const tabLinksLabel = document.getElementById('tabLinksLabel');
+        if (tabLinksLabel) tabLinksLabel.textContent = i18n.t('tabLinks');
+        const tabCodeLabel = document.getElementById('tabCodeLabel');
+        if (tabCodeLabel) tabCodeLabel.textContent = i18n.t('tabCode');
+        const tabImagesLabel = document.getElementById('tabImagesLabel');
+        if (tabImagesLabel) tabImagesLabel.textContent = i18n.t('tabImages');
+        const tabPinnedLabel = document.getElementById('tabPinnedLabel');
+        if (tabPinnedLabel) tabPinnedLabel.textContent = i18n.t('tabPinned');
 
-        searchInput.placeholder = i18n.t('searchPlaceholder');
-        refreshBtn.title = i18n.t('refresh');
+        if (searchInput) searchInput.placeholder = i18n.t('searchPlaceholder');
+        if (refreshBtn) refreshBtn.title = i18n.t('refresh');
+        if (clearAllBtn) clearAllBtn.title = i18n.t('clearAll');
         const snipBtn = document.getElementById('snipOcrBtn');
         if (snipBtn) snipBtn.title = i18n.t('snipOcrBtn');
         const snipHeaderLabel = document.getElementById('snipHeaderLabel');
         if (snipHeaderLabel) snipHeaderLabel.textContent = i18n.t('snipHeaderLabel');
-        settingsBtn.title = i18n.t('settings');
+        if (settingsBtn) settingsBtn.title = i18n.t('settings');
 
         const themeSettingLabel = document.getElementById('themeSettingLabel');
         const themeSettingDesc = document.getElementById('themeSettingDesc');
