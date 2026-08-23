@@ -127,8 +127,6 @@ interface CropBounds {
 class ScreenSnipper {
   private overlay: HTMLDivElement | null = null;
   private cropBox: HTMLDivElement | null = null;
-  private hud: HTMLDivElement | null = null;
-  private dimIndicator: HTMLDivElement | null = null;
   private isDrawing = false;
   private bounds: CropBounds = { startX: 0, startY: 0, endX: 0, endY: 0 };
 
@@ -143,68 +141,21 @@ class ScreenSnipper {
       position: fixed;
       inset: 0;
       z-index: 2147483647;
-      background: rgba(0, 0, 0, 0.25);
+      background: rgba(0, 0, 0, 0.08);
       cursor: crosshair;
       user-select: none;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     `;
 
-    // Top HUD
-    this.hud = document.createElement('div');
-    this.hud.style.cssText = `
-      position: fixed;
-      top: 24px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: #0f172a;
-      color: #ffffff;
-      padding: 8px 16px 8px 20px;
-      border-radius: 999px;
-      font-size: 13px;
-      font-weight: 500;
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.15);
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      pointer-events: auto;
-      z-index: 2147483648;
-      transition: all 0.2s ease;
-      cursor: default;
-    `;
-    this.hud.innerHTML = `
-      <span style="display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; border-radius:50%; background:#2563eb; color:#fff; font-size:12px;">✂️</span>
-      <span><strong>PHP Snip & OCR:</strong> Cadrez la zone • <kbd style="background:#1e293b; padding:2px 6px; border-radius:4px; border:1px solid #334155; font-size:11px;">Échap</kbd> pour quitter</span>
-      <button id="php-snipper-close-btn" style="background:#334155; color:#f8fafc; border:none; border-radius:50%; width:22px; height:22px; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; font-size:12px; font-weight:bold; margin-left:4px;" title="Fermer (Échap)">✕</button>
-    `;
-    this.overlay.appendChild(this.hud);
-
-    // Dimension Indicator
-    this.dimIndicator = document.createElement('div');
-    this.dimIndicator.style.cssText = `
-      position: fixed;
-      display: none;
-      background: #1e293b;
-      color: #38bdf8;
-      padding: 4px 8px;
-      border-radius: 4px;
-      font-size: 11px;
-      font-weight: 600;
-      font-family: monospace;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-      pointer-events: none;
-      z-index: 2147483648;
-    `;
-    this.overlay.appendChild(this.dimIndicator);
-
-    // Crop Box
+    // Subtle, Minimalist Crop Box (Crisp macOS-style selection outline)
     this.cropBox = document.createElement('div');
     this.cropBox.style.cssText = `
       position: absolute;
       display: none;
-      border: 2px solid #3b82f6;
-      background: transparent;
-      box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.35);
-      border-radius: 2px;
+      border: 1px solid rgba(255, 255, 255, 0.95);
+      box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.45), 0 0 0 9999px rgba(0, 0, 0, 0.28);
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 1px;
       pointer-events: none;
     `;
     this.overlay.appendChild(this.cropBox);
@@ -216,17 +167,7 @@ class ScreenSnipper {
   private attachEvents(): void {
     if (!this.overlay) return;
 
-    const closeBtn = this.overlay.querySelector('#php-snipper-close-btn');
-    closeBtn?.addEventListener('click', (e) => {
-      e.stopPropagation();
-      this.close();
-    });
-
     const onMouseDown = (e: MouseEvent) => {
-      // Don't start crop if clicked on HUD
-      if ((e.target as HTMLElement)?.closest('#php-snipper-close-btn')) {
-        return;
-      }
       this.isDrawing = true;
       this.bounds.startX = e.clientX;
       this.bounds.startY = e.clientY;
@@ -234,7 +175,6 @@ class ScreenSnipper {
       this.bounds.endY = e.clientY;
       this.updateBox();
       if (this.cropBox) this.cropBox.style.display = 'block';
-      if (this.dimIndicator) this.dimIndicator.style.display = 'block';
     };
 
     const onMouseMove = (e: MouseEvent) => {
@@ -253,16 +193,9 @@ class ScreenSnipper {
       const width = Math.abs(this.bounds.endX - this.bounds.startX);
       const height = Math.abs(this.bounds.endY - this.bounds.startY);
 
-      if (width < 15 || height < 15) {
+      if (width < 8 || height < 8) {
         this.close();
         return;
-      }
-
-      if (this.hud) {
-        this.hud.innerHTML = `
-          <span style="display:inline-block; animation: spin 1s linear infinite;">🔄</span>
-          <span>Extraction OCR en cours...</span>
-        `;
       }
 
       await this.processCrop({
@@ -316,7 +249,7 @@ class ScreenSnipper {
   }
 
   private updateBox(): void {
-    if (!this.cropBox || !this.dimIndicator) return;
+    if (!this.cropBox) return;
 
     const left = Math.min(this.bounds.startX, this.bounds.endX);
     const top = Math.min(this.bounds.startY, this.bounds.endY);
@@ -327,10 +260,6 @@ class ScreenSnipper {
     this.cropBox.style.top = `${top}px`;
     this.cropBox.style.width = `${width}px`;
     this.cropBox.style.height = `${height}px`;
-
-    this.dimIndicator.style.left = `${left}px`;
-    this.dimIndicator.style.top = `${top - 26 < 0 ? top + height + 6 : top - 26}px`;
-    this.dimIndicator.textContent = `${Math.round(width)} × ${Math.round(height)} px`;
   }
 
   private async processCrop(crop: { x: number; y: number; width: number; height: number; dpr: number }): Promise<void> {
