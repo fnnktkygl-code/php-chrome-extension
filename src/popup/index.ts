@@ -189,6 +189,13 @@ export class PopupController {
     importBackupBtn?.addEventListener('click', () => importFileInput?.click());
     importFileInput?.addEventListener('change', (e) => this.handleImportFile(e));
 
+    // Configure Chrome Shortcuts
+    document.getElementById('configureShortcutsBtn')?.addEventListener('click', () => {
+      if (typeof chrome !== 'undefined' && chrome.tabs) {
+        chrome.tabs.create({ url: 'chrome://extensions/shortcuts' });
+      }
+    });
+
     // Global Shortcuts
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
@@ -693,6 +700,16 @@ export class PopupController {
     if (backupSectionTitle) backupSectionTitle.textContent = this.i18n.t('backupSectionTitle');
     if (exportBtnText) exportBtnText.textContent = this.i18n.t('exportBtnText');
     if (importBtnText) importBtnText.textContent = this.i18n.t('importBtnText');
+
+    const shortcutsSectionTitle = document.getElementById('shortcutsSectionTitle');
+    const snipShortcutLabel = document.getElementById('snipShortcutLabel');
+    const quickPasteShortcutLabel = document.getElementById('quickPasteShortcutLabel');
+    const configureShortcutsBtnText = document.getElementById('configureShortcutsBtnText');
+
+    if (shortcutsSectionTitle) shortcutsSectionTitle.textContent = this.i18n.t('shortcutsSectionTitle');
+    if (snipShortcutLabel) snipShortcutLabel.textContent = this.i18n.t('snipShortcutLabel');
+    if (quickPasteShortcutLabel) quickPasteShortcutLabel.textContent = this.i18n.t('quickPasteShortcutLabel');
+    if (configureShortcutsBtnText) configureShortcutsBtnText.textContent = this.i18n.t('configureShortcutsBtnText');
   }
 
   private openPreviewModal(id: number): void {

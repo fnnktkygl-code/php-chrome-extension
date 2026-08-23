@@ -114,11 +114,52 @@ async function activateSnipperOnActiveTab() {
   return false;
 }
 
-// Global Keyboard Shortcut Handler (Shottr Style: Cmd+Shift+2 / Alt+Shift+S)
+async function toggleQuickPasteOnActiveTab() {
+  if (typeof chrome === 'undefined' || !chrome.tabs) return false;
+
+  try {
+    const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+    const activeTab = tabs[0];
+    if (!activeTab || !activeTab.id) return false;
+
+    if (activeTab.url) {
+      const isRestricted =
+        activeTab.url.startsWith('chrome://') ||
+        activeTab.url.startsWith('edge://') ||
+        activeTab.url.startsWith('about:') ||
+        activeTab.url.startsWith('chrome-extension://') ||
+        activeTab.url.includes('chromewebstore.google.com');
+
+      if (isRestricted) return false;
+    }
+
+    try {
+      await chrome.tabs.sendMessage(activeTab.id, { type: 'TOGGLE_QUICK_PASTE' });
+      return true;
+    } catch {
+      if (chrome.scripting) {
+        await chrome.scripting.executeScript({
+          target: { tabId: activeTab.id },
+          files: ['content.js']
+        });
+        await new Promise((r) => setTimeout(r, 60));
+        await chrome.tabs.sendMessage(activeTab.id, { type: 'TOGGLE_QUICK_PASTE' });
+        return true;
+      }
+    }
+  } catch (err) {
+    console.warn('PHP Background: Failed to toggle quick paste on active tab:', err);
+  }
+  return false;
+}
+
+// Global Keyboard Shortcut Handler (Shottr Style & Quick Paste)
 if (typeof chrome !== 'undefined' && chrome.commands && chrome.commands.onCommand) {
   chrome.commands.onCommand.addListener((command) => {
     if (command === 'snip_ocr') {
       activateSnipperOnActiveTab();
+    } else if (command === 'quick_paste') {
+      toggleQuickPasteOnActiveTab();
     }
   });
 }

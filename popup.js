@@ -418,6 +418,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         const snipBtn = document.getElementById('snipOcrBtn');
         if (snipBtn) snipBtn.title = i18n.t('snipOcrBtn');
         settingsBtn.title = i18n.t('settings');
+
+        const shortcutsSectionTitle = document.getElementById('shortcutsSectionTitle');
+        const snipShortcutLabel = document.getElementById('snipShortcutLabel');
+        const quickPasteShortcutLabel = document.getElementById('quickPasteShortcutLabel');
+        const configureShortcutsBtnText = document.getElementById('configureShortcutsBtnText');
+
+        if (shortcutsSectionTitle) shortcutsSectionTitle.textContent = i18n.t('shortcutsSectionTitle');
+        if (snipShortcutLabel) snipShortcutLabel.textContent = i18n.t('snipShortcutLabel');
+        if (quickPasteShortcutLabel) quickPasteShortcutLabel.textContent = i18n.t('quickPasteShortcutLabel');
+        if (configureShortcutsBtnText) configureShortcutsBtnText.textContent = i18n.t('configureShortcutsBtnText');
     }
 
     // --- Instant 1-Shot Parallel Batch Hydration ---
@@ -524,6 +534,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         a.href = URL.createObjectURL(blob);
         a.download = `php-clipboard-backup-${new Date().toISOString().slice(0, 10)}.json`;
         a.click();
+    });
+
+    document.getElementById('configureShortcutsBtn')?.addEventListener('click', () => {
+        if (typeof chrome !== 'undefined' && chrome.tabs) {
+            chrome.tabs.create({ url: 'chrome://extensions/shortcuts' });
+        }
     });
 
     importBackupBtn?.addEventListener('click', () => importFileInput.click());

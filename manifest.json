@@ -47,10 +47,17 @@
   "commands": {
     "_execute_action": {
       "suggested_key": {
+        "default": "Alt+Shift+H",
+        "mac": "Command+Shift+H"
+      },
+      "description": "Open full PHP extension popup"
+    },
+    "quick_paste": {
+      "suggested_key": {
         "default": "Alt+V",
         "mac": "Command+Shift+V"
       },
-      "description": "Open clipboard history"
+      "description": "Quick access to 5 recent clips"
     },
     "snip_ocr": {
       "suggested_key": {

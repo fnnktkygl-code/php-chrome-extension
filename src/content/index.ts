@@ -461,24 +461,390 @@ class ScreenSnipper {
   }
 }
 
-const snipper = new ScreenSnipper();
+interface QuickClip {
+  id: number;
+  text: string;
+  url?: string;
+  timestamp: number;
+  category?: 'text' | 'link' | 'code' | 'image';
+  ocrText?: string;
+  dataUrl?: string;
+}
 
-// Direct in-page Keyboard Shortcut (Cmd/Ctrl + Shift + X / O or Alt + Shift + X / O)
+/* =========================================================================
+ * 📋 Sleek In-Page Quick Paste Menu (Spotlight-Style 5 Recent Clips)
+ * ========================================================================= */
+function ensureStylesInjected(): void {
+  if (document.getElementById('php-injected-styles')) return;
+  const style = document.createElement('style');
+  style.id = 'php-injected-styles';
+  style.textContent = `
+    @keyframes phpFadeIn {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes phpSlideDown {
+      from { opacity: 0; transform: translateY(-16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  `;
+  (document.head || document.documentElement).appendChild(style);
+}
+
+class QuickPasteMenu {
+  private overlay: HTMLDivElement | null = null;
+  private selectedIndex = 0;
+  private clips: QuickClip[] = [];
+  private isFr = true;
+
+  public async toggle(): Promise<void> {
+    if (this.overlay) {
+      this.close();
+    } else {
+      await this.open();
+    }
+  }
+
+  public async open(): Promise<void> {
+    this.close();
+    ensureStylesInjected();
+
+    let clips: QuickClip[] = [];
+    let isDark = true;
+    try {
+      if (typeof chrome !== 'undefined' && chrome.storage?.local) {
+        const data = await chrome.storage.local.get(['clips', 'theme', 'locale']);
+        clips = data.clips || [];
+        isDark = data.theme !== 'light';
+        const browserLang = (typeof navigator !== 'undefined' ? navigator.language : 'fr').toLowerCase();
+        this.isFr = data.locale ? data.locale === 'fr' : browserLang.startsWith('fr');
+      }
+    } catch {}
+
+    this.clips = clips.slice(0, 5);
+    this.selectedIndex = 0;
+
+    // Overlay backdrop
+    this.overlay = document.createElement('div');
+    this.overlay.id = 'php-quick-paste-overlay';
+    this.overlay.style.cssText = `
+      position: fixed;
+      inset: 0;
+      z-index: 2147483646;
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(2px);
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding-top: 14vh;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      animation: phpFadeIn 0.12s ease-out;
+      user-select: none;
+    `;
+
+    // Modal Card
+    const card = document.createElement('div');
+    card.id = 'php-quick-paste-card';
+    const bgCard = isDark ? '#0f172a' : '#ffffff';
+    const borderCard = isDark ? '#334155' : '#e2e8f0';
+    const textMain = isDark ? '#f8fafc' : '#0f172a';
+    const bgHeader = isDark ? '#1e293b' : '#f8fafc';
+    const textSub = isDark ? '#94a3b8' : '#64748b';
+
+    card.style.cssText = `
+      width: 440px;
+      max-width: 92vw;
+      background: ${bgCard};
+      color: ${textMain};
+      border: 1px solid ${borderCard};
+      border-radius: 12px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.08);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    `;
+
+    // Header
+    const header = document.createElement('div');
+    header.style.cssText = `
+      padding: 10px 14px;
+      border-bottom: 1px solid ${borderCard};
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: ${bgHeader};
+    `;
+    header.innerHTML = `
+      <div style="display:flex; align-items:center; gap:8px; font-weight:600; font-size:13px; color:${textMain};">
+        <span style="display:inline-flex; align-items:center; justify-content:center; width:20px; height:20px; border-radius:5px; background:#2563eb; color:#fff; font-size:11px;">📋</span>
+        <span>${this.isFr ? 'PHP • 5 Récents' : 'PHP • 5 Recents'}</span>
+      </div>
+      <div style="font-size:11px; color:${textSub}; display:flex; gap:6px; align-items:center;">
+        <kbd style="background:${isDark ? '#0f172a' : '#f1f5f9'}; padding:2px 6px; border-radius:4px; border:1px solid ${borderCard}; font-size:10px; font-family:monospace;">1-5</kbd>
+        <span>${this.isFr ? 'copier' : 'copy'} •</span>
+        <kbd style="background:${isDark ? '#0f172a' : '#f1f5f9'}; padding:2px 6px; border-radius:4px; border:1px solid ${borderCard}; font-size:10px; font-family:monospace;">Échap</kbd>
+      </div>
+    `;
+    card.appendChild(header);
+
+    // List container
+    const list = document.createElement('div');
+    list.id = 'php-quick-paste-list';
+    list.style.cssText = `
+      display: flex;
+      flex-direction: column;
+      padding: 6px;
+      gap: 2px;
+      max-height: 380px;
+      overflow-y: auto;
+    `;
+
+    if (this.clips.length === 0) {
+      list.innerHTML = `
+        <div style="padding: 24px; text-align: center; color: ${textSub}; font-size: 13px;">
+          ${this.isFr ? 'Aucun élément copié pour le moment' : 'No copied items yet'}
+        </div>
+      `;
+    } else {
+      this.clips.forEach((clip, index) => {
+        const item = document.createElement('div');
+        item.className = 'php-qp-item';
+        item.dataset.index = String(index);
+        item.style.cssText = `
+          padding: 8px 10px;
+          border-radius: 6px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 10px;
+          transition: background 0.1s ease;
+          background: ${index === 0 ? (isDark ? '#1e293b' : '#f1f5f9') : 'transparent'};
+        `;
+
+        const icon = clip.category === 'link' ? '🔗' : clip.category === 'code' ? '💻' : clip.category === 'image' ? '🖼️' : '📝';
+        const rawText = clip.category === 'image' ? (clip.ocrText || 'Image capturée') : (clip.text || '');
+        const cleanText = rawText.replace(/\s+/g, ' ').trim();
+
+        item.innerHTML = `
+          <div style="display:flex; align-items:center; gap:8px; flex:1; min-width:0;">
+            <span style="font-size:11px; font-weight:700; color:#38bdf8; background:${isDark ? '#0f172a' : '#e2e8f0'}; border:1px solid ${borderCard}; border-radius:4px; width:18px; height:18px; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0;">${index + 1}</span>
+            <span style="font-size:12px; flex-shrink:0;">${icon}</span>
+            <span style="font-size:12px; color:${textMain}; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1;">${this.escapeHtml(cleanText)}</span>
+          </div>
+          <span style="font-size:10px; color:${textSub}; flex-shrink:0;">${this.getRelativeTime(clip.timestamp)}</span>
+        `;
+
+        item.addEventListener('mouseenter', () => {
+          this.setSelectedIndex(index, isDark);
+        });
+
+        item.addEventListener('click', () => {
+          this.copyAndClose(clip);
+        });
+
+        list.appendChild(item);
+      });
+    }
+
+    card.appendChild(list);
+
+    // Footer
+    const footer = document.createElement('div');
+    footer.style.cssText = `
+      padding: 8px 14px;
+      border-top: 1px solid ${borderCard};
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: ${bgHeader};
+    `;
+    footer.innerHTML = `
+      <span style="font-size:11px; color:${textSub};">${this.isFr ? '↑↓ Entrée pour coller' : '↑↓ Enter to paste'}</span>
+      <button id="php-qp-view-all" style="background:transparent; border:none; color:#38bdf8; font-size:11px; font-weight:600; cursor:pointer; padding:4px 6px; border-radius:4px;">
+        ${this.isFr ? 'Voir tout dans PHP ↗' : 'View all in PHP ↗'}
+      </button>
+    `;
+    card.appendChild(footer);
+
+    this.overlay.appendChild(card);
+    document.body.appendChild(this.overlay);
+
+    // Click outside to close
+    this.overlay.addEventListener('click', (e) => {
+      if (e.target === this.overlay) {
+        this.close();
+      }
+    });
+
+    // View all button click
+    const viewAllBtn = footer.querySelector('#php-qp-view-all');
+    viewAllBtn?.addEventListener('click', () => {
+      this.close();
+      this.showToast(this.isFr ? '💡 Cliquez sur l\'icône PHP dans la barre Chrome pour voir tout l\'historique !' : '💡 Click the PHP extension icon in the toolbar for full history!');
+    });
+
+    // Keyboard navigation
+    const keyHandler = (e: KeyboardEvent) => {
+      if (!this.overlay) return;
+
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        this.close();
+        return;
+      }
+
+      // Keys 1 - 5
+      if (['1', '2', '3', '4', '5'].includes(e.key)) {
+        const idx = parseInt(e.key, 10) - 1;
+        if (this.clips[idx]) {
+          e.preventDefault();
+          this.copyAndClose(this.clips[idx]);
+          return;
+        }
+      }
+
+      // Arrow navigation
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        this.setSelectedIndex((this.selectedIndex + 1) % Math.max(1, this.clips.length), isDark);
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        this.setSelectedIndex((this.selectedIndex - 1 + Math.max(1, this.clips.length)) % Math.max(1, this.clips.length), isDark);
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        if (this.clips[this.selectedIndex]) {
+          this.copyAndClose(this.clips[this.selectedIndex]);
+        }
+      }
+    };
+
+    window.addEventListener('keydown', keyHandler, true);
+    (this.overlay as unknown as { _keyHandler: (e: KeyboardEvent) => void })._keyHandler = keyHandler;
+  }
+
+  private setSelectedIndex(index: number, isDark: boolean): void {
+    this.selectedIndex = index;
+    if (!this.overlay) return;
+    const items = this.overlay.querySelectorAll('.php-qp-item') as NodeListOf<HTMLDivElement>;
+    items.forEach((item, idx) => {
+      item.style.background = idx === index ? (isDark ? '#1e293b' : '#f1f5f9') : 'transparent';
+    });
+  }
+
+  private async copyAndClose(clip: QuickClip): Promise<void> {
+    const textToCopy = clip.category === 'image' ? (clip.ocrText || '') : (clip.text || '');
+    if (textToCopy) {
+      try {
+        await navigator.clipboard.writeText(textToCopy);
+      } catch {}
+    }
+
+    this.close();
+    this.showToast(this.isFr ? '✓ Copié dans le presse-papiers !' : '✓ Copied to clipboard!');
+  }
+
+  private showToast(message: string): void {
+    const toast = document.createElement('div');
+    toast.style.cssText = `
+      position: fixed;
+      top: 24px;
+      right: 24px;
+      z-index: 2147483647;
+      background: #0f172a;
+      color: #ffffff;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.15);
+      animation: phpSlideDown 0.2s ease-out;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    `;
+    toast.textContent = message;
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.style.transition = 'opacity 0.3s ease';
+      setTimeout(() => toast.remove(), 300);
+    }, 2200);
+  }
+
+  private getRelativeTime(timestamp: number): string {
+    const diffSec = Math.max(0, Math.floor((Date.now() - timestamp) / 1000));
+    if (diffSec < 60) return this.isFr ? 'À l\'instant' : 'Just now';
+    const diffMin = Math.floor(diffSec / 60);
+    if (diffMin < 60) return `${diffMin}m`;
+    const diffHours = Math.floor(diffMin / 60);
+    if (diffHours < 24) return `${diffHours}h`;
+    const diffDays = Math.floor(diffHours / 24);
+    return `${diffDays}j`;
+  }
+
+  private escapeHtml(str: string): string {
+    return str
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  public close(): void {
+    if (this.overlay) {
+      if ((this.overlay as unknown as { _keyHandler?: (e: KeyboardEvent) => void })._keyHandler) {
+        window.removeEventListener('keydown', (this.overlay as unknown as { _keyHandler: (e: KeyboardEvent) => void })._keyHandler, true);
+      }
+      this.overlay.remove();
+      this.overlay = null;
+    }
+  }
+}
+
+const snipper = new ScreenSnipper();
+const quickMenu = new QuickPasteMenu();
+
+// Direct in-page Keyboard Shortcuts
 window.addEventListener('keydown', (e: KeyboardEvent) => {
   const isCmdOrCtrl = e.metaKey || e.ctrlKey;
-  const isKeyMatch = e.key === 'x' || e.key === 'X' || e.key === 'o' || e.key === 'O' || e.code === 'KeyX' || e.code === 'KeyO';
-  const isAltShift = e.altKey && e.shiftKey && (e.key === 'x' || e.key === 'X' || e.key === 'o' || e.key === 'O');
 
-  if ((isCmdOrCtrl && e.shiftKey && isKeyMatch) || isAltShift) {
+  // 1. OCR / Snip Area Shortcut: Cmd/Ctrl + Shift + X (or C / S / O) or Alt + Shift + X (or S / C / O)
+  const isSnipKey = e.key === 'x' || e.key === 'X' || e.key === 'o' || e.key === 'O' || e.code === 'KeyX' || e.code === 'KeyO';
+  const isAltShiftSnip = e.altKey && e.shiftKey && (e.key === 'x' || e.key === 'X' || e.key === 's' || e.key === 'S' || e.key === 'o' || e.key === 'O');
+
+  if ((isCmdOrCtrl && e.shiftKey && isSnipKey) || isAltShiftSnip) {
     e.preventDefault();
+    quickMenu.close();
     snipper.activate();
+    return;
+  }
+
+  // 2. Quick Paste (5 Recents) Shortcut: Cmd/Ctrl + Shift + V or Alt + V or Cmd + Option + V
+  const isQuickPasteKey =
+    (isCmdOrCtrl && e.shiftKey && (e.key === 'v' || e.key === 'V' || e.code === 'KeyV')) ||
+    (e.altKey && (e.key === 'v' || e.key === 'V' || e.code === 'KeyV')) ||
+    (e.metaKey && e.altKey && (e.key === 'v' || e.key === 'V' || e.code === 'KeyV'));
+
+  if (isQuickPasteKey) {
+    e.preventDefault();
+    snipper.close();
+    quickMenu.toggle();
+    return;
   }
 }, true);
 
 // Listen for trigger message from background / popup
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message.type === 'ACTIVATE_SNIPPER') {
+    quickMenu.close();
     snipper.activate();
+    sendResponse({ success: true });
+    return true;
+  }
+  if (message.type === 'TOGGLE_QUICK_PASTE') {
+    snipper.close();
+    quickMenu.toggle();
     sendResponse({ success: true });
     return true;
   }

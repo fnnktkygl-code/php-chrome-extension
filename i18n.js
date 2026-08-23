@@ -77,6 +77,15 @@ const translations = {
         snipProcessing: "Extracting OCR text...",
         snipRestrictedPage: "⚠️ Cannot snip Chrome system pages. Open any regular website (Google, GitHub, etc.) to use Snip & OCR.",
 
+        // Shortcuts & Quick Menu
+        shortcutsSectionTitle: "Keyboard Shortcuts",
+        snipShortcutLabel: "Snip Area & OCR (Shottr)",
+        quickPasteShortcutLabel: "Quick Menu (5 Recents)",
+        configureShortcutsBtnText: "Customize in Chrome Extensions",
+        quickPasteTitle: "5 Recent Clips",
+        quickPasteTip: "1-5 or ↑↓ Enter to copy",
+        quickPasteViewAll: "View all in PHP ↗",
+
         // Language
         language: "Language",
         languageEnglish: "English",
@@ -157,6 +166,15 @@ const translations = {
         snipSuccessImage: "✓ Zone d'image copiée dans le presse-papiers !",
         snipProcessing: "Extraction OCR du texte en cours...",
         snipRestrictedPage: "⚠️ Impossible de capturer les pages internes Chrome. Ouvrez un site web (Google, GitHub, etc.) pour utiliser le cadrage.",
+
+        // Shortcuts & Quick Menu
+        shortcutsSectionTitle: "Raccourcis Clavier",
+        snipShortcutLabel: "Cadrage & OCR (Shottr)",
+        quickPasteShortcutLabel: "Menu Rapide (5 Récents)",
+        configureShortcutsBtnText: "Personnaliser dans Chrome",
+        quickPasteTitle: "5 Clips Récents",
+        quickPasteTip: "1-5 ou ↑↓ Entrée pour copier",
+        quickPasteViewAll: "Voir tout dans PHP ↗",
 
         // Language
         language: "Langue",
