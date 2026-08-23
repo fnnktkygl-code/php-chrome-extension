@@ -12,6 +12,7 @@ Thumbs.db
 *.pem
 dist/
 build/
+coverage/
 
 # Dependencies
 node_modules/

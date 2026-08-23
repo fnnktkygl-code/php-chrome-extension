@@ -1,0 +1,645 @@
+import { I18nService } from '../application/i18n.service';
+import { SearchService } from '../application/search.service';
+import { SecurityService } from '../application/security.service';
+import { StorageService } from '../application/storage.service';
+import { Clip, FilterMode, Settings } from '../domain/types';
+
+export class PopupController {
+  private storage: StorageService;
+  private i18n: I18nService;
+  private clips: Clip[] = [];
+  private filter: FilterMode = 'all';
+  private searchQuery: string = '';
+  private expandedClipIds: Set<number> = new Set();
+  private activePreviewClip: Clip | null = null;
+
+  constructor(storage?: StorageService, i18n?: I18nService) {
+    this.storage = storage || new StorageService();
+    this.i18n = i18n || new I18nService();
+  }
+
+  public async init(): Promise<void> {
+    const locale = await this.storage.getLocale();
+    this.i18n.setLocale(locale);
+
+    const theme = await this.storage.getTheme();
+    if (theme === 'light') {
+      document.body.classList.add('light-mode');
+    }
+
+    this.bindEvents();
+    this.updateLanguageUI();
+    this.updateThemeUI();
+    await this.checkSystemClipboard();
+    await this.loadClips();
+  }
+
+  private bindEvents(): void {
+    const searchInput = document.getElementById('searchInput') as HTMLInputElement;
+    const clearSearchBtn = document.getElementById('clearSearchBtn') as HTMLButtonElement;
+    const tabs = document.querySelectorAll('.tab-btn');
+    const themeToggle = document.getElementById('themeToggle');
+    const languageToggle = document.getElementById('languageToggle');
+    const refreshBtn = document.getElementById('refreshBtn');
+    const clearAllBtn = document.getElementById('clearAllBtn');
+
+    const previewCloseBtn = document.getElementById('previewCloseBtn');
+    const previewCopyBtn = document.getElementById('previewCopyBtn');
+    const previewModal = document.getElementById('previewModal');
+
+    const settingsBtn = document.getElementById('settingsBtn');
+    const settingsCloseBtn = document.getElementById('settingsCloseBtn');
+    const settingsModal = document.getElementById('settingsModal');
+
+    const settingSaveUrl = document.getElementById('settingSaveUrl');
+    const settingIgnorePasswords = document.getElementById('settingIgnorePasswords');
+    const settingMaxClips = document.getElementById('settingMaxClips');
+    const settingMaxAge = document.getElementById('settingMaxAge');
+
+    const exportBackupBtn = document.getElementById('exportBackupBtn');
+    const importBackupBtn = document.getElementById('importBackupBtn');
+    const importFileInput = document.getElementById('importFileInput') as HTMLInputElement;
+
+    // Search
+    let debounceTimer: ReturnType<typeof setTimeout>;
+    searchInput?.addEventListener('input', (e) => {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        this.searchQuery = (e.target as HTMLInputElement).value;
+        clearSearchBtn?.classList.toggle('show', Boolean(this.searchQuery));
+        this.render();
+      }, 150);
+    });
+
+    clearSearchBtn?.addEventListener('click', () => {
+      if (searchInput) searchInput.value = '';
+      this.searchQuery = '';
+      clearSearchBtn?.classList.remove('show');
+      this.render();
+    });
+
+    // Tab Navigation
+    tabs.forEach((tab) => {
+      tab.addEventListener('click', (e) => {
+        const btn = (e.target as HTMLElement).closest('.tab-btn') as HTMLButtonElement;
+        if (!btn) return;
+        const targetTab = btn.getAttribute('data-tab') as FilterMode;
+        if (targetTab && targetTab !== this.filter) {
+          tabs.forEach((t) => {
+            t.classList.remove('active');
+            t.setAttribute('aria-selected', 'false');
+          });
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+          this.filter = targetTab;
+          this.render();
+        }
+      });
+    });
+
+    // Actions
+    themeToggle?.addEventListener('click', () => this.toggleTheme());
+    languageToggle?.addEventListener('click', () => this.toggleLanguage());
+    refreshBtn?.addEventListener('click', () => this.refreshClips());
+    clearAllBtn?.addEventListener('click', () => this.clearAllClips());
+
+    // Modals
+    previewCloseBtn?.addEventListener('click', () => this.closePreviewModal());
+    previewCopyBtn?.addEventListener('click', () => {
+      if (this.activePreviewClip) {
+        this.copyClip(this.activePreviewClip.id);
+      }
+    });
+    previewModal?.addEventListener('click', (e) => {
+      if (e.target === previewModal) this.closePreviewModal();
+    });
+
+    settingsBtn?.addEventListener('click', () => this.openSettingsModal());
+    settingsCloseBtn?.addEventListener('click', () => this.closeSettingsModal());
+    settingsModal?.addEventListener('click', (e) => {
+      if (e.target === settingsModal) this.closeSettingsModal();
+    });
+
+    // Settings save
+    settingSaveUrl?.addEventListener('change', () => this.saveSettings());
+    settingIgnorePasswords?.addEventListener('change', () => this.saveSettings());
+    settingMaxClips?.addEventListener('change', () => this.saveSettings());
+    settingMaxAge?.addEventListener('change', () => this.saveSettings());
+
+    // Backup
+    exportBackupBtn?.addEventListener('click', () => this.exportBackup());
+    importBackupBtn?.addEventListener('click', () => importFileInput?.click());
+    importFileInput?.addEventListener('change', (e) => this.handleImportFile(e));
+
+    // Global Shortcuts
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        this.closePreviewModal();
+        this.closeSettingsModal();
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+        e.preventDefault();
+        searchInput?.focus();
+      }
+    });
+  }
+
+  public async loadClips(): Promise<void> {
+    this.clips = await this.storage.getClips();
+    this.updateCounters();
+    this.render();
+  }
+
+  private async checkSystemClipboard(): Promise<void> {
+    try {
+      if (navigator.clipboard && navigator.clipboard.readText) {
+        const text = await navigator.clipboard.readText();
+        if (text && text.trim().length > 0) {
+          if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.sendMessage) {
+            await chrome.runtime.sendMessage({
+              type: 'CLIPBOARD_COPY',
+              text: text,
+              url: '',
+              timestamp: Date.now()
+            });
+          }
+        }
+      }
+    } catch {
+      // Ignore background clipboard access restrictions
+    }
+  }
+
+  private updateCounters(): void {
+    const total = this.clips.length;
+    const links = this.clips.filter((c) => c.category === 'link' || SearchService.isUrl(c.text)).length;
+    const code = this.clips.filter((c) => c.category === 'code').length;
+    const pinned = this.clips.filter((c) => c.pinned).length;
+
+    const clipCount = document.getElementById('clipCount');
+    const allCount = document.getElementById('allCount');
+    const linksCount = document.getElementById('linksCount');
+    const codeCount = document.getElementById('codeCount');
+    const pinnedCount = document.getElementById('pinnedCount');
+
+    if (clipCount) clipCount.textContent = String(total);
+    if (allCount) allCount.textContent = String(total);
+    if (linksCount) linksCount.textContent = String(links);
+    if (codeCount) codeCount.textContent = String(code);
+    if (pinnedCount) pinnedCount.textContent = String(pinned);
+  }
+
+  public render(): void {
+    const clipsContainer = document.getElementById('clipsContainer');
+    const searchFeedback = document.getElementById('searchFeedback');
+    if (!clipsContainer) return;
+
+    const filtered = SearchService.filterClips(this.clips, this.filter, this.searchQuery);
+
+    // Search feedback
+    if (this.searchQuery.trim() && searchFeedback) {
+      const count = filtered.length;
+      const plural = count === 1 ? '' : 's';
+      searchFeedback.textContent = this.i18n.t('searchResults', count, plural);
+      searchFeedback.classList.add('show');
+    } else if (searchFeedback) {
+      searchFeedback.classList.remove('show');
+    }
+
+    if (filtered.length === 0) {
+      clipsContainer.innerHTML = this.getEmptyStateHtml();
+      return;
+    }
+
+    clipsContainer.innerHTML = filtered.map((clip) => this.renderClipCard(clip)).join('');
+    this.attachCardEvents();
+  }
+
+  private renderClipCard(clip: Clip): string {
+    const isPinned = clip.pinned;
+    const isExpanded = this.expandedClipIds.has(clip.id);
+    const domain = SearchService.extractDomain(clip.url);
+    const categoryClass = `category-${clip.category}`;
+    const categoryLabel =
+      clip.category === 'link'
+        ? this.i18n.t('categoryLink')
+        : clip.category === 'code'
+        ? this.i18n.t('categoryCode')
+        : this.i18n.t('categoryText');
+
+    const escaped = SecurityService.escapeHtml(clip.text);
+    const highlighted = this.searchQuery
+      ? SearchService.highlightMatches(escaped, this.searchQuery)
+      : escaped;
+
+    const needsExpand = clip.text.length > 220;
+    const isCode = clip.category === 'code';
+
+    return `
+      <article
+        class="clip-card ${isPinned ? 'pinned' : ''}"
+        data-id="${clip.id}"
+        tabindex="0"
+        role="button"
+        aria-label="${SecurityService.escapeHtml(clip.text.substring(0, 40))}"
+      >
+        <div class="clip-card-header">
+          <span class="clip-category-tag ${categoryClass}">${categoryLabel}</span>
+          <div class="clip-card-actions">
+            <button class="clip-action-btn action-preview" data-action="preview" data-id="${clip.id}" title="${this.i18n.t('preview')}">👁️</button>
+            <button class="clip-action-btn action-pin ${isPinned ? 'pinned' : ''}" data-action="pin" data-id="${clip.id}" title="${isPinned ? this.i18n.t('unpin') : this.i18n.t('pin')}">📌</button>
+            <button class="clip-action-btn danger action-delete" data-action="delete" data-id="${clip.id}" title="${this.i18n.t('delete')}">🗑️</button>
+          </div>
+        </div>
+
+        <div class="clip-text-content ${isCode ? 'code-snippet' : ''} ${isExpanded ? 'expanded' : ''}">
+          ${highlighted}
+        </div>
+
+        ${
+          needsExpand
+            ? `<button class="expand-toggle-btn" data-id="${clip.id}">${isExpanded ? this.i18n.t('readLess') : this.i18n.t('readMore')}</button>`
+            : ''
+        }
+
+        <div class="clip-footer">
+          <div class="clip-meta-left">
+            <span>${this.i18n.formatRelativeTime(clip.timestamp)}</span>
+            <span class="clip-meta-dot">•</span>
+            <span>${this.i18n.t('chars', clip.text.length)}</span>
+            ${clip.copyCount > 0 ? `<span class="clip-meta-dot">•</span><span>${this.i18n.t('copiedTimes', clip.copyCount)}</span>` : ''}
+          </div>
+
+          ${
+            domain
+              ? `
+            <div class="clip-source-badge" title="${SecurityService.escapeHtml(clip.url)}">
+              <img class="clip-favicon" src="https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=32" alt="" onerror="this.style.display='none'">
+              <span>${SecurityService.escapeHtml(domain)}</span>
+            </div>`
+              : ''
+          }
+        </div>
+      </article>
+    `;
+  }
+
+  private attachCardEvents(): void {
+    const clipsContainer = document.getElementById('clipsContainer');
+    if (!clipsContainer) return;
+
+    const cards = clipsContainer.querySelectorAll('.clip-card');
+    cards.forEach((card) => {
+      const clipId = Number(card.getAttribute('data-id'));
+
+      card.addEventListener('click', (e) => {
+        const target = e.target as HTMLElement;
+        if (target.closest('.clip-action-btn') || target.closest('.expand-toggle-btn')) {
+          return;
+        }
+        this.copyClip(clipId, card as HTMLElement);
+      });
+
+      card.addEventListener('keydown', (e: Event) => {
+        const keyEvent = e as KeyboardEvent;
+        if (keyEvent.key === 'Enter' || keyEvent.key === ' ') {
+          keyEvent.preventDefault();
+          this.copyClip(clipId, card as HTMLElement);
+        }
+      });
+    });
+
+    clipsContainer.querySelectorAll('.expand-toggle-btn').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const id = Number(btn.getAttribute('data-id'));
+        if (this.expandedClipIds.has(id)) {
+          this.expandedClipIds.delete(id);
+        } else {
+          this.expandedClipIds.add(id);
+        }
+        this.render();
+      });
+    });
+
+    clipsContainer.querySelectorAll('.clip-action-btn').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const action = btn.getAttribute('data-action');
+        const id = Number(btn.getAttribute('data-id'));
+
+        if (action === 'preview') {
+          this.openPreviewModal(id);
+        } else if (action === 'pin') {
+          this.togglePin(id);
+        } else if (action === 'delete') {
+          this.deleteClip(id);
+        }
+      });
+    });
+  }
+
+  public async copyClip(id: number, cardEl?: HTMLElement): Promise<void> {
+    const clip = this.clips.find((c) => c.id === id);
+    if (!clip) return;
+
+    try {
+      await navigator.clipboard.writeText(clip.text);
+
+      if (cardEl) {
+        cardEl.classList.add('copying');
+        setTimeout(() => cardEl.classList.remove('copying'), 400);
+      }
+
+      this.showToast(this.i18n.t('copiedToast'));
+
+      clip.copyCount = (clip.copyCount || 0) + 1;
+      clip.lastCopied = Date.now();
+      await this.storage.setClips(this.clips);
+    } catch {
+      this.showToast('Failed to copy', true);
+    }
+  }
+
+  public async togglePin(id: number): Promise<void> {
+    const clip = this.clips.find((c) => c.id === id);
+    if (!clip) return;
+
+    clip.pinned = !clip.pinned;
+    this.clips.sort((a, b) => {
+      if (a.pinned && !b.pinned) return -1;
+      if (!a.pinned && b.pinned) return 1;
+      return b.timestamp - a.timestamp;
+    });
+
+    await this.storage.setClips(this.clips);
+    this.updateCounters();
+    this.render();
+  }
+
+  public async deleteClip(id: number): Promise<void> {
+    if (confirm(this.i18n.t('confirmDelete'))) {
+      this.clips = this.clips.filter((c) => c.id !== id);
+      await this.storage.setClips(this.clips);
+      this.updateCounters();
+      this.render();
+      this.showToast(this.i18n.t('deletedToast'));
+    }
+  }
+
+  public async clearAllClips(): Promise<void> {
+    const unpinnedCount = this.clips.filter((c) => !c.pinned).length;
+    if (unpinnedCount === 0) return;
+
+    if (confirm(this.i18n.t('confirmClearAll'))) {
+      this.clips = this.clips.filter((c) => c.pinned);
+      await this.storage.setClips(this.clips);
+      this.updateCounters();
+      this.render();
+      this.showToast(this.i18n.t('clearedToast', unpinnedCount, unpinnedCount === 1 ? '' : 's'));
+    }
+  }
+
+  public async refreshClips(): Promise<void> {
+    const refreshBtn = document.getElementById('refreshBtn');
+    refreshBtn?.classList.add('spinning');
+    await this.loadClips();
+    setTimeout(() => {
+      refreshBtn?.classList.remove('spinning');
+    }, 400);
+  }
+
+  public async toggleTheme(): Promise<void> {
+    const isLight = document.body.classList.toggle('light-mode');
+    await this.storage.setTheme(isLight ? 'light' : 'dark');
+    this.updateThemeUI();
+  }
+
+  private updateThemeUI(): void {
+    const isLight = document.body.classList.contains('light-mode');
+    const themeToggle = document.getElementById('themeToggle');
+    if (themeToggle) {
+      themeToggle.textContent = isLight ? '☀️' : '🌙';
+      themeToggle.title = this.i18n.t('themeToggle');
+    }
+  }
+
+  public async toggleLanguage(): Promise<void> {
+    const current = this.i18n.getLocale();
+    const next = current === 'en' ? 'fr' : 'en';
+    this.i18n.setLocale(next);
+    await this.storage.setLocale(next);
+    this.updateLanguageUI();
+    this.render();
+  }
+
+  private updateLanguageUI(): void {
+    const locale = this.i18n.getLocale();
+    const languageToggle = document.getElementById('languageToggle');
+    const appTitle = document.getElementById('appTitle');
+    const tabAllLabel = document.getElementById('tabAllLabel');
+    const tabLinksLabel = document.getElementById('tabLinksLabel');
+    const tabCodeLabel = document.getElementById('tabCodeLabel');
+    const tabPinnedLabel = document.getElementById('tabPinnedLabel');
+    const searchInput = document.getElementById('searchInput') as HTMLInputElement;
+    const refreshBtn = document.getElementById('refreshBtn');
+    const clearAllBtn = document.getElementById('clearAllBtn');
+    const settingsBtn = document.getElementById('settingsBtn');
+
+    const previewModalTitle = document.getElementById('previewModalTitle');
+    const settingsModalTitle = document.getElementById('settingsModalTitle');
+    const saveUrlLabel = document.getElementById('saveUrlLabel');
+    const ignorePasswordsLabel = document.getElementById('ignorePasswordsLabel');
+    const maxClipsLabel = document.getElementById('maxClipsLabel');
+    const maxAgeLabel = document.getElementById('maxAgeLabel');
+    const opt1Day = document.getElementById('opt1Day');
+    const opt7Days = document.getElementById('opt7Days');
+    const opt30Days = document.getElementById('opt30Days');
+    const optNever = document.getElementById('optNever');
+
+    const backupSectionTitle = document.getElementById('backupSectionTitle');
+    const exportBtnText = document.getElementById('exportBtnText');
+    const importBtnText = document.getElementById('importBtnText');
+
+    if (languageToggle) {
+      languageToggle.textContent = locale === 'en' ? '🇬🇧' : '🇫🇷';
+      languageToggle.title = `${this.i18n.t('language')}: ${locale.toUpperCase()}`;
+    }
+
+    if (appTitle) appTitle.textContent = this.i18n.t('appTitle');
+    if (tabAllLabel) tabAllLabel.textContent = this.i18n.t('tabAll');
+    if (tabLinksLabel) tabLinksLabel.textContent = this.i18n.t('tabLinks');
+    if (tabCodeLabel) tabCodeLabel.textContent = this.i18n.t('tabCode');
+    if (tabPinnedLabel) tabPinnedLabel.textContent = this.i18n.t('tabPinned');
+    if (searchInput) searchInput.placeholder = this.i18n.t('searchPlaceholder');
+    if (refreshBtn) refreshBtn.title = this.i18n.t('refresh');
+    if (clearAllBtn) clearAllBtn.title = this.i18n.t('clearAll');
+    if (settingsBtn) settingsBtn.title = this.i18n.t('settings');
+
+    // Modals
+    if (previewModalTitle) previewModalTitle.textContent = this.i18n.t('modalTitle');
+    if (settingsModalTitle) settingsModalTitle.textContent = this.i18n.t('settingsTitle');
+    if (saveUrlLabel) saveUrlLabel.textContent = this.i18n.t('saveUrlLabel');
+    if (ignorePasswordsLabel) ignorePasswordsLabel.textContent = this.i18n.t('ignorePasswordsLabel');
+    if (maxClipsLabel) maxClipsLabel.textContent = this.i18n.t('maxClipsLabel');
+    if (maxAgeLabel) maxAgeLabel.textContent = this.i18n.t('maxAgeLabel');
+    if (opt1Day) opt1Day.textContent = this.i18n.t('expiry1Day');
+    if (opt7Days) opt7Days.textContent = this.i18n.t('expiry7Days');
+    if (opt30Days) opt30Days.textContent = this.i18n.t('expiry30Days');
+    if (optNever) optNever.textContent = this.i18n.t('expiryNever');
+
+    if (backupSectionTitle) backupSectionTitle.textContent = this.i18n.t('backupSectionTitle');
+    if (exportBtnText) exportBtnText.textContent = this.i18n.t('exportBtnText');
+    if (importBtnText) importBtnText.textContent = this.i18n.t('importBtnText');
+  }
+
+  private openPreviewModal(id: number): void {
+    const clip = this.clips.find((c) => c.id === id);
+    if (!clip) return;
+    this.activePreviewClip = clip;
+    const previewContent = document.getElementById('previewContent');
+    const previewModal = document.getElementById('previewModal');
+    if (previewContent) previewContent.textContent = clip.text;
+    previewModal?.classList.add('show');
+  }
+
+  private closePreviewModal(): void {
+    const previewModal = document.getElementById('previewModal');
+    previewModal?.classList.remove('show');
+    this.activePreviewClip = null;
+  }
+
+  private async openSettingsModal(): Promise<void> {
+    const settings = await this.storage.getSettings();
+    const settingSaveUrl = document.getElementById('settingSaveUrl') as HTMLInputElement;
+    const settingIgnorePasswords = document.getElementById('settingIgnorePasswords') as HTMLInputElement;
+    const settingMaxClips = document.getElementById('settingMaxClips') as HTMLSelectElement;
+    const settingMaxAge = document.getElementById('settingMaxAge') as HTMLSelectElement;
+    const settingsModal = document.getElementById('settingsModal');
+
+    if (settingSaveUrl) settingSaveUrl.checked = settings.saveUrl;
+    if (settingIgnorePasswords) settingIgnorePasswords.checked = settings.ignorePasswords;
+    if (settingMaxClips) settingMaxClips.value = String(settings.maxClips);
+    if (settingMaxAge) settingMaxAge.value = String(settings.maxAgeMs);
+    settingsModal?.classList.add('show');
+  }
+
+  private closeSettingsModal(): void {
+    const settingsModal = document.getElementById('settingsModal');
+    settingsModal?.classList.remove('show');
+  }
+
+  private async saveSettings(): Promise<void> {
+    const settingSaveUrl = document.getElementById('settingSaveUrl') as HTMLInputElement;
+    const settingIgnorePasswords = document.getElementById('settingIgnorePasswords') as HTMLInputElement;
+    const settingMaxClips = document.getElementById('settingMaxClips') as HTMLSelectElement;
+    const settingMaxAge = document.getElementById('settingMaxAge') as HTMLSelectElement;
+
+    const newSettings: Settings = {
+      saveUrl: settingSaveUrl ? settingSaveUrl.checked : true,
+      ignorePasswords: settingIgnorePasswords ? settingIgnorePasswords.checked : true,
+      maxClips: settingMaxClips ? Number(settingMaxClips.value) : 50,
+      maxAgeMs: settingMaxAge ? Number(settingMaxAge.value) : 86400000,
+      theme: document.body.classList.contains('light-mode') ? 'light' : 'dark',
+      locale: this.i18n.getLocale()
+    };
+    await this.storage.setSettings(newSettings);
+
+    if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.sendMessage) {
+      try {
+        await chrome.runtime.sendMessage({ type: 'SETTINGS_CHANGED' });
+      } catch {
+        // Background message handler optional
+      }
+    }
+
+    await this.loadClips();
+  }
+
+  private async exportBackup(): Promise<void> {
+    const backupData = await this.storage.exportBackup();
+    const jsonString = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(backupData, null, 2));
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.setAttribute('href', jsonString);
+    downloadAnchor.setAttribute('download', `php-clipboard-backup-${new Date().toISOString().slice(0, 10)}.json`);
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+  }
+
+  private async handleImportFile(e: Event): Promise<void> {
+    const target = e.target as HTMLInputElement;
+    const file = target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      try {
+        const content = event.target?.result as string;
+        const parsed = JSON.parse(content);
+        const result = await this.storage.importBackup(parsed);
+        this.showToast(this.i18n.t('importSuccess', result.count));
+        this.closeSettingsModal();
+        await this.loadClips();
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : this.i18n.t('importInvalid');
+        this.showToast(msg, true);
+      } finally {
+        target.value = '';
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  private showToast(message: string, isError = false): void {
+    const toast = document.getElementById('toastNotification');
+    const toastMessage = document.getElementById('toastMessage');
+    if (!toast || !toastMessage) return;
+    toastMessage.textContent = message;
+    toast.classList.toggle('error', isError);
+    toast.classList.add('show');
+    setTimeout(() => {
+      toast.classList.remove('show');
+    }, 2200);
+  }
+
+  private getEmptyStateHtml(): string {
+    let titleKey = 'emptyAllTitle';
+    let textKey = 'emptyAllText';
+    let icon = '📋';
+
+    if (this.searchQuery) {
+      titleKey = 'emptySearchTitle';
+      textKey = 'emptySearchText';
+      icon = '🔍';
+    } else if (this.filter === 'links') {
+      titleKey = 'emptyLinksTitle';
+      textKey = 'emptyLinksText';
+      icon = '🔗';
+    } else if (this.filter === 'code') {
+      titleKey = 'emptyCodeTitle';
+      textKey = 'emptyCodeText';
+      icon = '💻';
+    } else if (this.filter === 'pinned') {
+      titleKey = 'emptyPinnedTitle';
+      textKey = 'emptyPinnedText';
+      icon = '📌';
+    }
+
+    return `
+      <div class="empty-state">
+        <div class="empty-state-icon">${icon}</div>
+        <h3>${this.i18n.t(titleKey)}</h3>
+        <p>${this.i18n.t(textKey)}</p>
+      </div>
+    `;
+  }
+}
+
+// Auto-boot if running in browser
+if (typeof document !== 'undefined') {
+  document.addEventListener('DOMContentLoaded', () => {
+    const controller = new PopupController();
+    controller.init();
+  });
+}

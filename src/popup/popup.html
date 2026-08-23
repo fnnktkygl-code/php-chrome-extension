@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PHP - Paste History Past</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-top">
+        <div class="header-brand">
+          <img src="../../icons/logo.svg" alt="PHP Logo" class="app-logo">
+          <div class="brand-info">
+            <h1 id="appTitle">PHP</h1>
+            <span class="badge badge-count" id="clipCount">0</span>
+          </div>
+        </div>
+
+        <div class="header-actions">
+          <button class="icon-btn" id="languageToggle" title="Language" aria-label="Toggle language">🇬🇧</button>
+          <button class="icon-btn" id="themeToggle" title="Toggle theme" aria-label="Toggle theme">🌙</button>
+          <button class="icon-btn" id="settingsBtn" title="Settings" aria-label="Open settings">⚙️</button>
+          <button class="icon-btn" id="refreshBtn" title="Refresh" aria-label="Refresh clips">🔄</button>
+          <button class="icon-btn danger-hover" id="clearAllBtn" title="Clear all" aria-label="Clear unpinned clips">🗑️</button>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="tabs" role="tablist">
+        <button class="tab-btn active" data-tab="all" role="tab" aria-selected="true">
+          <span class="tab-label" id="tabAllLabel">All</span>
+          <span class="tab-counter" id="allCount">0</span>
+        </button>
+        <button class="tab-btn" data-tab="links" role="tab" aria-selected="false">
+          <span class="tab-label" id="tabLinksLabel">Links</span>
+          <span class="tab-counter" id="linksCount">0</span>
+        </button>
+        <button class="tab-btn" data-tab="code" role="tab" aria-selected="false">
+          <span class="tab-label" id="tabCodeLabel">Code</span>
+          <span class="tab-counter" id="codeCount">0</span>
+        </button>
+        <button class="tab-btn" data-tab="pinned" role="tab" aria-selected="false">
+          <span class="tab-label" id="tabPinnedLabel">Pinned</span>
+          <span class="tab-counter" id="pinnedCount">0</span>
+        </button>
+      </nav>
+
+      <!-- Search Box -->
+      <div class="search-container">
+        <div class="search-input-wrapper">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="searchInput" placeholder="Search your clips (Ctrl/Cmd + F)..." autocomplete="off" spellcheck="false">
+          <button class="clear-search-btn" id="clearSearchBtn" aria-label="Clear search">✕</button>
+        </div>
+        <div class="search-feedback" id="searchFeedback"></div>
+      </div>
+    </header>
+
+    <!-- Clips Container -->
+    <main class="clips-container" id="clipsContainer" role="list">
+      <!-- Dynamic Clip Cards Rendered Here -->
+    </main>
+
+    <!-- Reader / Preview Modal -->
+    <div class="modal-backdrop" id="previewModal" role="dialog" aria-modal="true" aria-labelledby="previewModalTitle">
+      <div class="modal-dialog">
+        <div class="modal-header">
+          <h2 class="modal-title" id="previewModalTitle">Full Preview</h2>
+          <div class="modal-header-actions">
+            <button class="btn btn-sm btn-primary" id="previewCopyBtn">📋 Copy</button>
+            <button class="modal-close-btn" id="previewCloseBtn" aria-label="Close modal">✕</button>
+          </div>
+        </div>
+        <div class="modal-body">
+          <pre class="preview-content" id="previewContent"></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal-backdrop" id="settingsModal" role="dialog" aria-modal="true" aria-labelledby="settingsModalTitle">
+      <div class="modal-dialog">
+        <div class="modal-header">
+          <h2 class="modal-title" id="settingsModalTitle">Extension Settings</h2>
+          <button class="modal-close-btn" id="settingsCloseBtn" aria-label="Close settings">✕</button>
+        </div>
+        <div class="modal-body settings-body">
+          <div class="setting-row">
+            <div class="setting-text">
+              <label for="settingSaveUrl" id="saveUrlLabel">Save source website URL</label>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="settingSaveUrl" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-row">
+            <div class="setting-text">
+              <label for="settingIgnorePasswords" id="ignorePasswordsLabel">Ignore sensitive fields & passwords</label>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="settingIgnorePasswords" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-row">
+            <div class="setting-text">
+              <label for="settingMaxClips" id="maxClipsLabel">Maximum clips in history</label>
+            </div>
+            <select id="settingMaxClips" class="form-select">
+              <option value="25">25 clips</option>
+              <option value="50" selected>50 clips</option>
+              <option value="100">100 clips</option>
+              <option value="200">200 clips</option>
+            </select>
+          </div>
+
+          <div class="setting-row">
+            <div class="setting-text">
+              <label for="settingMaxAge" id="maxAgeLabel">Clip retention period</label>
+            </div>
+            <select id="settingMaxAge" class="form-select">
+              <option value="86400000" id="opt1Day">24 Hours</option>
+              <option value="604800000" id="opt7Days">7 Days</option>
+              <option value="2592000000" id="opt30Days">30 Days</option>
+              <option value="0" id="optNever">Never (Keep forever)</option>
+            </select>
+          </div>
+
+          <hr class="settings-divider">
+
+          <div class="backup-section">
+            <h3 class="backup-title" id="backupSectionTitle">Backup & Restore</h3>
+            <div class="backup-actions">
+              <button class="btn btn-secondary btn-full" id="exportBackupBtn">
+                <span>📤</span> <span id="exportBtnText">Export History (JSON)</span>
+              </button>
+              <button class="btn btn-secondary btn-full" id="importBackupBtn">
+                <span>📥</span> <span id="importBtnText">Import History (JSON)</span>
+              </button>
+              <input type="file" id="importFileInput" accept=".json" style="display: none;">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toastNotification" role="status" aria-live="polite">
+      <span class="toast-message" id="toastMessage">✓ Copied to clipboard</span>
+    </div>
+  </div>
+
+  <script type="module" src="index.ts"></script>
+</body>
+</html>
