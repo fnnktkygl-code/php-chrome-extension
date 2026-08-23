@@ -99,29 +99,7 @@ chrome.runtime.onMessage.addListener((message: RuntimeMessage, sender, sendRespo
     }
 
     case 'START_SNIP_OCR': {
-      if (chrome.tabs) {
-        chrome.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
-          const activeTab = tabs[0];
-          if (activeTab && activeTab.id) {
-            chrome.tabs.sendMessage(activeTab.id, { type: 'ACTIVATE_SNIPPER' }).catch(() => {
-              if (chrome.scripting) {
-                chrome.scripting
-                  .executeScript({
-                    target: { tabId: activeTab.id! },
-                    files: ['content.js']
-                  })
-                  .then(() => {
-                    setTimeout(() => {
-                      chrome.tabs.sendMessage(activeTab.id!, { type: 'ACTIVATE_SNIPPER' }).catch(() => {});
-                    }, 50);
-                  })
-                  .catch(() => {});
-              }
-            });
-          }
-        });
-      }
-      sendResponse({ success: true });
+      activateSnipperOnActiveTab().then((success) => sendResponse({ success }));
       return true;
     }
 
@@ -147,7 +125,70 @@ chrome.runtime.onMessage.addListener((message: RuntimeMessage, sender, sendRespo
   }
 });
 
-// 2. Real-time Storage Observer for Instant Badge Synchronization
+/**
+ * Robust helper to trigger Shottr-style ScreenSnipper on the active tab
+ */
+export async function activateSnipperOnActiveTab(): Promise<boolean> {
+  if (typeof chrome === 'undefined' || !chrome.tabs) return false;
+
+  try {
+    const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+    const activeTab = tabs[0];
+    if (!activeTab || !activeTab.id) return false;
+
+    if (activeTab.url) {
+      const isRestricted =
+        activeTab.url.startsWith('chrome://') ||
+        activeTab.url.startsWith('edge://') ||
+        activeTab.url.startsWith('about:') ||
+        activeTab.url.startsWith('chrome-extension://') ||
+        activeTab.url.includes('chromewebstore.google.com');
+
+      if (isRestricted) {
+        if (chrome.notifications) {
+          chrome.notifications.create({
+            type: 'basic',
+            iconUrl: 'icons/icon128.png',
+            title: 'PHP Snip & OCR',
+            message: 'Impossible de capturer les pages système Chrome. Ouvrez un site web (Google, GitHub, etc.).'
+          });
+        }
+        return false;
+      }
+    }
+
+    // Try sending message directly
+    try {
+      await chrome.tabs.sendMessage(activeTab.id, { type: 'ACTIVATE_SNIPPER' });
+      return true;
+    } catch {
+      // Inject content script if not already present, then activate
+      if (chrome.scripting) {
+        await chrome.scripting.executeScript({
+          target: { tabId: activeTab.id },
+          files: ['content.js']
+        });
+        await new Promise((r) => setTimeout(r, 60));
+        await chrome.tabs.sendMessage(activeTab.id, { type: 'ACTIVATE_SNIPPER' });
+        return true;
+      }
+    }
+  } catch (err) {
+    console.warn('PHP Background: Failed to activate snipper on active tab:', err);
+  }
+  return false;
+}
+
+// 2. Global Keyboard Shortcut Handler (Shottr Style: Cmd+Shift+2 / Alt+Shift+S)
+if (typeof chrome !== 'undefined' && chrome.commands && chrome.commands.onCommand) {
+  chrome.commands.onCommand.addListener((command) => {
+    if (command === 'snip_ocr') {
+      activateSnipperOnActiveTab();
+    }
+  });
+}
+
+// 3. Real-time Storage Observer for Instant Badge Synchronization
 if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.onChanged) {
   chrome.storage.onChanged.addListener((changes, areaName) => {
     if (areaName === 'local' && changes.clips) {
@@ -157,7 +198,7 @@ if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.onChanged)
   });
 }
 
-// 3. Lifecycle Handlers
+// 4. Lifecycle Handlers
 chrome.runtime.onInstalled.addListener(async () => {
   try {
     const clips = await storageService.getClips();

@@ -155,7 +155,7 @@ export function setupMockChrome() {
       }
     },
     tabs: {
-      query: async () => [],
+      query: async () => [{ id: 1, url: 'https://example.com', active: true }],
       sendMessage: async () => {},
       captureVisibleTab: async () => 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
     },

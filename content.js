@@ -456,6 +456,18 @@ class ScreenSnipper {
 
 const snipper = new ScreenSnipper();
 
+// Direct in-page Keyboard Shortcut (Shottr-style: Cmd/Ctrl + Shift + 2 / é)
+window.addEventListener('keydown', (e) => {
+  const isCmdOrCtrl = e.metaKey || e.ctrlKey;
+  const isDigit2 = e.code === 'Digit2' || e.key === '2' || e.key === 'é' || e.key === '"';
+  const isAltShiftS = e.altKey && e.shiftKey && (e.key === 's' || e.key === 'S');
+
+  if ((isCmdOrCtrl && e.shiftKey && isDigit2) || isAltShiftS) {
+    e.preventDefault();
+    snipper.activate();
+  }
+}, true);
+
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message.type === 'ACTIVATE_SNIPPER') {
     snipper.activate();
