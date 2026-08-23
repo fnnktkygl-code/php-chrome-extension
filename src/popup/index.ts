@@ -189,12 +189,11 @@ export class PopupController {
     importBackupBtn?.addEventListener('click', () => importFileInput?.click());
     importFileInput?.addEventListener('change', (e) => this.handleImportFile(e));
 
-    // Configure Chrome Shortcuts
-    document.getElementById('configureShortcutsBtn')?.addEventListener('click', () => {
-      if (typeof chrome !== 'undefined' && chrome.tabs) {
-        chrome.tabs.create({ url: 'chrome://extensions/shortcuts' });
-      }
-    });
+    // Interactive Shortcut Recorders
+    document.getElementById('recordSnipBtn')?.addEventListener('click', () => this.startRecording('snip'));
+    document.getElementById('recordQuickPasteBtn')?.addEventListener('click', () => this.startRecording('quickPaste'));
+    document.getElementById('resetSnipBtn')?.addEventListener('click', () => this.resetShortcut('snip'));
+    document.getElementById('resetQuickPasteBtn')?.addEventListener('click', () => this.resetShortcut('quickPaste'));
 
     // Global Shortcuts
     document.addEventListener('keydown', (e) => {
@@ -703,13 +702,15 @@ export class PopupController {
 
     const shortcutsSectionTitle = document.getElementById('shortcutsSectionTitle');
     const snipShortcutLabel = document.getElementById('snipShortcutLabel');
+    const snipShortcutDesc = document.getElementById('snipShortcutDesc');
     const quickPasteShortcutLabel = document.getElementById('quickPasteShortcutLabel');
-    const configureShortcutsBtnText = document.getElementById('configureShortcutsBtnText');
+    const quickPasteShortcutDesc = document.getElementById('quickPasteShortcutDesc');
 
     if (shortcutsSectionTitle) shortcutsSectionTitle.textContent = this.i18n.t('shortcutsSectionTitle');
     if (snipShortcutLabel) snipShortcutLabel.textContent = this.i18n.t('snipShortcutLabel');
+    if (snipShortcutDesc) snipShortcutDesc.textContent = this.i18n.t('snipShortcutDesc');
     if (quickPasteShortcutLabel) quickPasteShortcutLabel.textContent = this.i18n.t('quickPasteShortcutLabel');
-    if (configureShortcutsBtnText) configureShortcutsBtnText.textContent = this.i18n.t('configureShortcutsBtnText');
+    if (quickPasteShortcutDesc) quickPasteShortcutDesc.textContent = this.i18n.t('quickPasteShortcutDesc');
   }
 
   private openPreviewModal(id: number): void {
@@ -745,6 +746,23 @@ export class PopupController {
     this.activePreviewClip = null;
   }
 
+  private getDefaultShortcuts(): {
+    snip: { metaKey?: boolean; ctrlKey?: boolean; altKey?: boolean; shiftKey?: boolean; code: string; key: string; display: string };
+    quickPaste: { metaKey?: boolean; ctrlKey?: boolean; altKey?: boolean; shiftKey?: boolean; code: string; key: string; display: string };
+  } {
+    const isMac = typeof navigator !== 'undefined' ? (navigator.platform?.includes('Mac') || navigator.userAgent?.includes('Mac')) : true;
+    if (isMac) {
+      return {
+        snip: { metaKey: true, ctrlKey: false, altKey: false, shiftKey: true, code: 'KeyX', key: 'x', display: '⌘ + Shift + X' },
+        quickPaste: { metaKey: false, ctrlKey: false, altKey: true, shiftKey: false, code: 'KeyV', key: 'v', display: 'Option + V' }
+      };
+    }
+    return {
+      snip: { metaKey: false, ctrlKey: false, altKey: true, shiftKey: true, code: 'KeyX', key: 'x', display: 'Alt + Shift + X' },
+      quickPaste: { metaKey: false, ctrlKey: false, altKey: true, shiftKey: false, code: 'KeyV', key: 'v', display: 'Alt + V' }
+    };
+  }
+
   private async openSettingsModal(): Promise<void> {
     const settings = await this.storage.getSettings();
     const settingSaveUrl = document.getElementById('settingSaveUrl') as HTMLInputElement;
@@ -757,14 +775,135 @@ export class PopupController {
     if (settingIgnorePasswords) settingIgnorePasswords.checked = settings.ignorePasswords;
     if (settingMaxClips) settingMaxClips.value = String(settings.maxClips);
     if (settingMaxAge) settingMaxAge.value = String(settings.maxAgeMs);
+
+    await this.refreshShortcutsUI();
+
     settingsModal?.classList.add('open');
     settingsModal?.classList.add('show');
   }
 
   private closeSettingsModal(): void {
+    this.stopRecording();
     const settingsModal = document.getElementById('settingsModal');
     settingsModal?.classList.remove('open');
     settingsModal?.classList.remove('show');
+  }
+
+  private async refreshShortcutsUI(): Promise<void> {
+    const settings = await this.storage.getSettings();
+    const defaults = this.getDefaultShortcuts();
+    const snipDisplay = settings.shortcuts?.snip?.display || defaults.snip.display;
+    const quickPasteDisplay = settings.shortcuts?.quickPaste?.display || defaults.quickPaste.display;
+
+    const snipDisplayEl = document.getElementById('snipShortcutDisplay');
+    const quickPasteDisplayEl = document.getElementById('quickPasteShortcutDisplay');
+    if (snipDisplayEl) snipDisplayEl.textContent = snipDisplay;
+    if (quickPasteDisplayEl) quickPasteDisplayEl.textContent = quickPasteDisplay;
+  }
+
+  private startRecording(action: 'snip' | 'quickPaste'): void {
+    this.stopRecording();
+
+    const btn = action === 'snip' ? document.getElementById('recordSnipBtn') : document.getElementById('recordQuickPasteBtn');
+    const displayEl = action === 'snip' ? document.getElementById('snipShortcutDisplay') : document.getElementById('quickPasteShortcutDisplay');
+
+    if (btn && displayEl) {
+      btn.classList.add('recording');
+      displayEl.textContent = this.i18n.t('pressKeys');
+    }
+
+    const isMac = typeof navigator !== 'undefined' ? (navigator.platform?.includes('Mac') || navigator.userAgent?.includes('Mac')) : true;
+
+    const recorderKeyHandler = async (e: KeyboardEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      if (e.key === 'Escape') {
+        this.stopRecording();
+        await this.refreshShortcutsUI();
+        return;
+      }
+
+      // Ignore lone modifiers
+      if (['Meta', 'Control', 'Alt', 'Shift', 'CapsLock', 'Tab'].includes(e.key)) {
+        return;
+      }
+
+      const parts: string[] = [];
+      if (e.metaKey) parts.push(isMac ? '⌘' : 'Win');
+      if (e.ctrlKey) parts.push(isMac ? '⌃' : 'Ctrl');
+      if (e.altKey) parts.push(isMac ? 'Option' : 'Alt');
+      if (e.shiftKey) parts.push('Shift');
+
+      let mainKey = e.key.toUpperCase();
+      if (e.code === 'Space') mainKey = 'Space';
+      else if (e.code.startsWith('Key')) mainKey = e.code.replace('Key', '');
+      else if (e.code.startsWith('Digit')) mainKey = e.code.replace('Digit', '');
+
+      parts.push(mainKey);
+      const display = parts.join(' + ');
+
+      const shortcutConfig = {
+        metaKey: e.metaKey,
+        ctrlKey: e.ctrlKey,
+        altKey: e.altKey,
+        shiftKey: e.shiftKey,
+        code: e.code,
+        key: e.key.toLowerCase(),
+        display
+      };
+
+      const settings = await this.storage.getSettings();
+      const defaults = this.getDefaultShortcuts();
+      const currentShortcuts = settings.shortcuts || defaults;
+
+      if (action === 'snip') {
+        currentShortcuts.snip = shortcutConfig;
+      } else {
+        currentShortcuts.quickPaste = shortcutConfig;
+      }
+
+      settings.shortcuts = currentShortcuts;
+      await this.storage.setSettings(settings);
+
+      try {
+        if (typeof chrome !== 'undefined' && chrome.runtime?.sendMessage) {
+          await chrome.runtime.sendMessage({ type: 'SETTINGS_CHANGED' });
+        }
+      } catch {}
+
+      this.stopRecording();
+      await this.refreshShortcutsUI();
+      this.showToast(this.i18n.t('shortcutSaved'));
+    };
+
+    window.addEventListener('keydown', recorderKeyHandler, true);
+    (this as unknown as { _recorderKeyHandler?: (e: KeyboardEvent) => void })._recorderKeyHandler = recorderKeyHandler;
+  }
+
+  private stopRecording(): void {
+    if ((this as unknown as { _recorderKeyHandler?: (e: KeyboardEvent) => void })._recorderKeyHandler) {
+      window.removeEventListener('keydown', (this as unknown as { _recorderKeyHandler: (e: KeyboardEvent) => void })._recorderKeyHandler, true);
+      delete (this as unknown as { _recorderKeyHandler?: unknown })._recorderKeyHandler;
+    }
+    document.querySelectorAll('.shortcut-record-btn').forEach((btn) => btn.classList.remove('recording'));
+  }
+
+  private async resetShortcut(action: 'snip' | 'quickPaste'): Promise<void> {
+    const settings = await this.storage.getSettings();
+    const defaults = this.getDefaultShortcuts();
+    const currentShortcuts = settings.shortcuts || defaults;
+
+    if (action === 'snip') {
+      currentShortcuts.snip = defaults.snip;
+    } else {
+      currentShortcuts.quickPaste = defaults.quickPaste;
+    }
+
+    settings.shortcuts = currentShortcuts;
+    await this.storage.setSettings(settings);
+    await this.refreshShortcutsUI();
+    this.showToast(this.i18n.t('shortcutReset'));
   }
 
   private async saveSettings(): Promise<void> {

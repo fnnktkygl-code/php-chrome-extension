@@ -828,6 +828,46 @@ class QuickPasteMenu {
 const snipper = new ScreenSnipper();
 const quickMenu = new QuickPasteMenu();
 
+let activeCustomShortcuts: {
+  snip?: { metaKey?: boolean; ctrlKey?: boolean; altKey?: boolean; shiftKey?: boolean; code?: string; key?: string };
+  quickPaste?: { metaKey?: boolean; ctrlKey?: boolean; altKey?: boolean; shiftKey?: boolean; code?: string; key?: string };
+} | null = null;
+
+async function loadShortcutsConfig(): Promise<void> {
+  try {
+    if (typeof chrome !== 'undefined' && chrome.storage?.local) {
+      const data = await chrome.storage.local.get('settings');
+      if (data.settings?.shortcuts) {
+        activeCustomShortcuts = data.settings.shortcuts;
+      }
+    }
+  } catch {}
+}
+
+loadShortcutsConfig();
+
+if (typeof chrome !== 'undefined' && chrome.storage?.onChanged) {
+  chrome.storage.onChanged.addListener((changes, area) => {
+    if (area === 'local' && changes.settings) {
+      loadShortcutsConfig();
+    }
+  });
+}
+
+function matchesShortcut(e: KeyboardEvent, config?: { metaKey?: boolean; ctrlKey?: boolean; altKey?: boolean; shiftKey?: boolean; code?: string; key?: string }): boolean {
+  if (!config) return false;
+  const metaMatches = Boolean(config.metaKey) === Boolean(e.metaKey);
+  const ctrlMatches = Boolean(config.ctrlKey) === Boolean(e.ctrlKey);
+  const altMatches = Boolean(config.altKey) === Boolean(e.altKey);
+  const shiftMatches = Boolean(config.shiftKey) === Boolean(e.shiftKey);
+
+  const keyMatches =
+    (config.code && e.code === config.code) ||
+    (config.key && e.key.toLowerCase() === config.key.toLowerCase());
+
+  return metaMatches && ctrlMatches && altMatches && shiftMatches && Boolean(keyMatches);
+}
+
 // Direct in-page Keyboard Shortcuts (Capture Phase)
 function handleGlobalKeydown(e: KeyboardEvent): void {
   const isCmdOrCtrl = e.metaKey || e.ctrlKey;
@@ -835,8 +875,11 @@ function handleGlobalKeydown(e: KeyboardEvent): void {
   const isKeyX = e.code === 'KeyX' || e.key === 'x' || e.key === 'X';
   const isKeyO = e.code === 'KeyO' || e.key === 'o' || e.key === 'O';
 
-  // 1. OCR / Snip Area Shortcut: Cmd/Ctrl + Shift + X (or O) or Alt + Shift + X (or O)
-  if ((isCmdOrCtrl && e.shiftKey && (isKeyX || isKeyO)) || (e.altKey && e.shiftKey && (isKeyX || isKeyO))) {
+  // 1. OCR / Snip Area Shortcut (Custom or Default Cmd/Ctrl+Shift+X or Alt+Shift+X)
+  const isCustomSnip = matchesShortcut(e, activeCustomShortcuts?.snip);
+  const isDefaultSnip = (isCmdOrCtrl && e.shiftKey && (isKeyX || isKeyO)) || (e.altKey && e.shiftKey && (isKeyX || isKeyO));
+
+  if (isCustomSnip || isDefaultSnip) {
     e.preventDefault();
     e.stopImmediatePropagation();
     quickMenu.close();
@@ -844,16 +887,14 @@ function handleGlobalKeydown(e: KeyboardEvent): void {
     return;
   }
 
-  // 2. Quick Paste (5 Recents) Shortcut:
-  // - Option + V / Alt + V (Mac / Windows standard)
-  // - Cmd + Option + V (Raycast / Maccy standard)
-  // - Cmd + Shift + V / Ctrl + Shift + V
-  const isQuickPaste =
+  // 2. Quick Paste (5 Recents) Shortcut (Custom or Option+V, Cmd+Option+V, Cmd+Shift+V, Ctrl+Shift+V, Alt+V)
+  const isCustomQuickPaste = matchesShortcut(e, activeCustomShortcuts?.quickPaste);
+  const isDefaultQuickPaste =
     (e.altKey && isKeyV) ||
     (e.metaKey && e.altKey && isKeyV) ||
     (isCmdOrCtrl && e.shiftKey && isKeyV);
 
-  if (isQuickPaste) {
+  if (isCustomQuickPaste || isDefaultQuickPaste) {
     e.preventDefault();
     e.stopImmediatePropagation();
     snipper.close();

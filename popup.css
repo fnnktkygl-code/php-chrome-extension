@@ -831,6 +831,98 @@ input:checked + .toggle-slider:before {
   margin: 4px 0;
 }
 
+/* ---------------- Interactive Shortcut Recorder ---------------- */
+.shortcuts-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.shortcut-record-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.shortcut-label-col {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.shortcut-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.shortcut-desc {
+  font-size: 10.5px;
+  color: var(--text-muted);
+}
+
+.shortcut-btn-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.shortcut-record-btn {
+  background-color: var(--bg-app);
+  border: 1px solid var(--border-subtle);
+  color: var(--accent-primary);
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.15s ease;
+  min-width: 105px;
+  text-align: center;
+  user-select: none;
+}
+
+.shortcut-record-btn:hover {
+  background-color: var(--bg-surface-hover);
+  border-color: var(--accent-primary);
+}
+
+.shortcut-record-btn.recording {
+  background-color: rgba(37, 99, 235, 0.15);
+  border-color: var(--accent-primary);
+  color: #38bdf8;
+  animation: pulseRecording 1s infinite alternate;
+}
+
+@keyframes pulseRecording {
+  from { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.4); }
+  to { box-shadow: 0 0 0 4px rgba(37, 99, 235, 0); }
+}
+
+.shortcut-reset-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-muted);
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  transition: all 0.15s ease;
+}
+
+.shortcut-reset-btn:hover {
+  background-color: var(--bg-app);
+  color: var(--text-primary);
+  border-color: var(--border-subtle);
+}
+
 .backup-section {
   display: flex;
   flex-direction: column;

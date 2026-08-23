@@ -421,13 +421,147 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const shortcutsSectionTitle = document.getElementById('shortcutsSectionTitle');
         const snipShortcutLabel = document.getElementById('snipShortcutLabel');
+        const snipShortcutDesc = document.getElementById('snipShortcutDesc');
         const quickPasteShortcutLabel = document.getElementById('quickPasteShortcutLabel');
-        const configureShortcutsBtnText = document.getElementById('configureShortcutsBtnText');
+        const quickPasteShortcutDesc = document.getElementById('quickPasteShortcutDesc');
 
         if (shortcutsSectionTitle) shortcutsSectionTitle.textContent = i18n.t('shortcutsSectionTitle');
         if (snipShortcutLabel) snipShortcutLabel.textContent = i18n.t('snipShortcutLabel');
+        if (snipShortcutDesc) snipShortcutDesc.textContent = i18n.t('snipShortcutDesc');
         if (quickPasteShortcutLabel) quickPasteShortcutLabel.textContent = i18n.t('quickPasteShortcutLabel');
-        if (configureShortcutsBtnText) configureShortcutsBtnText.textContent = i18n.t('configureShortcutsBtnText');
+        if (quickPasteShortcutDesc) quickPasteShortcutDesc.textContent = i18n.t('quickPasteShortcutDesc');
+    }
+
+    const isMac = typeof navigator !== 'undefined' ? (navigator.platform?.includes('Mac') || navigator.userAgent?.includes('Mac')) : true;
+
+    function getDefaultShortcuts() {
+        if (isMac) {
+            return {
+                snip: { metaKey: true, ctrlKey: false, altKey: false, shiftKey: true, code: 'KeyX', key: 'x', display: '⌘ + Shift + X' },
+                quickPaste: { metaKey: false, ctrlKey: false, altKey: true, shiftKey: false, code: 'KeyV', key: 'v', display: 'Option + V' }
+            };
+        }
+        return {
+            snip: { metaKey: false, ctrlKey: false, altKey: true, shiftKey: true, code: 'KeyX', key: 'x', display: 'Alt + Shift + X' },
+            quickPaste: { metaKey: false, ctrlKey: false, altKey: true, shiftKey: false, code: 'KeyV', key: 'v', display: 'Alt + V' }
+        };
+    }
+
+    async function refreshShortcutsUI() {
+        const { settings } = await chrome.storage.local.get('settings');
+        const defaults = getDefaultShortcuts();
+        const snipDisplay = settings?.shortcuts?.snip?.display || defaults.snip.display;
+        const quickPasteDisplay = settings?.shortcuts?.quickPaste?.display || defaults.quickPaste.display;
+
+        const snipDisplayEl = document.getElementById('snipShortcutDisplay');
+        const quickPasteDisplayEl = document.getElementById('quickPasteShortcutDisplay');
+        if (snipDisplayEl) snipDisplayEl.textContent = snipDisplay;
+        if (quickPasteDisplayEl) quickPasteDisplayEl.textContent = quickPasteDisplay;
+    }
+
+    let activeRecorderHandler = null;
+
+    function stopRecording() {
+        if (activeRecorderHandler) {
+            window.removeEventListener('keydown', activeRecorderHandler, true);
+            activeRecorderHandler = null;
+        }
+        document.querySelectorAll('.shortcut-record-btn').forEach(btn => btn.classList.remove('recording'));
+    }
+
+    function startRecording(action) {
+        stopRecording();
+
+        const btn = action === 'snip' ? document.getElementById('recordSnipBtn') : document.getElementById('recordQuickPasteBtn');
+        const displayEl = action === 'snip' ? document.getElementById('snipShortcutDisplay') : document.getElementById('quickPasteShortcutDisplay');
+
+        if (btn && displayEl) {
+            btn.classList.add('recording');
+            displayEl.textContent = i18n.t('pressKeys');
+        }
+
+        activeRecorderHandler = async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+
+            if (e.key === 'Escape') {
+                stopRecording();
+                await refreshShortcutsUI();
+                return;
+            }
+
+            if (['Meta', 'Control', 'Alt', 'Shift', 'CapsLock', 'Tab'].includes(e.key)) {
+                return;
+            }
+
+            const parts = [];
+            if (e.metaKey) parts.push(isMac ? '⌘' : 'Win');
+            if (e.ctrlKey) parts.push(isMac ? '⌃' : 'Ctrl');
+            if (e.altKey) parts.push(isMac ? 'Option' : 'Alt');
+            if (e.shiftKey) parts.push('Shift');
+
+            let mainKey = e.key.toUpperCase();
+            if (e.code === 'Space') mainKey = 'Space';
+            else if (e.code.startsWith('Key')) mainKey = e.code.replace('Key', '');
+            else if (e.code.startsWith('Digit')) mainKey = e.code.replace('Digit', '');
+
+            parts.push(mainKey);
+            const display = parts.join(' + ');
+
+            const shortcutConfig = {
+                metaKey: e.metaKey,
+                ctrlKey: e.ctrlKey,
+                altKey: e.altKey,
+                shiftKey: e.shiftKey,
+                code: e.code,
+                key: e.key.toLowerCase(),
+                display
+            };
+
+            const { settings } = await chrome.storage.local.get('settings');
+            const defaults = getDefaultShortcuts();
+            const currentSettings = settings || {};
+            const currentShortcuts = currentSettings.shortcuts || defaults;
+
+            if (action === 'snip') {
+                currentShortcuts.snip = shortcutConfig;
+            } else {
+                currentShortcuts.quickPaste = shortcutConfig;
+            }
+
+            currentSettings.shortcuts = currentShortcuts;
+            await chrome.storage.local.set({ settings: currentSettings });
+
+            try {
+                if (typeof chrome !== 'undefined' && chrome.runtime?.sendMessage) {
+                    await chrome.runtime.sendMessage({ type: 'SETTINGS_CHANGED' });
+                }
+            } catch {}
+
+            stopRecording();
+            await refreshShortcutsUI();
+            showToast(i18n.t('shortcutSaved'));
+        };
+
+        window.addEventListener('keydown', activeRecorderHandler, true);
+    }
+
+    async function resetShortcut(action) {
+        const { settings } = await chrome.storage.local.get('settings');
+        const defaults = getDefaultShortcuts();
+        const currentSettings = settings || {};
+        const currentShortcuts = currentSettings.shortcuts || defaults;
+
+        if (action === 'snip') {
+            currentShortcuts.snip = defaults.snip;
+        } else {
+            currentShortcuts.quickPaste = defaults.quickPaste;
+        }
+
+        currentSettings.shortcuts = currentShortcuts;
+        await chrome.storage.local.set({ settings: currentSettings });
+        await refreshShortcutsUI();
+        showToast(i18n.t('shortcutReset'));
     }
 
     // --- Instant 1-Shot Parallel Batch Hydration ---
@@ -523,8 +657,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-    settingsBtn?.addEventListener('click', () => settingsModal.classList.add('open', 'show'));
-    settingsCloseBtn?.addEventListener('click', () => settingsModal.classList.remove('open', 'show'));
+    settingsBtn?.addEventListener('click', async () => {
+        await refreshShortcutsUI();
+        settingsModal.classList.add('open', 'show');
+    });
+    settingsCloseBtn?.addEventListener('click', () => {
+        stopRecording();
+        settingsModal.classList.remove('open', 'show');
+    });
+
+    document.getElementById('recordSnipBtn')?.addEventListener('click', () => startRecording('snip'));
+    document.getElementById('recordQuickPasteBtn')?.addEventListener('click', () => startRecording('quickPaste'));
+    document.getElementById('resetSnipBtn')?.addEventListener('click', () => resetShortcut('snip'));
+    document.getElementById('resetQuickPasteBtn')?.addEventListener('click', () => resetShortcut('quickPaste'));
 
     exportBackupBtn?.addEventListener('click', async () => {
         const { clips, settings } = await chrome.storage.local.get(['clips', 'settings']);
@@ -534,12 +679,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         a.href = URL.createObjectURL(blob);
         a.download = `php-clipboard-backup-${new Date().toISOString().slice(0, 10)}.json`;
         a.click();
-    });
-
-    document.getElementById('configureShortcutsBtn')?.addEventListener('click', () => {
-        if (typeof chrome !== 'undefined' && chrome.tabs) {
-            chrome.tabs.create({ url: 'chrome://extensions/shortcuts' });
-        }
     });
 
     importBackupBtn?.addEventListener('click', () => importFileInput.click());

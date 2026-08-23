@@ -19,6 +19,16 @@ export interface Clip {
   qrData?: string;
 }
 
+export interface ShortcutConfig {
+  metaKey?: boolean;
+  ctrlKey?: boolean;
+  altKey?: boolean;
+  shiftKey?: boolean;
+  code: string;
+  key: string;
+  display: string;
+}
+
 export interface Settings {
   saveUrl: boolean;
   maxClips: number;
@@ -26,6 +36,10 @@ export interface Settings {
   theme: 'dark' | 'light';
   locale: 'en' | 'fr';
   ignorePasswords: boolean;
+  shortcuts?: {
+    snip?: ShortcutConfig;
+    quickPaste?: ShortcutConfig;
+  };
 }
 
 export type FilterMode = 'all' | 'links' | 'code' | 'images' | 'pinned';
