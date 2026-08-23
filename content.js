@@ -132,11 +132,10 @@ class ScreenSnipper {
       position: fixed;
       inset: 0;
       z-index: 2147483647;
-      background: rgba(15, 23, 42, 0.45);
+      background: rgba(0, 0, 0, 0.25);
       cursor: crosshair;
       user-select: none;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      backdrop-filter: blur(1.5px);
     `;
 
     // Top HUD
@@ -192,9 +191,9 @@ class ScreenSnipper {
       position: absolute;
       display: none;
       border: 2px solid #3b82f6;
-      background: rgba(59, 130, 246, 0.08);
-      box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.55), 0 0 20px rgba(37, 99, 235, 0.4);
-      border-radius: 4px;
+      background: transparent;
+      box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.35);
+      border-radius: 2px;
       pointer-events: none;
     `;
     this.overlay.appendChild(this.cropBox);
@@ -366,36 +365,47 @@ class ScreenSnipper {
       const ocrText = qrData || this.detectDomTextInArea(crop.x, crop.y, crop.width, crop.height);
 
       if (ocrText && ocrText.trim().length > 0) {
+        const trimmedText = ocrText.trim();
         try {
-          await navigator.clipboard.writeText(ocrText.trim());
-          this.showToast(`✓ Texte copié : ${ocrText.trim().substring(0, 35)}...`);
+          await navigator.clipboard.writeText(trimmedText);
+          this.showToast(`✓ Texte copié : ${trimmedText.substring(0, 35)}...`);
         } catch {
-          this.showToast('✓ Texte extrait et sauvegardé dans PHP !');
+          this.showToast('✓ Texte copié dans l\'historique PHP !');
         }
+
+        // Save as Text clip in PHP clipboard history
+        chrome.runtime.sendMessage({
+          type: 'CLIPBOARD_COPY',
+          text: trimmedText,
+          url: window.location.href,
+          timestamp: Date.now(),
+          ocrText: trimmedText,
+          qrData
+        }).catch(() => {});
       } else {
+        // Pure graphic / image selection without recognized text
         canvas.toBlob(async (blob) => {
           if (blob && navigator.clipboard && navigator.clipboard.write) {
             try {
               await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
               this.showToast('✓ Image capturée et copiée dans le presse-papiers !');
             } catch {
-              this.showToast('✓ Zone enregistrée dans l\'historique PHP !');
+              this.showToast('✓ Image enregistrée dans l\'historique PHP !');
             }
           }
         }, 'image/png');
-      }
 
-      chrome.runtime.sendMessage({
-        type: 'CLIPBOARD_COPY',
-        text: ocrText || 'Capture d\'écran',
-        url: window.location.href,
-        timestamp: Date.now(),
-        category: 'image',
-        dataUrl: croppedDataUrl,
-        dimensions: { width: Math.round(crop.width), height: Math.round(crop.height) },
-        ocrText: ocrText || undefined,
-        qrData
-      }).catch(() => {});
+        // Save as Image clip in PHP clipboard history
+        chrome.runtime.sendMessage({
+          type: 'CLIPBOARD_COPY',
+          text: 'Image Clip',
+          url: window.location.href,
+          timestamp: Date.now(),
+          category: 'image',
+          dataUrl: croppedDataUrl,
+          dimensions: { width: Math.round(crop.width), height: Math.round(crop.height) }
+        }).catch(() => {});
+      }
     } catch (err) {
       console.error('PHP Snipper error:', err);
       this.showToast('Erreur lors du traitement de la capture', true);
