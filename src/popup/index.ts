@@ -183,6 +183,7 @@ export class PopupController {
     settingIgnorePasswords?.addEventListener('change', () => this.saveSettings());
     settingMaxClips?.addEventListener('change', () => this.saveSettings());
     settingMaxAge?.addEventListener('change', () => this.saveSettings());
+    document.getElementById('settingQuickMenuLimit')?.addEventListener('change', () => this.saveSettings());
 
     // Backup
     exportBackupBtn?.addEventListener('click', () => this.exportBackup());
@@ -700,6 +701,18 @@ export class PopupController {
     if (exportBtnText) exportBtnText.textContent = this.i18n.t('exportBtnText');
     if (importBtnText) importBtnText.textContent = this.i18n.t('importBtnText');
 
+    const quickMenuLimitLabel = document.getElementById('quickMenuLimitLabel');
+    const quickMenuLimitDesc = document.getElementById('quickMenuLimitDesc');
+    const opt5Clips = document.getElementById('opt5Clips');
+    const opt10Clips = document.getElementById('opt10Clips');
+    const opt20Clips = document.getElementById('opt20Clips');
+
+    if (quickMenuLimitLabel) quickMenuLimitLabel.textContent = this.i18n.t('quickMenuLimitLabel');
+    if (quickMenuLimitDesc) quickMenuLimitDesc.textContent = this.i18n.t('quickMenuLimitDesc');
+    if (opt5Clips) opt5Clips.textContent = this.i18n.t('opt5Clips');
+    if (opt10Clips) opt10Clips.textContent = this.i18n.t('opt10Clips');
+    if (opt20Clips) opt20Clips.textContent = this.i18n.t('opt20Clips');
+
     const shortcutsSectionTitle = document.getElementById('shortcutsSectionTitle');
     const snipShortcutLabel = document.getElementById('snipShortcutLabel');
     const snipShortcutDesc = document.getElementById('snipShortcutDesc');
@@ -769,12 +782,14 @@ export class PopupController {
     const settingIgnorePasswords = document.getElementById('settingIgnorePasswords') as HTMLInputElement;
     const settingMaxClips = document.getElementById('settingMaxClips') as HTMLSelectElement;
     const settingMaxAge = document.getElementById('settingMaxAge') as HTMLSelectElement;
+    const settingQuickMenuLimit = document.getElementById('settingQuickMenuLimit') as HTMLSelectElement;
     const settingsModal = document.getElementById('settingsModal');
 
     if (settingSaveUrl) settingSaveUrl.checked = settings.saveUrl;
     if (settingIgnorePasswords) settingIgnorePasswords.checked = settings.ignorePasswords;
     if (settingMaxClips) settingMaxClips.value = String(settings.maxClips);
     if (settingMaxAge) settingMaxAge.value = String(settings.maxAgeMs);
+    if (settingQuickMenuLimit) settingQuickMenuLimit.value = String(settings.quickMenuLimit || 20);
 
     await this.refreshShortcutsUI();
 
@@ -911,12 +926,14 @@ export class PopupController {
     const settingIgnorePasswords = document.getElementById('settingIgnorePasswords') as HTMLInputElement;
     const settingMaxClips = document.getElementById('settingMaxClips') as HTMLSelectElement;
     const settingMaxAge = document.getElementById('settingMaxAge') as HTMLSelectElement;
+    const settingQuickMenuLimit = document.getElementById('settingQuickMenuLimit') as HTMLSelectElement;
 
     const newSettings: Settings = {
       saveUrl: settingSaveUrl ? settingSaveUrl.checked : true,
       ignorePasswords: settingIgnorePasswords ? settingIgnorePasswords.checked : true,
       maxClips: settingMaxClips ? Number(settingMaxClips.value) : 50,
       maxAgeMs: settingMaxAge ? Number(settingMaxAge.value) : 86400000,
+      quickMenuLimit: settingQuickMenuLimit ? Number(settingQuickMenuLimit.value) : 20,
       theme: document.body.classList.contains('light-mode') ? 'light' : 'dark',
       locale: this.i18n.getLocale()
     };

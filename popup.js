@@ -44,6 +44,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const settingIgnorePasswords = document.getElementById('settingIgnorePasswords');
     const settingMaxClips = document.getElementById('settingMaxClips');
     const settingMaxAge = document.getElementById('settingMaxAge');
+    const settingQuickMenuLimit = document.getElementById('settingQuickMenuLimit');
 
     const exportBackupBtn = document.getElementById('exportBackupBtn');
     const importBackupBtn = document.getElementById('importBackupBtn');
@@ -419,6 +420,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (snipBtn) snipBtn.title = i18n.t('snipOcrBtn');
         settingsBtn.title = i18n.t('settings');
 
+        const quickMenuLimitLabel = document.getElementById('quickMenuLimitLabel');
+        const quickMenuLimitDesc = document.getElementById('quickMenuLimitDesc');
+        const opt5Clips = document.getElementById('opt5Clips');
+        const opt10Clips = document.getElementById('opt10Clips');
+        const opt20Clips = document.getElementById('opt20Clips');
+
+        if (quickMenuLimitLabel) quickMenuLimitLabel.textContent = i18n.t('quickMenuLimitLabel');
+        if (quickMenuLimitDesc) quickMenuLimitDesc.textContent = i18n.t('quickMenuLimitDesc');
+        if (opt5Clips) opt5Clips.textContent = i18n.t('opt5Clips');
+        if (opt10Clips) opt10Clips.textContent = i18n.t('opt10Clips');
+        if (opt20Clips) opt20Clips.textContent = i18n.t('opt20Clips');
+
         const shortcutsSectionTitle = document.getElementById('shortcutsSectionTitle');
         const snipShortcutLabel = document.getElementById('snipShortcutLabel');
         const snipShortcutDesc = document.getElementById('snipShortcutDesc');
@@ -659,8 +672,39 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     settingsBtn?.addEventListener('click', async () => {
         await refreshShortcutsUI();
+        const { settings } = await chrome.storage.local.get('settings');
+        if (settingSaveUrl) settingSaveUrl.checked = settings?.saveUrl !== undefined ? settings.saveUrl : true;
+        if (settingIgnorePasswords) settingIgnorePasswords.checked = settings?.ignorePasswords !== undefined ? settings.ignorePasswords : true;
+        if (settingMaxClips) settingMaxClips.value = String(settings?.maxClips || 50);
+        if (settingMaxAge) settingMaxAge.value = String(settings?.maxAgeMs || 86400000);
+        if (settingQuickMenuLimit) settingQuickMenuLimit.value = String(settings?.quickMenuLimit || 20);
         settingsModal.classList.add('open', 'show');
     });
+
+    async function saveCurrentSettings() {
+        const { settings = {} } = await chrome.storage.local.get('settings');
+        const updated = {
+            ...settings,
+            saveUrl: settingSaveUrl ? settingSaveUrl.checked : true,
+            ignorePasswords: settingIgnorePasswords ? settingIgnorePasswords.checked : true,
+            maxClips: settingMaxClips ? Number(settingMaxClips.value) : 50,
+            maxAgeMs: settingMaxAge ? Number(settingMaxAge.value) : 86400000,
+            quickMenuLimit: settingQuickMenuLimit ? Number(settingQuickMenuLimit.value) : 20
+        };
+        await chrome.storage.local.set({ settings: updated });
+        try {
+            if (typeof chrome !== 'undefined' && chrome.runtime?.sendMessage) {
+                await chrome.runtime.sendMessage({ type: 'SETTINGS_CHANGED' });
+            }
+        } catch {}
+    }
+
+    settingSaveUrl?.addEventListener('change', saveCurrentSettings);
+    settingIgnorePasswords?.addEventListener('change', saveCurrentSettings);
+    settingMaxClips?.addEventListener('change', saveCurrentSettings);
+    settingMaxAge?.addEventListener('change', saveCurrentSettings);
+    settingQuickMenuLimit?.addEventListener('change', saveCurrentSettings);
+
     settingsCloseBtn?.addEventListener('click', () => {
         stopRecording();
         settingsModal.classList.remove('open', 'show');

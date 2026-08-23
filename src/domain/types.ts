@@ -36,6 +36,7 @@ export interface Settings {
   theme: 'dark' | 'light';
   locale: 'en' | 'fr';
   ignorePasswords: boolean;
+  quickMenuLimit?: number; // 5, 10, or 20 (default 20)
   shortcuts?: {
     snip?: ShortcutConfig;
     quickPaste?: ShortcutConfig;
@@ -116,7 +117,8 @@ export const DEFAULT_SETTINGS: Settings = {
   maxAgeMs: 24 * 60 * 60 * 1000, // 24 hours
   theme: 'dark',
   locale: 'en',
-  ignorePasswords: true
+  ignorePasswords: true,
+  quickMenuLimit: 20
 };
 
 export const MAX_CLIP_LENGTH = 20000;

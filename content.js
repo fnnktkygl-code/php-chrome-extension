@@ -478,18 +478,26 @@ class QuickPasteMenu {
 
     let clips = [];
     let isDark = true;
+    let limit = 20;
+
     try {
       if (typeof chrome !== 'undefined' && chrome.storage?.local) {
-        const data = await chrome.storage.local.get(['clips', 'theme', 'locale']);
+        const data = await chrome.storage.local.get(['clips', 'theme', 'locale', 'settings']);
         clips = data.clips || [];
         isDark = data.theme !== 'light';
         const browserLang = (typeof navigator !== 'undefined' ? navigator.language : 'fr').toLowerCase();
         this.isFr = data.locale ? data.locale === 'fr' : browserLang.startsWith('fr');
+        if (data.settings?.quickMenuLimit) {
+          limit = Number(data.settings.quickMenuLimit);
+        }
       }
     } catch {}
 
-    this.clips = clips.slice(0, 5);
+    this.isDark = isDark;
+    this.clips = clips.slice(0, limit);
+    this.filteredClips = [...this.clips];
     this.selectedIndex = 0;
+    this.searchQuery = '';
 
     // Overlay backdrop (transparent click-catcher)
     this.overlay = document.createElement('div');
@@ -510,20 +518,21 @@ class QuickPasteMenu {
     const borderCard = isDark ? '#334155' : '#cbd5e1';
     const textMain = isDark ? '#f8fafc' : '#0f172a';
     const bgHeader = isDark ? '#1e293b' : '#f8fafc';
+    const bgSearch = isDark ? '#1e293b' : '#f1f5f9';
     const textSub = isDark ? '#94a3b8' : '#64748b';
 
-    const cardWidth = 380;
-    const cardHeight = Math.min(360, 48 + this.clips.length * 48 + 40);
+    const cardWidth = 390;
+    const cardMaxHeight = 440;
 
     let left = lastMouseX + 8;
     let top = lastMouseY + 8;
 
-    // Viewport clamping so it never overflows screen bounds
+    // Viewport clamping
     if (left + cardWidth > window.innerWidth - 16) {
       left = Math.max(16, lastMouseX - cardWidth - 8);
     }
-    if (top + cardHeight > window.innerHeight - 16) {
-      top = Math.max(16, window.innerHeight - cardHeight - 16);
+    if (top + cardMaxHeight > window.innerHeight - 16) {
+      top = Math.max(16, window.innerHeight - cardMaxHeight - 16);
     }
 
     card.style.cssText = `
@@ -531,12 +540,13 @@ class QuickPasteMenu {
       left: ${left}px;
       top: ${top}px;
       width: ${cardWidth}px;
-      max-width: 90vw;
+      max-width: 92vw;
+      max-height: ${cardMaxHeight}px;
       background: ${bgCard};
       color: ${textMain};
       border: 1px solid ${borderCard};
-      border-radius: 10px;
-      box-shadow: 0 20px 40px -8px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      box-shadow: 0 20px 45px -8px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.08);
       overflow: hidden;
       display: flex;
       flex-direction: column;
@@ -557,15 +567,32 @@ class QuickPasteMenu {
     header.innerHTML = `
       <div style="display:flex; align-items:center; gap:8px; font-weight:600; font-size:13px; color:${textMain};">
         <span style="display:inline-flex; align-items:center; justify-content:center; width:20px; height:20px; border-radius:5px; background:#2563eb; color:#fff; font-size:11px;">📋</span>
-        <span>${this.isFr ? 'PHP • 5 Récents' : 'PHP • 5 Recents'}</span>
+        <span>${this.isFr ? 'PHP • Menu Rapide' : 'PHP • Quick Menu'}</span>
       </div>
       <div style="font-size:11px; color:${textSub}; display:flex; gap:6px; align-items:center;">
-        <kbd style="background:${isDark ? '#0f172a' : '#f1f5f9'}; padding:2px 6px; border-radius:4px; border:1px solid ${borderCard}; font-size:10px; font-family:monospace;">1-5</kbd>
-        <span>${this.isFr ? 'copier' : 'copy'} •</span>
+        <kbd style="background:${isDark ? '#0f172a' : '#f1f5f9'}; padding:2px 6px; border-radius:4px; border:1px solid ${borderCard}; font-size:10px; font-family:monospace;">1-9</kbd>
+        <span>${this.isFr ? 'coller' : 'paste'} •</span>
         <kbd style="background:${isDark ? '#0f172a' : '#f1f5f9'}; padding:2px 6px; border-radius:4px; border:1px solid ${borderCard}; font-size:10px; font-family:monospace;">Échap</kbd>
       </div>
     `;
     card.appendChild(header);
+
+    // Search bar row
+    const searchBar = document.createElement('div');
+    searchBar.style.cssText = `
+      padding: 6px 12px;
+      border-bottom: 1px solid ${borderCard};
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: ${bgSearch};
+    `;
+    searchBar.innerHTML = `
+      <span style="font-size: 12px; opacity: 0.6;">🔍</span>
+      <input id="php-qp-search-input" type="text" placeholder="${this.isFr ? 'Filtrer ou taper 1-9...' : 'Filter or type 1-9...'}" style="flex: 1; background: transparent; border: none; outline: none; font-size: 12px; color: ${textMain}; font-family: inherit;" autocomplete="off" spellcheck="false" />
+      <span id="php-qp-count" style="font-size: 10px; font-weight: 600; color: ${textSub}; background: ${isDark ? '#0f172a' : '#e2e8f0'}; padding: 1px 6px; border-radius: 10px;">${this.filteredClips.length}</span>
+    `;
+    card.appendChild(searchBar);
 
     // List container
     const list = document.createElement('div');
@@ -575,58 +602,12 @@ class QuickPasteMenu {
       flex-direction: column;
       padding: 6px;
       gap: 2px;
-      max-height: 380px;
+      max-height: 290px;
       overflow-y: auto;
+      scroll-behavior: smooth;
     `;
 
-    if (this.clips.length === 0) {
-      list.innerHTML = `
-        <div style="padding: 24px; text-align: center; color: ${textSub}; font-size: 13px;">
-          ${this.isFr ? 'Aucun élément copié pour le moment' : 'No copied items yet'}
-        </div>
-      `;
-    } else {
-      this.clips.forEach((clip, index) => {
-        const item = document.createElement('div');
-        item.className = 'php-qp-item';
-        item.dataset.index = String(index);
-        item.style.cssText = `
-          padding: 8px 10px;
-          border-radius: 6px;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 10px;
-          transition: background 0.1s ease;
-          background: ${index === 0 ? (isDark ? '#1e293b' : '#f1f5f9') : 'transparent'};
-        `;
-
-        const icon = clip.category === 'link' ? '🔗' : clip.category === 'code' ? '💻' : clip.category === 'image' ? '🖼️' : '📝';
-        const rawText = clip.category === 'image' ? (clip.ocrText || 'Image capturée') : (clip.text || '');
-        const cleanText = rawText.replace(/\s+/g, ' ').trim();
-
-        item.innerHTML = `
-          <div style="display:flex; align-items:center; gap:8px; flex:1; min-width:0;">
-            <span style="font-size:11px; font-weight:700; color:#38bdf8; background:${isDark ? '#0f172a' : '#e2e8f0'}; border:1px solid ${borderCard}; border-radius:4px; width:18px; height:18px; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0;">${index + 1}</span>
-            <span style="font-size:12px; flex-shrink:0;">${icon}</span>
-            <span style="font-size:12px; color:${textMain}; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1;">${this.escapeHtml(cleanText)}</span>
-          </div>
-          <span style="font-size:10px; color:${textSub}; flex-shrink:0;">${this.getRelativeTime(clip.timestamp)}</span>
-        `;
-
-        item.addEventListener('mouseenter', () => {
-          this.setSelectedIndex(index, isDark);
-        });
-
-        item.addEventListener('click', () => {
-          this.copyAndClose(clip);
-        });
-
-        list.appendChild(item);
-      });
-    }
-
+    this.renderList(list, borderCard, textMain, textSub);
     card.appendChild(list);
 
     // Footer
@@ -649,6 +630,33 @@ class QuickPasteMenu {
 
     this.overlay.appendChild(card);
     document.body.appendChild(this.overlay);
+
+    const searchInput = searchBar.querySelector('#php-qp-search-input');
+    const countEl = searchBar.querySelector('#php-qp-count');
+
+    // Focus search input
+    requestAnimationFrame(() => {
+      searchInput?.focus();
+    });
+
+    // Search filter input listener
+    searchInput?.addEventListener('input', () => {
+      this.searchQuery = searchInput.value.toLowerCase().trim();
+      if (!this.searchQuery) {
+        this.filteredClips = [...this.clips];
+      } else {
+        this.filteredClips = this.clips.filter((c) => {
+          const t = (c.text || '').toLowerCase();
+          const ocr = (c.ocrText || '').toLowerCase();
+          const u = (c.url || '').toLowerCase();
+          const cat = (c.category || '').toLowerCase();
+          return t.includes(this.searchQuery) || ocr.includes(this.searchQuery) || u.includes(this.searchQuery) || cat.includes(this.searchQuery);
+        });
+      }
+      if (countEl) countEl.textContent = String(this.filteredClips.length);
+      this.selectedIndex = 0;
+      this.renderList(list, borderCard, textMain, textSub);
+    });
 
     // Click outside to close
     this.overlay.addEventListener('click', (e) => {
@@ -674,31 +682,56 @@ class QuickPasteMenu {
 
       if (e.key === 'Escape') {
         e.preventDefault();
-        this.close();
+        e.stopPropagation();
+        if (searchInput && searchInput.value) {
+          searchInput.value = '';
+          this.searchQuery = '';
+          this.filteredClips = [...this.clips];
+          if (countEl) countEl.textContent = String(this.filteredClips.length);
+          this.selectedIndex = 0;
+          this.renderList(list, borderCard, textMain, textSub);
+        } else {
+          this.close();
+        }
         return;
       }
 
-      // Keys 1 - 5
-      if (['1', '2', '3', '4', '5'].includes(e.key)) {
-        const idx = parseInt(e.key, 10) - 1;
-        if (this.clips[idx]) {
-          e.preventDefault();
-          this.copyAndClose(this.clips[idx]);
-          return;
+      // Check for Direct Digit hotkeys 1-9 (Cmd/Ctrl+1-9 or Alt+1-9 or standalone 1-9 when search query is empty)
+      const digitMatch = e.code.match(/^Digit([1-9])$/) || e.code.match(/^Numpad([1-9])$/);
+      const isCmdOrAlt = e.metaKey || e.ctrlKey || e.altKey;
+
+      if (digitMatch) {
+        const digitNum = parseInt(digitMatch[1], 10);
+        const targetIdx = digitNum - 1;
+
+        if (isCmdOrAlt || !this.searchQuery) {
+          if (this.filteredClips[targetIdx]) {
+            e.preventDefault();
+            e.stopPropagation();
+            this.copyAndClose(this.filteredClips[targetIdx]);
+            return;
+          }
         }
       }
 
       // Arrow navigation
       if (e.key === 'ArrowDown') {
         e.preventDefault();
-        this.setSelectedIndex((this.selectedIndex + 1) % Math.max(1, this.clips.length), isDark);
+        e.stopPropagation();
+        if (this.filteredClips.length > 0) {
+          this.setSelectedIndex((this.selectedIndex + 1) % this.filteredClips.length);
+        }
       } else if (e.key === 'ArrowUp') {
         e.preventDefault();
-        this.setSelectedIndex((this.selectedIndex - 1 + Math.max(1, this.clips.length)) % Math.max(1, this.clips.length), isDark);
+        e.stopPropagation();
+        if (this.filteredClips.length > 0) {
+          this.setSelectedIndex((this.selectedIndex - 1 + this.filteredClips.length) % this.filteredClips.length);
+        }
       } else if (e.key === 'Enter') {
         e.preventDefault();
-        if (this.clips[this.selectedIndex]) {
-          this.copyAndClose(this.clips[this.selectedIndex]);
+        e.stopPropagation();
+        if (this.filteredClips[this.selectedIndex]) {
+          this.copyAndClose(this.filteredClips[this.selectedIndex]);
         }
       }
     };
@@ -707,12 +740,72 @@ class QuickPasteMenu {
     this.overlay._keyHandler = keyHandler;
   }
 
-  setSelectedIndex(index, isDark) {
+  renderList(list, borderCard, textMain, textSub) {
+    list.innerHTML = '';
+    if (this.filteredClips.length === 0) {
+      list.innerHTML = `
+        <div style="padding: 24px 12px; text-align: center; color: ${textSub}; font-size: 13px;">
+          ${this.searchQuery ? (this.isFr ? 'Aucun résultat pour cette recherche' : 'No matches found') : (this.isFr ? 'Aucun élément copié pour le moment' : 'No copied items yet')}
+        </div>
+      `;
+      return;
+    }
+
+    this.filteredClips.forEach((clip, index) => {
+      const item = document.createElement('div');
+      item.className = 'php-qp-item';
+      item.dataset.index = String(index);
+      item.style.cssText = `
+        padding: 8px 10px;
+        border-radius: 6px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        transition: background 0.08s ease;
+        background: ${index === this.selectedIndex ? (this.isDark ? '#1e293b' : '#f1f5f9') : 'transparent'};
+      `;
+
+      const icon = clip.category === 'link' ? '🔗' : clip.category === 'code' ? '💻' : clip.category === 'image' ? '🖼️' : '📝';
+      const rawText = clip.category === 'image' ? (clip.ocrText || 'Image capturée') : (clip.text || '');
+      const cleanText = rawText.replace(/\s+/g, ' ').trim();
+
+      const badgeHtml = index < 9
+        ? `<span style="font-size:11px; font-weight:700; color:#38bdf8; background:${this.isDark ? '#0f172a' : '#e2e8f0'}; border:1px solid ${borderCard}; border-radius:4px; width:18px; height:18px; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0;">${index + 1}</span>`
+        : `<span style="font-size:10px; color:${textSub}; width:18px; height:18px; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0;">•</span>`;
+
+      item.innerHTML = `
+        <div style="display:flex; align-items:center; gap:8px; flex:1; min-width:0;">
+          ${badgeHtml}
+          <span style="font-size:12px; flex-shrink:0;">${icon}</span>
+          <span style="font-size:12px; color:${textMain}; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1;">${this.escapeHtml(cleanText)}</span>
+        </div>
+        <span style="font-size:10px; color:${textSub}; flex-shrink:0;">${this.getRelativeTime(clip.timestamp)}</span>
+      `;
+
+      item.addEventListener('mouseenter', () => {
+        this.setSelectedIndex(index);
+      });
+
+      item.addEventListener('click', () => {
+        this.copyAndClose(clip);
+      });
+
+      list.appendChild(item);
+    });
+  }
+
+  setSelectedIndex(index) {
     this.selectedIndex = index;
     if (!this.overlay) return;
     const items = this.overlay.querySelectorAll('.php-qp-item');
     items.forEach((item, idx) => {
-      item.style.background = idx === index ? (isDark ? '#1e293b' : '#f1f5f9') : 'transparent';
+      const isSelected = idx === index;
+      item.style.background = isSelected ? (this.isDark ? '#1e293b' : '#f1f5f9') : 'transparent';
+      if (isSelected) {
+        item.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      }
     });
   }
 

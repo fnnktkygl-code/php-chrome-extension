@@ -77,18 +77,26 @@ const translations = {
         snipProcessing: "Extracting OCR text...",
         snipRestrictedPage: "⚠️ Cannot snip Chrome system pages. Open any regular website (Google, GitHub, etc.) to use Snip & OCR.",
 
+        // Quick Menu & Density
+        quickMenuLimitLabel: "Quick Menu Capacity",
+        quickMenuLimitDesc: "Number of clips accessible in the floating popup under mouse",
+        opt5Clips: "5 items (Compact)",
+        opt10Clips: "10 items (Standard)",
+        opt20Clips: "20 items (Smooth scroll & 1-9 hotkeys)",
+        quickMenuSearchPlaceholder: "Filter or type 1-9 to paste...",
+
         // Shortcuts & Quick Menu
         shortcutsSectionTitle: "Keyboard Shortcuts",
         snipShortcutLabel: "Snip Area & OCR (Shottr)",
         snipShortcutDesc: "Select area and extract text",
-        quickPasteShortcutLabel: "Quick Menu (5 Recents)",
+        quickPasteShortcutLabel: "Quick Menu (Floating)",
         quickPasteShortcutDesc: "Popup under mouse cursor",
         configureShortcutsBtnText: "Customize in Chrome",
         pressKeys: "Press keys...",
         shortcutSaved: "✓ Shortcut saved!",
         shortcutReset: "✓ Shortcut reset to default!",
-        quickPasteTitle: "5 Recent Clips",
-        quickPasteTip: "1-5 or ↑↓ Enter to copy",
+        quickPasteTitle: "Recent Clips",
+        quickPasteTip: "1-9 or ↑↓ Enter to copy • Type to filter",
         quickPasteViewAll: "View all in PHP ↗",
 
         // Language
@@ -128,28 +136,61 @@ const translations = {
         extractOcr: "Extraire le texte (OCR)",
 
         // Categories
+        categoryText: "Texte",
         categoryLink: "Lien",
         categoryCode: "Code",
-        categoryText: "Texte",
         categoryImage: "Image",
+        categoryPinned: "Épinglé",
 
-        // Modals
-        modalTitle: "Aperçu complet",
-        modalClose: "Fermer",
+        // Relative Time
+        justNow: "À l'instant",
+        secondsAgo: "Il y a {0}s",
+        minutesAgo: "Il y a {0}m",
+        hoursAgo: "Il y a {0}h",
+        daysAgo: "Il y a {0}j",
+
+        // Empty States
+        emptyTitle: "Aucun clip trouvé",
+        emptyDesc: "Copiez du texte ou une image depuis n'importe quelle page web pour commencer.",
+        emptyLinksTitle: "Aucun lien trouvé",
+        emptyLinksText: "Les URLs et liens copiés apparaîtront ici.",
+        emptyCodeTitle: "Aucun extrait de code",
+        emptyCodeText: "Les snippets de code copiés apparaîtront ici.",
+        emptyImagesTitle: "Aucune image capturée",
+        emptyImagesText: "Utilisez le cadrage pour capturer une zone ou une image.",
+        emptyPinnedTitle: "Aucun clip épinglé",
+        emptyPinnedText: "Épinglez les clips importants pour empêcher leur suppression automatique.",
+        emptySearchTitle: "Aucun résultat trouvé",
+        emptySearchDesc: "Essayez un autre mot-clé.",
+
+        // Settings Modal
         settingsTitle: "Paramètres",
         saveUrlLabel: "Enregistrer l'URL source du site",
         maxClipsLabel: "Limite max d'éléments",
         maxAgeLabel: "Durée de conservation",
         ignorePasswordsLabel: "Ignorer les mots de passe et champs sensibles",
-        expiry1Day: "24 Heures",
-        expiry7Days: "7 Jours",
-        expiry30Days: "30 Jours",
-        expiryNever: "Jamais (Garder pour toujours)",
+        opt10: "10 éléments",
+        opt25: "25 éléments",
+        opt50: "50 éléments",
+        opt100: "100 éléments",
+        opt200: "200 éléments",
+        opt24Hours: "24 Heures",
+        opt7Days: "7 Jours",
+        opt30Days: "30 Jours",
+        optNever: "Toujours (Conserver indéfiniment)",
 
-        // Backup
+        // Quick Menu & Density
+        quickMenuLimitLabel: "Capacité du Menu Rapide",
+        quickMenuLimitDesc: "Nombre d'éléments affichés dans le pop-up sous la souris",
+        opt5Clips: "5 éléments (Compact)",
+        opt10Clips: "10 éléments (Standard)",
+        opt20Clips: "20 éléments (Défilement fluide & touches 1-9)",
+        quickMenuSearchPlaceholder: "Filtrer ou taper 1-9 pour coller...",
+
+        // Backup & Data
         backupSectionTitle: "Sauvegarde & Restauration",
-        exportBtnText: "Exporter l’historique (JSON)",
-        importBtnText: "Importer l’historique (JSON)",
+        exportBtnText: "Exporter l'historique (JSON)",
+        importBtnText: "Importer l'historique (JSON)",
         importSuccess: "{0} clips importés avec succès !",
         importInvalid: "Format de fichier de sauvegarde invalide.",
 
@@ -176,14 +217,14 @@ const translations = {
         shortcutsSectionTitle: "Raccourcis Clavier",
         snipShortcutLabel: "Cadrage & OCR (Shottr)",
         snipShortcutDesc: "Capture et extraction de texte",
-        quickPasteShortcutLabel: "Menu Rapide (5 Récents)",
+        quickPasteShortcutLabel: "Menu Rapide (Flottant)",
         quickPasteShortcutDesc: "Pop-up sous le curseur souris",
         configureShortcutsBtnText: "Personnaliser dans Chrome",
         pressKeys: "Appuyez sur des touches...",
         shortcutSaved: "✓ Raccourci enregistré !",
         shortcutReset: "✓ Raccourci réinitialisé !",
-        quickPasteTitle: "5 Clips Récents",
-        quickPasteTip: "1-5 ou ↑↓ Entrée pour copier",
+        quickPasteTitle: "Clips Récents",
+        quickPasteTip: "1-9 ou ↑↓ Entrée pour copier • Tapez pour filtrer",
         quickPasteViewAll: "Voir tout dans PHP ↗",
 
         // Language

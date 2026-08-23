@@ -108,14 +108,14 @@ export const TRANSLATIONS: Record<Locale, Translations> = {
     shortcutsSectionTitle: 'Keyboard Shortcuts',
     snipShortcutLabel: 'Snip Area & OCR (Shottr)',
     snipShortcutDesc: 'Select area and extract text',
-    quickPasteShortcutLabel: 'Quick Menu (5 Recents)',
+    quickPasteShortcutLabel: 'Quick Menu (Floating)',
     quickPasteShortcutDesc: 'Popup under mouse cursor',
     configureShortcutsBtnText: 'Customize in Chrome Extensions',
     pressKeys: 'Press keys...',
     shortcutSaved: '✓ Shortcut saved!',
     shortcutReset: '✓ Shortcut reset to default!',
-    quickPasteTitle: '5 Recent Clips',
-    quickPasteTip: '1-5 or ↑↓ Enter to copy',
+    quickPasteTitle: 'Recent Clips',
+    quickPasteTip: '1-9 or ↑↓ Enter to copy • Type to filter',
     quickPasteViewAll: 'View all in PHP ↗',
 
     // Language
@@ -142,7 +142,7 @@ export const TRANSLATIONS: Record<Locale, Translations> = {
     tabPinned: 'Épinglés',
 
     // Search
-    searchPlaceholder: 'Rechercher dans vos clips (Ctrl/Cmd + F)...',
+    searchPlaceholder: 'Rechercher dans vos clips & OCR (Ctrl/Cmd + F)...',
     searchResults: '{0} résultat{1}',
 
     // Clip Actions
@@ -169,10 +169,11 @@ export const TRANSLATIONS: Record<Locale, Translations> = {
     categoryCode: 'Code',
     categoryText: 'Texte',
     categoryImage: 'Image',
+    categoryPinned: 'Épinglé',
 
     // Empty States
-    emptyAllTitle: 'Aucun clip pour le moment',
-    emptyAllText: 'Copiez du texte ou du code (Ctrl+C / Cmd+C) pour le sauvegarder localement.',
+    emptyTitle: 'Aucun clip trouvé',
+    emptyDesc: 'Copiez du texte ou une image depuis n\'importe quelle page web pour commencer.',
     emptyLinksTitle: 'Aucun lien trouvé',
     emptyLinksText: 'Les URLs et liens copiés apparaîtront ici.',
     emptyCodeTitle: 'Aucun extrait de code',
@@ -194,15 +195,18 @@ export const TRANSLATIONS: Record<Locale, Translations> = {
     ignorePasswordsDesc: 'Ne jamais enregistrer les mots de passe et champs sensibles',
     maxClipsLabel: 'Nombre max d\'éléments',
     maxAgeLabel: 'Durée de conservation',
-    opt10: '10 éléments',
-    opt25: '25 éléments',
-    opt50: '50 éléments',
-    opt100: '100 éléments',
-    opt200: '200 éléments',
     opt24Hours: '24 Heures',
     opt7Days: '7 Jours',
     opt30Days: '30 Jours',
     optNever: 'Toujours (Conserver indéfiniment)',
+
+    // Quick Menu & Density
+    quickMenuLimitLabel: 'Capacité du Menu Rapide',
+    quickMenuLimitDesc: 'Nombre d\'éléments affichés dans le pop-up sous la souris',
+    opt5Clips: '5 éléments (Compact)',
+    opt10Clips: '10 éléments (Standard)',
+    opt20Clips: '20 éléments (Défilement fluide & touches 1-9)',
+    quickMenuSearchPlaceholder: 'Filtrer ou taper 1-9 pour coller...',
 
     // Backup & Data
     backupSectionTitle: 'Sauvegarde & Restauration',
@@ -234,14 +238,14 @@ export const TRANSLATIONS: Record<Locale, Translations> = {
     shortcutsSectionTitle: 'Raccourcis Clavier',
     snipShortcutLabel: 'Cadrage & OCR (Shottr)',
     snipShortcutDesc: 'Capture et extraction de texte',
-    quickPasteShortcutLabel: 'Menu Rapide (5 Récents)',
+    quickPasteShortcutLabel: 'Menu Rapide (Flottant)',
     quickPasteShortcutDesc: 'Pop-up sous le curseur souris',
     configureShortcutsBtnText: 'Personnaliser dans Chrome',
     pressKeys: 'Appuyez sur des touches...',
     shortcutSaved: '✓ Raccourci enregistré !',
     shortcutReset: '✓ Raccourci réinitialisé !',
-    quickPasteTitle: '5 Clips Récents',
-    quickPasteTip: '1-5 ou ↑↓ Entrée pour copier',
+    quickPasteTitle: 'Clips Récents',
+    quickPasteTip: '1-9 ou ↑↓ Entrée pour copier • Tapez pour filtrer',
     quickPasteViewAll: 'Voir tout dans PHP ↗',
 
     // Language
