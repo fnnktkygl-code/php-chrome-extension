@@ -121,8 +121,9 @@ class ScreenSnipper {
     this.bounds = { startX: 0, startY: 0, endX: 0, endY: 0 };
   }
 
-  activate() {
-    if (document.getElementById('php-snipper-overlay')) return;
+    // 0. Remove any old lingering overlay
+    const oldOverlay = document.getElementById('php-snipper-overlay');
+    if (oldOverlay) oldOverlay.remove();
 
     this.overlay = document.createElement('div');
     this.overlay.id = 'php-snipper-overlay';
@@ -146,20 +147,23 @@ class ScreenSnipper {
       transform: translateX(-50%);
       background: #0f172a;
       color: #ffffff;
-      padding: 10px 20px;
+      padding: 8px 16px 8px 20px;
       border-radius: 999px;
       font-size: 13px;
       font-weight: 500;
       box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.15);
       display: flex;
       align-items: center;
-      gap: 10px;
-      pointer-events: none;
+      gap: 12px;
+      pointer-events: auto;
+      z-index: 2147483648;
       transition: all 0.2s ease;
+      cursor: default;
     `;
     this.hud.innerHTML = `
       <span style="display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; border-radius:50%; background:#2563eb; color:#fff; font-size:12px;">✂️</span>
-      <span><strong>PHP Snip & OCR:</strong> Drag a box around any image/text • Press <kbd style="background:#1e293b; padding:2px 6px; border-radius:4px; border:1px solid #334155; font-size:11px;">ESC</kbd> to cancel</span>
+      <span><strong>PHP Snip & OCR:</strong> Cadrez la zone • <kbd style="background:#1e293b; padding:2px 6px; border-radius:4px; border:1px solid #334155; font-size:11px;">Échap</kbd> pour quitter</span>
+      <button id="php-snipper-close-btn" style="background:#334155; color:#f8fafc; border:none; border-radius:50%; width:22px; height:22px; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; font-size:12px; font-weight:bold; margin-left:4px;" title="Fermer (Échap)">✕</button>
     `;
     this.overlay.appendChild(this.hud);
 
@@ -199,7 +203,14 @@ class ScreenSnipper {
   }
 
   attachEvents() {
+    const closeBtn = this.overlay.querySelector('#php-snipper-close-btn');
+    closeBtn?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.close();
+    });
+
     const onMouseDown = (e) => {
+      if ((e.target)?.closest?.('#php-snipper-close-btn')) return;
       this.isDrawing = true;
       this.bounds.startX = e.clientX;
       this.bounds.startY = e.clientY;
@@ -234,7 +245,7 @@ class ScreenSnipper {
       if (this.hud) {
         this.hud.innerHTML = `
           <span style="display:inline-block; animation: spin 1s linear infinite;">🔄</span>
-          <span>Extracting OCR text & image...</span>
+          <span>Extraction OCR en cours...</span>
         `;
       }
 
@@ -253,15 +264,35 @@ class ScreenSnipper {
       if (e.key === 'Escape') this.close();
     };
 
+    const onBlur = () => {
+      this.close();
+    };
+
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        this.close();
+      }
+    };
+
+    const onContextMenu = (e) => {
+      e.preventDefault();
+      this.close();
+    };
+
     this.overlay.addEventListener('mousedown', onMouseDown);
+    this.overlay.addEventListener('contextmenu', onContextMenu);
     window.addEventListener('mousemove', onMouseMove);
     window.addEventListener('mouseup', onMouseUp);
     window.addEventListener('keydown', onKeyDown);
+    window.addEventListener('blur', onBlur);
+    document.addEventListener('visibilitychange', onVisibilityChange);
 
     this.overlay._cleanup = () => {
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('mouseup', onMouseUp);
       window.removeEventListener('keydown', onKeyDown);
+      window.removeEventListener('blur', onBlur);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
     };
   }
 
