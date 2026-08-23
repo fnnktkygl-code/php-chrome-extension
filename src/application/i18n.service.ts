@@ -102,6 +102,7 @@ export const TRANSLATIONS: Record<Locale, Translations> = {
     snipSuccessText: '✓ OCR text copied to clipboard!',
     snipSuccessImage: '✓ Cropped image copied to clipboard!',
     snipProcessing: 'Extracting OCR text...',
+    snipRestrictedPage: '⚠️ Cannot snip Chrome system pages. Open any regular website (Google, GitHub, etc.) to use Snip & OCR.',
 
     // Language
     language: 'Language',
@@ -206,6 +207,7 @@ export const TRANSLATIONS: Record<Locale, Translations> = {
     snipSuccessText: '✓ Texte OCR copié dans le presse-papiers !',
     snipSuccessImage: '✓ Zone d\'image copiée dans le presse-papiers !',
     snipProcessing: 'Extraction OCR du texte en cours...',
+    snipRestrictedPage: '⚠️ Impossible de capturer les pages internes Chrome. Ouvrez un site web (Google, GitHub, etc.) pour utiliser le cadrage.',
 
     // Language
     language: 'Langue',

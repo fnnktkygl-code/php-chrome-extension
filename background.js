@@ -69,7 +69,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   } else if (message.type === 'CAPTURE_TAB_VIEWPORT') {
     if (chrome.tabs && chrome.tabs.captureVisibleTab) {
       chrome.tabs
-        .captureVisibleTab(undefined, { format: 'png' })
+        .captureVisibleTab({ format: 'png' })
         .then((dataUrl) => {
           sendResponse({ success: true, dataUrl });
         })

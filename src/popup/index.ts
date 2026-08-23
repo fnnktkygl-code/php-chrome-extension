@@ -113,12 +113,49 @@ export class PopupController {
 
     const snipOcrBtn = document.getElementById('snipOcrBtn');
     snipOcrBtn?.addEventListener('click', async () => {
+      if (typeof chrome !== 'undefined' && chrome.tabs) {
+        try {
+          const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+          const activeTab = tabs[0];
+          if (activeTab && activeTab.url) {
+            const isRestricted =
+              activeTab.url.startsWith('chrome://') ||
+              activeTab.url.startsWith('edge://') ||
+              activeTab.url.startsWith('about:') ||
+              activeTab.url.startsWith('chrome-extension://') ||
+              activeTab.url.includes('chromewebstore.google.com');
+
+            if (isRestricted) {
+              this.showToast(this.i18n.t('snipRestrictedPage'), true);
+              return;
+            }
+
+            if (activeTab.id) {
+              if (chrome.scripting) {
+                await chrome.scripting
+                  .executeScript({
+                    target: { tabId: activeTab.id },
+                    files: ['content.js']
+                  })
+                  .catch(() => {});
+              }
+              await chrome.tabs.sendMessage(activeTab.id, { type: 'ACTIVATE_SNIPPER' }).catch(() => {});
+            }
+          }
+        } catch (err) {
+          console.warn('Snip trigger error:', err);
+        }
+      }
+
       if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.sendMessage) {
         try {
           await chrome.runtime.sendMessage({ type: 'START_SNIP_OCR' });
         } catch {}
-        window.close();
       }
+
+      setTimeout(() => {
+        window.close();
+      }, 50);
     });
 
     // Modals
