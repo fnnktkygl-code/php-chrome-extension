@@ -121,6 +121,7 @@ class ScreenSnipper {
     this.bounds = { startX: 0, startY: 0, endX: 0, endY: 0 };
   }
 
+  activate() {
     // 0. Remove any old lingering overlay
     const oldOverlay = document.getElementById('php-snipper-overlay');
     if (oldOverlay) oldOverlay.remove();
@@ -315,18 +316,21 @@ class ScreenSnipper {
 
   async processCrop(crop) {
     try {
+      if (this.overlay) this.overlay.style.display = 'none';
+
       const res = await chrome.runtime.sendMessage({ type: 'CAPTURE_TAB_VIEWPORT' });
       if (!res || !res.success || !res.dataUrl) {
-        this.showToast('Could not capture viewport', true);
+        this.showToast('Impossible de capturer l\'écran', true);
         return;
       }
 
       const img = new Image();
-      img.src = res.dataUrl;
-      await new Promise((resolve, reject) => {
+      const loadPromise = new Promise((resolve, reject) => {
         img.onload = () => resolve();
         img.onerror = () => reject(new Error('Failed to load image'));
       });
+      img.src = res.dataUrl;
+      await loadPromise;
 
       const canvas = document.createElement('canvas');
       canvas.width = Math.round(crop.width * crop.dpr);
@@ -362,16 +366,20 @@ class ScreenSnipper {
       const ocrText = qrData || this.detectDomTextInArea(crop.x, crop.y, crop.width, crop.height);
 
       if (ocrText && ocrText.trim().length > 0) {
-        await navigator.clipboard.writeText(ocrText.trim());
-        this.showToast(`✓ Copied: ${ocrText.trim().substring(0, 45)}...`);
+        try {
+          await navigator.clipboard.writeText(ocrText.trim());
+          this.showToast(`✓ Texte copié : ${ocrText.trim().substring(0, 35)}...`);
+        } catch {
+          this.showToast('✓ Texte extrait et sauvegardé dans PHP !');
+        }
       } else {
         canvas.toBlob(async (blob) => {
           if (blob && navigator.clipboard && navigator.clipboard.write) {
             try {
               await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
-              this.showToast('✓ Cropped image copied to clipboard!');
+              this.showToast('✓ Image capturée et copiée dans le presse-papiers !');
             } catch {
-              this.showToast('✓ Snippet saved in PHP history!');
+              this.showToast('✓ Zone enregistrée dans l\'historique PHP !');
             }
           }
         }, 'image/png');
@@ -379,7 +387,7 @@ class ScreenSnipper {
 
       chrome.runtime.sendMessage({
         type: 'CLIPBOARD_COPY',
-        text: ocrText || 'Screen Snippet',
+        text: ocrText || 'Capture d\'écran',
         url: window.location.href,
         timestamp: Date.now(),
         category: 'image',
@@ -390,7 +398,7 @@ class ScreenSnipper {
       }).catch(() => {});
     } catch (err) {
       console.error('PHP Snipper error:', err);
-      this.showToast('Error processing crop', true);
+      this.showToast('Erreur lors du traitement de la capture', true);
     }
   }
 
@@ -414,6 +422,28 @@ class ScreenSnipper {
           texts.push(text);
         }
       }
+
+      const elements = document.querySelectorAll('img[alt], img[title], input, textarea, [aria-label]');
+      elements.forEach((el) => {
+        const rect = el.getBoundingClientRect();
+        if (
+          rect.right >= x &&
+          rect.left <= x + w &&
+          rect.bottom >= y &&
+          rect.top <= y + h
+        ) {
+          if (el instanceof HTMLImageElement) {
+            const alt = el.alt || el.title;
+            if (alt && alt.trim()) texts.push(alt.trim());
+          } else if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) {
+            if (el.value && el.value.trim()) texts.push(el.value.trim());
+          } else {
+            const aria = el.getAttribute('aria-label');
+            if (aria && aria.trim()) texts.push(aria.trim());
+          }
+        }
+      });
+
       return Array.from(new Set(texts)).join('\n');
     } catch {
       return '';

@@ -336,20 +336,26 @@ class ScreenSnipper {
 
   private async processCrop(crop: { x: number; y: number; width: number; height: number; dpr: number }): Promise<void> {
     try {
+      // Temporarily hide overlay so screenshot doesn't have dark mask
+      if (this.overlay) {
+        this.overlay.style.display = 'none';
+      }
+
       // 1. Request full screenshot from background
       const res = (await chrome.runtime.sendMessage({ type: 'CAPTURE_TAB_VIEWPORT' })) as { success: boolean; dataUrl?: string };
       if (!res || !res.success || !res.dataUrl) {
-        this.showToast('Could not capture viewport', true);
+        this.showToast('Impossible de capturer l\'écran', true);
         return;
       }
 
       // 2. Load screenshot and crop region
       const img = new Image();
-      img.src = res.dataUrl;
-      await new Promise<void>((resolve, reject) => {
+      const loadPromise = new Promise<void>((resolve, reject) => {
         img.onload = () => resolve();
         img.onerror = () => reject(new Error('Failed to load captured image'));
       });
+      img.src = res.dataUrl;
+      await loadPromise;
 
       const canvas = document.createElement('canvas');
       canvas.width = Math.round(crop.width * crop.dpr);
@@ -384,22 +390,26 @@ class ScreenSnipper {
         } catch {}
       }
 
-      // 4. Offline OCR Text extraction heuristics from crop (or fast DOM element mapping)
+      // 4. Offline OCR Text extraction heuristics from crop & DOM elements
       const ocrText = qrData || this.detectDomTextInArea(crop.x, crop.y, crop.width, crop.height);
 
       // 5. Copy to clipboard
       if (ocrText && ocrText.trim().length > 0) {
-        await navigator.clipboard.writeText(ocrText.trim());
-        this.showToast(`✓ Copied: ${ocrText.trim().substring(0, 45)}...`);
+        try {
+          await navigator.clipboard.writeText(ocrText.trim());
+          this.showToast(`✓ Texte copié : ${ocrText.trim().substring(0, 35)}...`);
+        } catch {
+          this.showToast('✓ Texte extrait et sauvegardé dans PHP !');
+        }
       } else {
         // Copy cropped image
         canvas.toBlob(async (blob) => {
           if (blob && navigator.clipboard && navigator.clipboard.write) {
             try {
               await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
-              this.showToast('✓ Cropped image copied to clipboard!');
+              this.showToast('✓ Image capturée et copiée dans le presse-papiers !');
             } catch {
-              this.showToast('✓ Snippet saved in PHP history!');
+              this.showToast('✓ Zone enregistrée dans l\'historique PHP !');
             }
           }
         }, 'image/png');
@@ -408,7 +418,7 @@ class ScreenSnipper {
       // 6. Save in PHP Clipboard History
       chrome.runtime.sendMessage({
         type: 'CLIPBOARD_COPY',
-        text: ocrText || 'Screen Snippet',
+        text: ocrText || 'Capture d\'écran',
         url: window.location.href,
         timestamp: Date.now(),
         category: 'image',
@@ -419,7 +429,7 @@ class ScreenSnipper {
       }).catch(() => {});
     } catch (err) {
       console.error('PHP Snipper process error:', err);
-      this.showToast('Error processing screen crop', true);
+      this.showToast('Erreur lors du traitement de la capture', true);
     }
   }
 
@@ -447,6 +457,28 @@ class ScreenSnipper {
           texts.push(text);
         }
       }
+
+      // Also check images, inputs, and aria-labels inside the area
+      const elements = document.querySelectorAll('img[alt], img[title], input, textarea, [aria-label]');
+      elements.forEach((el) => {
+        const rect = el.getBoundingClientRect();
+        if (
+          rect.right >= x &&
+          rect.left <= x + w &&
+          rect.bottom >= y &&
+          rect.top <= y + h
+        ) {
+          if (el instanceof HTMLImageElement) {
+            const alt = el.alt || el.title;
+            if (alt && alt.trim()) texts.push(alt.trim());
+          } else if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) {
+            if (el.value && el.value.trim()) texts.push(el.value.trim());
+          } else {
+            const aria = el.getAttribute('aria-label');
+            if (aria && aria.trim()) texts.push(aria.trim());
+          }
+        }
+      });
 
       return Array.from(new Set(texts)).join('\n');
     } catch {

@@ -433,11 +433,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     render(); // Immediate paint!
 
     document.getElementById('snipOcrBtn')?.addEventListener('click', async () => {
-        if (typeof chrome !== 'undefined' && chrome.tabs) {
-            try {
+        try {
+            if (typeof chrome !== 'undefined' && chrome.tabs) {
                 const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
                 const activeTab = tabs[0];
-                if (activeTab && activeTab.url) {
+                if (activeTab?.url) {
                     const isRestricted =
                         activeTab.url.startsWith('chrome://') ||
                         activeTab.url.startsWith('edge://') ||
@@ -449,31 +449,19 @@ document.addEventListener('DOMContentLoaded', async () => {
                         showToast(i18n.t('snipRestrictedPage'), true);
                         return;
                     }
-
-                    if (activeTab.id) {
-                        if (chrome.scripting) {
-                            await chrome.scripting.executeScript({
-                                target: { tabId: activeTab.id },
-                                files: ['content.js']
-                            }).catch(() => {});
-                        }
-                        await chrome.tabs.sendMessage(activeTab.id, { type: 'ACTIVATE_SNIPPER' }).catch(() => {});
-                    }
                 }
-            } catch (err) {
-                console.warn('Snip trigger error:', err);
             }
-        }
+        } catch {}
 
-        if (typeof chrome !== 'undefined' && chrome.runtime) {
-            try {
+        try {
+            if (typeof chrome !== 'undefined' && chrome.runtime?.sendMessage) {
                 await chrome.runtime.sendMessage({ type: 'START_SNIP_OCR' });
-            } catch {}
-        }
+            }
+        } catch {}
 
         setTimeout(() => {
             window.close();
-        }, 50);
+        }, 30);
     });
 
     document.querySelectorAll('.segment-btn').forEach(btn => {
