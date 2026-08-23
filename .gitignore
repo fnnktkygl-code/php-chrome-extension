@@ -13,6 +13,7 @@ Thumbs.db
 dist/
 build/
 coverage/
+php-chrome-extension-v*/
 
 # Dependencies
 node_modules/
