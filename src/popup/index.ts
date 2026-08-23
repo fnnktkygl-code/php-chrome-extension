@@ -25,6 +25,10 @@ export class PopupController {
     const theme = await this.storage.getTheme();
     if (theme === 'light') {
       document.body.classList.add('light-mode');
+      document.documentElement.setAttribute('data-theme', 'light');
+    } else {
+      document.body.classList.remove('light-mode');
+      document.documentElement.setAttribute('data-theme', 'dark');
     }
 
     this.bindEvents();
@@ -37,7 +41,7 @@ export class PopupController {
   private bindEvents(): void {
     const searchInput = document.getElementById('searchInput') as HTMLInputElement;
     const clearSearchBtn = document.getElementById('clearSearchBtn') as HTMLButtonElement;
-    const tabs = document.querySelectorAll('.tab-btn');
+    const tabs = document.querySelectorAll('.segment-btn, .tab-btn');
     const themeToggle = document.getElementById('themeToggle');
     const languageToggle = document.getElementById('languageToggle');
     const refreshBtn = document.getElementById('refreshBtn');
@@ -66,7 +70,9 @@ export class PopupController {
       clearTimeout(debounceTimer);
       debounceTimer = setTimeout(() => {
         this.searchQuery = (e.target as HTMLInputElement).value;
-        clearSearchBtn?.classList.toggle('show', Boolean(this.searchQuery));
+        if (clearSearchBtn) {
+          clearSearchBtn.style.display = this.searchQuery ? 'flex' : 'none';
+        }
         this.render();
       }, 150);
     });
@@ -74,14 +80,14 @@ export class PopupController {
     clearSearchBtn?.addEventListener('click', () => {
       if (searchInput) searchInput.value = '';
       this.searchQuery = '';
-      clearSearchBtn?.classList.remove('show');
+      if (clearSearchBtn) clearSearchBtn.style.display = 'none';
       this.render();
     });
 
     // Tab Navigation
     tabs.forEach((tab) => {
       tab.addEventListener('click', (e) => {
-        const btn = (e.target as HTMLElement).closest('.tab-btn') as HTMLButtonElement;
+        const btn = (e.target as HTMLElement).closest('.segment-btn, .tab-btn') as HTMLButtonElement;
         if (!btn) return;
         const targetTab = btn.getAttribute('data-tab') as FilterMode;
         if (targetTab && targetTab !== this.filter) {
@@ -201,9 +207,9 @@ export class PopupController {
       const count = filtered.length;
       const plural = count === 1 ? '' : 's';
       searchFeedback.textContent = this.i18n.t('searchResults', count, plural);
-      searchFeedback.classList.add('show');
+      searchFeedback.style.display = 'block';
     } else if (searchFeedback) {
-      searchFeedback.classList.remove('show');
+      searchFeedback.style.display = 'none';
     }
 
     if (filtered.length === 0) {
@@ -237,22 +243,38 @@ export class PopupController {
 
     return `
       <article
-        class="clip-card ${isPinned ? 'pinned' : ''}"
+        class="clip-card ${isPinned ? 'pinned' : ''} ${isCode ? 'is-code' : ''}"
         data-id="${clip.id}"
         tabindex="0"
         role="button"
         aria-label="${SecurityService.escapeHtml(clip.text.substring(0, 40))}"
       >
-        <div class="clip-card-header">
-          <span class="clip-category-tag ${categoryClass}">${categoryLabel}</span>
-          <div class="clip-card-actions">
-            <button class="clip-action-btn action-preview" data-action="preview" data-id="${clip.id}" title="${this.i18n.t('preview')}">👁️</button>
-            <button class="clip-action-btn action-pin ${isPinned ? 'pinned' : ''}" data-action="pin" data-id="${clip.id}" title="${isPinned ? this.i18n.t('unpin') : this.i18n.t('pin')}">📌</button>
-            <button class="clip-action-btn danger action-delete" data-action="delete" data-id="${clip.id}" title="${this.i18n.t('delete')}">🗑️</button>
+        <div class="clip-header clip-card-header">
+          <span class="clip-category-pill clip-category-tag ${categoryClass}">${categoryLabel}</span>
+          <div class="clip-actions clip-card-actions">
+            <button class="card-action-btn clip-action-btn action-preview" data-action="preview" data-id="${clip.id}" title="${this.i18n.t('preview')}" aria-label="Preview">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+            </button>
+            <button class="card-action-btn clip-action-btn action-pin ${isPinned ? 'is-pinned pinned' : ''}" data-action="pin" data-id="${clip.id}" title="${isPinned ? this.i18n.t('unpin') : this.i18n.t('pin')}" aria-label="Pin">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="${isPinned ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="17" x2="12" y2="22"></line>
+                <path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"></path>
+              </svg>
+            </button>
+            <button class="card-action-btn clip-action-btn danger-btn danger action-delete" data-action="delete" data-id="${clip.id}" title="${this.i18n.t('delete')}" aria-label="Delete">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 6h18"></path>
+                <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+              </svg>
+            </button>
           </div>
         </div>
 
-        <div class="clip-text-content ${isCode ? 'code-snippet' : ''} ${isExpanded ? 'expanded' : ''}">
+        <div class="clip-content clip-text-content ${isCode ? 'code-snippet' : ''} ${isExpanded ? 'expanded' : ''}">
           ${highlighted}
         </div>
 
@@ -267,7 +289,7 @@ export class PopupController {
             <span>${this.i18n.formatRelativeTime(clip.timestamp)}</span>
             <span class="clip-meta-dot">•</span>
             <span>${this.i18n.t('chars', clip.text.length)}</span>
-            ${clip.copyCount > 0 ? `<span class="clip-meta-dot">•</span><span>${this.i18n.t('copiedTimes', clip.copyCount)}</span>` : ''}
+            ${clip.copyCount > 0 ? `<span class="clip-meta-dot">•</span><span class="copy-counter">${this.i18n.t('copiedTimes', clip.copyCount)}</span>` : ''}
           </div>
 
           ${
@@ -294,7 +316,7 @@ export class PopupController {
 
       card.addEventListener('click', (e) => {
         const target = e.target as HTMLElement;
-        if (target.closest('.clip-action-btn') || target.closest('.expand-toggle-btn')) {
+        if (target.closest('.card-action-btn, .clip-action-btn') || target.closest('.expand-toggle-btn')) {
           return;
         }
         this.copyClip(clipId, card as HTMLElement);
@@ -322,7 +344,7 @@ export class PopupController {
       });
     });
 
-    clipsContainer.querySelectorAll('.clip-action-btn').forEach((btn) => {
+    clipsContainer.querySelectorAll('.card-action-btn, .clip-action-btn').forEach((btn) => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
         const action = btn.getAttribute('data-action');
@@ -411,15 +433,14 @@ export class PopupController {
 
   public async toggleTheme(): Promise<void> {
     const isLight = document.body.classList.toggle('light-mode');
+    document.documentElement.setAttribute('data-theme', isLight ? 'light' : 'dark');
     await this.storage.setTheme(isLight ? 'light' : 'dark');
     this.updateThemeUI();
   }
 
   private updateThemeUI(): void {
-    const isLight = document.body.classList.contains('light-mode');
     const themeToggle = document.getElementById('themeToggle');
     if (themeToggle) {
-      themeToggle.textContent = isLight ? '☀️' : '🌙';
       themeToggle.title = this.i18n.t('themeToggle');
     }
   }
@@ -435,6 +456,7 @@ export class PopupController {
 
   private updateLanguageUI(): void {
     const locale = this.i18n.getLocale();
+    const langIndicator = document.getElementById('langIndicator');
     const languageToggle = document.getElementById('languageToggle');
     const appTitle = document.getElementById('appTitle');
     const tabAllLabel = document.getElementById('tabAllLabel');
@@ -461,8 +483,10 @@ export class PopupController {
     const exportBtnText = document.getElementById('exportBtnText');
     const importBtnText = document.getElementById('importBtnText');
 
+    if (langIndicator) {
+      langIndicator.textContent = locale.toUpperCase();
+    }
     if (languageToggle) {
-      languageToggle.textContent = locale === 'en' ? '🇬🇧' : '🇫🇷';
       languageToggle.title = `${this.i18n.t('language')}: ${locale.toUpperCase()}`;
     }
 
@@ -500,11 +524,13 @@ export class PopupController {
     const previewContent = document.getElementById('previewContent');
     const previewModal = document.getElementById('previewModal');
     if (previewContent) previewContent.textContent = clip.text;
+    previewModal?.classList.add('open');
     previewModal?.classList.add('show');
   }
 
   private closePreviewModal(): void {
     const previewModal = document.getElementById('previewModal');
+    previewModal?.classList.remove('open');
     previewModal?.classList.remove('show');
     this.activePreviewClip = null;
   }
@@ -521,11 +547,13 @@ export class PopupController {
     if (settingIgnorePasswords) settingIgnorePasswords.checked = settings.ignorePasswords;
     if (settingMaxClips) settingMaxClips.value = String(settings.maxClips);
     if (settingMaxAge) settingMaxAge.value = String(settings.maxAgeMs);
+    settingsModal?.classList.add('open');
     settingsModal?.classList.add('show');
   }
 
   private closeSettingsModal(): void {
     const settingsModal = document.getElementById('settingsModal');
+    settingsModal?.classList.remove('open');
     settingsModal?.classList.remove('show');
   }
 
@@ -606,31 +634,31 @@ export class PopupController {
   private getEmptyStateHtml(): string {
     let titleKey = 'emptyAllTitle';
     let textKey = 'emptyAllText';
-    let icon = '📋';
+    let iconSvg = `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"></rect><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path></svg>`;
 
     if (this.searchQuery) {
       titleKey = 'emptySearchTitle';
       textKey = 'emptySearchText';
-      icon = '🔍';
+      iconSvg = `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>`;
     } else if (this.filter === 'links') {
       titleKey = 'emptyLinksTitle';
       textKey = 'emptyLinksText';
-      icon = '🔗';
+      iconSvg = `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>`;
     } else if (this.filter === 'code') {
       titleKey = 'emptyCodeTitle';
       textKey = 'emptyCodeText';
-      icon = '💻';
+      iconSvg = `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>`;
     } else if (this.filter === 'pinned') {
       titleKey = 'emptyPinnedTitle';
       textKey = 'emptyPinnedText';
-      icon = '📌';
+      iconSvg = `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="17" x2="12" y2="22"></line><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"></path></svg>`;
     }
 
     return `
       <div class="empty-state">
-        <div class="empty-state-icon">${icon}</div>
-        <h3>${this.i18n.t(titleKey)}</h3>
-        <p>${this.i18n.t(textKey)}</p>
+        <div class="empty-state-icon">${iconSvg}</div>
+        <h3 class="empty-state-title">${this.i18n.t(titleKey)}</h3>
+        <p class="empty-state-desc">${this.i18n.t(textKey)}</p>
       </div>
     `;
   }

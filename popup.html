@@ -1,110 +1,221 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PHP - Paste History Past</title>
-
   <link rel="stylesheet" href="popup.css">
 </head>
-
 <body>
-  <div class="header">
-    <div class="header-top">
-      <div class="header-left">
-        <img src="icons/logo.svg" alt="App Logo" class="header-logo">
-
-        <h1>PHP - Paste History Past</h1>
-        <span class="clip-count" id="clipCount">0</span>
-      </div>
-      <div class="header-actions">
-        <button class="icon-btn" id="languageToggle" title="Language">🇬🇧</button>
-        <button class="icon-btn" id="themeToggle" title="Toggle theme">🌙</button>
-        <button class="icon-btn" id="settingsBtn" title="Settings">⚙️</button>
-        <button class="icon-btn" id="refreshBtn" title="Refresh">🔄</button>
-        <button class="icon-btn" id="clearAll" title="Clear all">🗑️</button>
-      </div>
-    </div>
-
-    <div class="tabs">
-      <button class="tab active" data-tab="all">
-        <span class="tab-text">All</span>
-        <span id="allCount" class="tab-count">0</span>
-      </button>
-      <button class="tab" data-tab="links">
-        <span class="tab-text">Links</span>
-        <span id="linksCount" class="tab-count">0</span>
-      </button>
-      <button class="tab" data-tab="pinned">
-        <span class="tab-text">Pinned</span>
-        <span id="pinnedCount" class="tab-count">0</span>
-      </button>
-    </div>
-
-    <div class="search-box">
-      <span class="search-icon">🔍</span>
-      <input type="text" id="searchInput" placeholder="Search your clips...">
-      <button class="clear-search" id="clearSearch">✕</button>
-    </div>
-    <div id="searchResults" class="search-results-count"></div>
-  </div>
-
-  <div class="clips-container" id="clipsContainer">
-  </div>
-
-  <div class="modal-overlay" id="modalOverlay">
-    <div class="modal">
-      <div class="modal-header">
-        <div class="modal-title">Full Preview</div>
-        <button class="modal-close" id="modalClose">✕</button>
-      </div>
-      <div class="modal-text" id="modalText"></div>
-    </div>
-  </div>
-
-  <div class="modal-overlay" id="settingsOverlay">
-    <div class="modal">
-      <div class="modal-header">
-        <div class="modal-title" id="settingsTitle">Settings</div>
-        <button class="modal-close" id="settingsClose">✕</button>
-      </div>
-      <div class="modal-content">
-        <div class="setting-item">
-          <span id="saveUrlLabel">Save source URL</span>
-          <label class="switch">
-            <input type="checkbox" id="settingSaveUrl" checked>
-            <span class="slider round"></span>
-          </label>
+  <div class="app-container">
+    <!-- Modern Minimalist Header -->
+    <header class="header">
+      <div class="header-top">
+        <div class="header-brand">
+          <img src="icons/logo.svg" alt="PHP Logo" class="app-logo">
+          <div class="brand-info">
+            <span class="brand-title" id="appTitle">PHP</span>
+            <span class="badge-pill" id="clipCount">0</span>
+          </div>
         </div>
-        <div class="setting-item">
-          <span id="maxClipsLabel">Max clips limit</span>
-          <select id="settingMaxClips" class="settings-select">
-            <option value="25">25</option>
-            <option value="50" selected>50</option>
-            <option value="100">100</option>
-            <option value="200">200</option>
-          </select>
-        </div>
-        <div class="setting-item">
-          <span id="maxAgeLabel">Clip retention period</span>
-          <select id="settingMaxAge" class="settings-select">
-            <option value="86400000" id="expiry1DayOpt">1 Day</option>
-            <option value="604800000" id="expiry7DaysOpt">7 Days</option>
-            <option value="2592000000" id="expiry30DaysOpt">30 Days</option>
-            <option value="0" id="expiryNeverOpt">Never</option>
-          </select>
+
+        <div class="header-actions">
+          <button class="icon-btn" id="languageToggle" title="Language" aria-label="Toggle language">
+            <span class="lang-text" id="langIndicator">EN</span>
+          </button>
+          
+          <button class="icon-btn" id="themeToggle" title="Toggle theme" aria-label="Toggle theme">
+            <!-- Moon / Sun SVG -->
+            <svg class="theme-icon icon-moon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
+            </svg>
+            <svg class="theme-icon icon-sun" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="4"></circle>
+              <path d="M12 2v2"></path>
+              <path d="M12 20v2"></path>
+              <path d="m4.93 4.93 1.41 1.41"></path>
+              <path d="m17.66 17.66 1.41 1.41"></path>
+              <path d="M2 12h2"></path>
+              <path d="M20 12h2"></path>
+              <path d="m6.34 17.66-1.41 1.41"></path>
+              <path d="m19.07 4.93-1.41 1.41"></path>
+            </svg>
+          </button>
+
+          <button class="icon-btn" id="settingsBtn" title="Settings" aria-label="Open settings">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+          </button>
+
+          <button class="icon-btn" id="refreshBtn" title="Refresh" aria-label="Refresh clips">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+              <path d="M3 3v5h5"></path>
+              <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"></path>
+              <path d="M16 16h5v5"></path>
+            </svg>
+          </button>
+
+          <button class="icon-btn danger-hover" id="clearAllBtn" title="Clear all" aria-label="Clear unpinned clips">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 6h18"></path>
+              <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+              <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+            </svg>
+          </button>
         </div>
       </div>
-    </div>
-  </div>
 
-  <div class="copied-toast" id="copiedToast">
-    <span>✓ Copied to clipboard</span>
+      <!-- Modern Segmented Control Navigation -->
+      <nav class="segmented-control" role="tablist">
+        <button class="segment-btn active" data-tab="all" role="tab" aria-selected="true">
+          <span id="tabAllLabel">All</span>
+          <span class="segment-count" id="allCount">0</span>
+        </button>
+        <button class="segment-btn" data-tab="links" role="tab" aria-selected="false">
+          <span id="tabLinksLabel">Links</span>
+          <span class="segment-count" id="linksCount">0</span>
+        </button>
+        <button class="segment-btn" data-tab="code" role="tab" aria-selected="false">
+          <span id="tabCodeLabel">Code</span>
+          <span class="segment-count" id="codeCount">0</span>
+        </button>
+        <button class="segment-btn" data-tab="pinned" role="tab" aria-selected="false">
+          <span id="tabPinnedLabel">Pinned</span>
+          <span class="segment-count" id="pinnedCount">0</span>
+        </button>
+      </nav>
+
+      <!-- Minimal Search Box -->
+      <div class="search-container">
+        <div class="search-input-wrapper">
+          <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <path d="m21 21-4.3-4.3"></path>
+          </svg>
+          <input type="text" id="searchInput" placeholder="Search clips (Ctrl/Cmd + F)..." autocomplete="off" spellcheck="false">
+          <button class="clear-search-btn" id="clearSearchBtn" aria-label="Clear search">✕</button>
+        </div>
+        <div class="search-feedback" id="searchFeedback"></div>
+      </div>
+    </header>
+
+    <!-- Clips Container -->
+    <main class="clips-container" id="clipsContainer" role="list">
+      <!-- Dynamically Rendered Cards -->
+    </main>
+
+    <!-- Reader / Preview Modal -->
+    <div class="modal-backdrop" id="previewModal" role="dialog" aria-modal="true" aria-labelledby="previewModalTitle">
+      <div class="modal-dialog">
+        <div class="modal-header">
+          <h2 class="modal-title" id="previewModalTitle">Full Preview</h2>
+          <div class="modal-header-actions">
+            <button class="btn btn-sm btn-primary" id="previewCopyBtn">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect>
+                <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path>
+              </svg>
+              <span>Copy</span>
+            </button>
+            <button class="modal-close-btn" id="previewCloseBtn" aria-label="Close modal">✕</button>
+          </div>
+        </div>
+        <div class="modal-body">
+          <pre class="preview-content" id="previewContent"></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal-backdrop" id="settingsModal" role="dialog" aria-modal="true" aria-labelledby="settingsModalTitle">
+      <div class="modal-dialog">
+        <div class="modal-header">
+          <h2 class="modal-title" id="settingsModalTitle">Settings</h2>
+          <button class="modal-close-btn" id="settingsCloseBtn" aria-label="Close settings">✕</button>
+        </div>
+        <div class="modal-body settings-body">
+          <div class="setting-row">
+            <div class="setting-text">
+              <label for="settingSaveUrl" id="saveUrlLabel">Save source website URL</label>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="settingSaveUrl" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-row">
+            <div class="setting-text">
+              <label for="settingIgnorePasswords" id="ignorePasswordsLabel">Ignore sensitive fields & passwords</label>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="settingIgnorePasswords" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-row">
+            <div class="setting-text">
+              <label for="settingMaxClips" id="maxClipsLabel">Maximum clips in history</label>
+            </div>
+            <select id="settingMaxClips" class="form-select">
+              <option value="25">25 clips</option>
+              <option value="50" selected>50 clips</option>
+              <option value="100">100 clips</option>
+              <option value="200">200 clips</option>
+            </select>
+          </div>
+
+          <div class="setting-row">
+            <div class="setting-text">
+              <label for="settingMaxAge" id="maxAgeLabel">Clip retention period</label>
+            </div>
+            <select id="settingMaxAge" class="form-select">
+              <option value="86400000" id="opt1Day">24 Hours</option>
+              <option value="604800000" id="opt7Days">7 Days</option>
+              <option value="2592000000" id="opt30Days">30 Days</option>
+              <option value="0" id="optNever">Never (Keep forever)</option>
+            </select>
+          </div>
+
+          <hr class="settings-divider">
+
+          <div class="backup-section">
+            <h3 class="backup-title" id="backupSectionTitle">Backup & Restore</h3>
+            <div class="backup-actions">
+              <button class="btn btn-secondary btn-full" id="exportBackupBtn">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="17 8 12 3 7 8"></polyline>
+                  <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+                <span id="exportBtnText">Export (JSON)</span>
+              </button>
+              <button class="btn btn-secondary btn-full" id="importBackupBtn">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="7 10 12 15 17 10"></polyline>
+                  <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                <span id="importBtnText">Import (JSON)</span>
+              </button>
+              <input type="file" id="importFileInput" accept=".json" style="display: none;">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toastNotification" role="status" aria-live="polite">
+      <span class="toast-message" id="toastMessage">✓ Copied to clipboard</span>
+    </div>
   </div>
 
   <script src="i18n.js"></script>
   <script src="popup.js"></script>
 </body>
-
 </html>
