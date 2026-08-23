@@ -415,12 +415,23 @@ document.addEventListener('DOMContentLoaded', async () => {
         searchInput.placeholder = i18n.t('searchPlaceholder');
         refreshBtn.title = i18n.t('refresh');
         clearAllBtn.title = i18n.t('clearAll');
+        const snipBtn = document.getElementById('snipOcrBtn');
+        if (snipBtn) snipBtn.title = i18n.t('snipOcrBtn');
         settingsBtn.title = i18n.t('settings');
     }
 
     // --- Init ---
     const { theme } = await chrome.storage.local.get('theme');
     if (theme === 'light') document.body.classList.add('light-mode');
+
+    document.getElementById('snipOcrBtn')?.addEventListener('click', async () => {
+        if (typeof chrome !== 'undefined' && chrome.runtime) {
+            try {
+                await chrome.runtime.sendMessage({ type: 'START_SNIP_OCR' });
+            } catch {}
+            window.close();
+        }
+    });
 
     document.querySelectorAll('.segment-btn').forEach(btn => {
         btn.addEventListener('click', () => {

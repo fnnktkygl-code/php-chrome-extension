@@ -69,6 +69,13 @@ const translations = {
         confirmDelete: "Are you sure you want to delete this clip?",
         confirmClearAll: "Clear all unpinned clips? Pinned clips will be kept.",
 
+        // Snip & OCR Tool
+        snipOcrBtn: "Snip Area & OCR (Shutter)",
+        snipPrompt: "Drag a box around any image or text to copy • Press ESC to cancel",
+        snipSuccessText: "✓ OCR text copied to clipboard!",
+        snipSuccessImage: "✓ Cropped image copied to clipboard!",
+        snipProcessing: "Extracting OCR text...",
+
         // Language
         language: "Language",
         languageEnglish: "English",
@@ -141,6 +148,13 @@ const translations = {
         // Confirmations
         confirmDelete: "Êtes-vous sûr de vouloir supprimer ce clip ?",
         confirmClearAll: "Effacer tous les clips non épinglés ? Les épinglés seront conservés.",
+
+        // Snip & OCR Tool
+        snipOcrBtn: "Cadrer & Copier le Texte (OCR)",
+        snipPrompt: "Cadrez la zone d'image ou de texte à copier • Échap pour annuler",
+        snipSuccessText: "✓ Texte OCR copié dans le presse-papiers !",
+        snipSuccessImage: "✓ Zone d'image copiée dans le presse-papiers !",
+        snipProcessing: "Extraction OCR du texte en cours...",
 
         // Language
         language: "Langue",

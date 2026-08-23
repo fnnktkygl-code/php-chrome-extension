@@ -73,6 +73,15 @@ export type RuntimeMessage =
   | {
       type: 'IMPORT_BACKUP';
       data: ExportData;
+    }
+  | {
+      type: 'START_SNIP_OCR';
+    }
+  | {
+      type: 'CAPTURE_TAB_VIEWPORT';
+    }
+  | {
+      type: 'ACTIVATE_SNIPPER';
     };
 
 export interface MessageResponse<T = unknown> {

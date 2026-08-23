@@ -98,6 +98,50 @@ chrome.runtime.onMessage.addListener((message: RuntimeMessage, sender, sendRespo
       return true;
     }
 
+    case 'START_SNIP_OCR': {
+      if (chrome.tabs) {
+        chrome.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
+          const activeTab = tabs[0];
+          if (activeTab && activeTab.id) {
+            chrome.tabs.sendMessage(activeTab.id, { type: 'ACTIVATE_SNIPPER' }).catch(() => {
+              if (chrome.scripting) {
+                chrome.scripting
+                  .executeScript({
+                    target: { tabId: activeTab.id! },
+                    files: ['content.js']
+                  })
+                  .then(() => {
+                    setTimeout(() => {
+                      chrome.tabs.sendMessage(activeTab.id!, { type: 'ACTIVATE_SNIPPER' }).catch(() => {});
+                    }, 50);
+                  })
+                  .catch(() => {});
+              }
+            });
+          }
+        });
+      }
+      sendResponse({ success: true });
+      return true;
+    }
+
+    case 'CAPTURE_TAB_VIEWPORT': {
+      if (chrome.tabs && chrome.tabs.captureVisibleTab) {
+        chrome.tabs
+          .captureVisibleTab({ format: 'png' })
+          .then((dataUrl) => {
+            sendResponse({ success: true, dataUrl });
+          })
+          .catch((err) => {
+            console.error('PHP Background: Failed to capture viewport:', err);
+            sendResponse({ success: false, error: err?.message || 'Capture failed' });
+          });
+        return true;
+      }
+      sendResponse({ success: false, error: 'captureVisibleTab not available' });
+      return true;
+    }
+
     default:
       return false;
   }

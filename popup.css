@@ -200,6 +200,12 @@ body {
   border-color: transparent;
 }
 
+.icon-btn.snip-btn:hover {
+  background-color: var(--accent-subtle);
+  color: var(--accent-primary);
+  border-color: rgba(37, 99, 235, 0.25);
+}
+
 .lang-text {
   font-size: 11px;
   font-weight: 700;

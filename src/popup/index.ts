@@ -111,6 +111,16 @@ export class PopupController {
     refreshBtn?.addEventListener('click', () => this.refreshClips());
     clearAllBtn?.addEventListener('click', () => this.clearAllClips());
 
+    const snipOcrBtn = document.getElementById('snipOcrBtn');
+    snipOcrBtn?.addEventListener('click', async () => {
+      if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.sendMessage) {
+        try {
+          await chrome.runtime.sendMessage({ type: 'START_SNIP_OCR' });
+        } catch {}
+        window.close();
+      }
+    });
+
     // Modals
     previewCloseBtn?.addEventListener('click', () => this.closePreviewModal());
     previewCopyBtn?.addEventListener('click', () => {
@@ -628,6 +638,8 @@ export class PopupController {
     if (searchInput) searchInput.placeholder = this.i18n.t('searchPlaceholder');
     if (refreshBtn) refreshBtn.title = this.i18n.t('refresh');
     if (clearAllBtn) clearAllBtn.title = this.i18n.t('clearAll');
+    const snipOcrBtn = document.getElementById('snipOcrBtn');
+    if (snipOcrBtn) snipOcrBtn.title = this.i18n.t('snipOcrBtn');
     if (settingsBtn) settingsBtn.title = this.i18n.t('settings');
 
     // Modals

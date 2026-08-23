@@ -41,6 +41,46 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       .then((clearedCount) => sendResponse({ success: true, clearedCount }))
       .catch((err) => sendResponse({ success: false, error: err.message }));
     return true;
+  } else if (message.type === 'START_SNIP_OCR') {
+    if (chrome.tabs) {
+      chrome.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
+        const activeTab = tabs[0];
+        if (activeTab && activeTab.id) {
+          chrome.tabs.sendMessage(activeTab.id, { type: 'ACTIVATE_SNIPPER' }).catch(() => {
+            if (chrome.scripting) {
+              chrome.scripting
+                .executeScript({
+                  target: { tabId: activeTab.id },
+                  files: ['content.js']
+                })
+                .then(() => {
+                  setTimeout(() => {
+                    chrome.tabs.sendMessage(activeTab.id, { type: 'ACTIVATE_SNIPPER' }).catch(() => {});
+                  }, 50);
+                })
+                .catch(() => {});
+            }
+          });
+        }
+      });
+    }
+    sendResponse({ success: true });
+    return true;
+  } else if (message.type === 'CAPTURE_TAB_VIEWPORT') {
+    if (chrome.tabs && chrome.tabs.captureVisibleTab) {
+      chrome.tabs
+        .captureVisibleTab(undefined, { format: 'png' })
+        .then((dataUrl) => {
+          sendResponse({ success: true, dataUrl });
+        })
+        .catch((err) => {
+          console.error('Failed to capture viewport:', err);
+          sendResponse({ success: false, error: err ? err.message : 'Capture failed' });
+        });
+      return true;
+    }
+    sendResponse({ success: false, error: 'captureVisibleTab not available' });
+    return true;
   }
 });
 
