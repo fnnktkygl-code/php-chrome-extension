@@ -500,6 +500,30 @@ body.light-mode .theme-icon.icon-sun {
   border: 1px solid var(--border-subtle);
 }
 
+.expand-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background-color: var(--bg-app);
+  border: 1px solid var(--border-subtle);
+  color: var(--accent-text);
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 500;
+  padding: 3.5px 8px;
+  border-radius: 5px;
+  cursor: pointer;
+  width: fit-content;
+  transition: all 0.15s ease;
+  margin-top: 1px;
+}
+
+.expand-toggle-btn:hover {
+  background-color: var(--bg-surface-hover);
+  border-color: var(--border-hover);
+  color: var(--text-primary);
+}
+
 /* Image Card Styling */
 .clip-card.is-image .clip-image-preview-wrapper {
   display: flex;

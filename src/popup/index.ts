@@ -349,7 +349,13 @@ export class PopupController {
 
         ${
           needsExpand && !isImage
-            ? `<button class="expand-toggle-btn" data-id="${clip.id}">${isExpanded ? this.i18n.t('readLess') : this.i18n.t('readMore')}</button>`
+            ? `<button class="expand-toggle-btn" data-id="${clip.id}" title="${this.i18n.t('preview')}">
+                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                   <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path>
+                   <circle cx="12" cy="12" r="3"></circle>
+                 </svg>
+                 <span>${this.i18n.t('readMore')}</span>
+               </button>`
             : ''
         }
 
@@ -414,12 +420,7 @@ export class PopupController {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
         const id = Number(btn.getAttribute('data-id'));
-        if (this.expandedClipIds.has(id)) {
-          this.expandedClipIds.delete(id);
-        } else {
-          this.expandedClipIds.add(id);
-        }
-        this.render();
+        this.openPreviewModal(id);
       });
     });
 

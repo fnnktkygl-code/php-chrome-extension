@@ -231,6 +231,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                         ${clip.qrData ? `<div class="clip-ocr-preview">🔗 ${escapeHtml(clip.qrData)}</div>` : ''}
                     ` : `
                         <div class="clip-content ${isSnippet ? 'code-snippet' : ''}">${escaped}</div>
+                        ${(clip.text || '').length > 220 ? `
+                            <button class="expand-toggle-btn" data-id="${clip.id}" title="${i18n.t('preview')}">
+                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                                <span>${i18n.t('readMore')}</span>
+                            </button>
+                        ` : ''}
                     `}
 
                     <div class="clip-footer">
@@ -258,13 +264,21 @@ document.addEventListener('DOMContentLoaded', async () => {
         clipsContainer.querySelectorAll('.clip-card').forEach(card => {
             const id = Number(card.getAttribute('data-id'));
             card.addEventListener('click', e => {
-                if (e.target.closest('.card-action-btn')) return;
+                if (e.target.closest('.card-action-btn, .expand-toggle-btn')) return;
                 const clip = state.clips.find(c => c.id === id);
                 if (clip && clip.category === 'image' && clip.dataUrl) {
                     copyImageClip(id, card);
                 } else {
                     copyTextClip(id, card);
                 }
+            });
+        });
+
+        clipsContainer.querySelectorAll('.expand-toggle-btn').forEach(btn => {
+            btn.addEventListener('click', e => {
+                e.stopPropagation();
+                const id = Number(btn.getAttribute('data-id'));
+                openPreview(id);
             });
         });
 
